@@ -2,6 +2,7 @@
 
 <section id="linearize" class="chapter">
 <h2><span class="chn">14</span> Operating points and linearization</h2>
+<p>Part II built the press as eight nonlinear equations. A computer can integrate them, and the animation does, but they cannot answer the question a designer cares about: if I raise the controller gain, will the press shake? That question has a sharp answer only for <i>linear</i> systems, whose responses add and scale, and whose behaviour is fixed by a handful of numbers, the poles. So we look at the press near one way of running, where small disturbances obey linear equations. This chapter finds those ways of running and the linear equations around them, and ends with the tool that makes linear systems easy: the transfer function.</p>
 <h3 id="oppoint">14.1 Steady operation</h3>
 <p>An operating point is a state $\mathbf{x}_0$ and input $u_0$ at which nothing changes except, possibly, the ram position, which may drift at a constant speed $v_0$. Setting the right-hand sides of section 13 to zero gives three conditions: the valve delivers exactly the flow the moving ram needs on each side, $Q_A = A_A v_0$ and $Q_B = -A_B v_0$; and the forces on the ram balance,</p>
 $$p_A A_A - p_B A_B = mg + F_f(v_0) + F_w.$$
@@ -14,12 +15,27 @@ $$\delta\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x}_0, u_0) + \underbrace{\frac{\pa
 <p>At an operating point $\mathbf{f}(\mathbf{x}_0,u_0)$ is zero, apart from the constant drift $v_0$ in the position row, which does not affect the deviations. What remains is a linear system $\delta\dot{\mathbf{x}} = A\,\delta\mathbf{x} + B\,\delta u$ with an output $\delta y_{\mathrm{out}} = C\,\delta\mathbf{x}$: $C$ picks the ram position for the position loop, and $k_w\,\delta y + c_w\,\delta\dot{y}$ for the force loop. The page computes $A$ and $B$ by central differences,</p>
 $$A_{ij} \approx \frac{f_i(\mathbf{x}_0 + h\,\mathbf{e}_j) - f_i(\mathbf{x}_0 - h\,\mathbf{e}_j)}{2h}, \tag{14.2}$$
 <p>whose error is of order $h^2$; the check script compares them with exact symbolic derivatives and finds agreement to $10^{-9}$ or better.</p>
+<p>Each block of the map is replaced, in effect, by its tangent at the operating point: the orifice by a flow gain and a resistance (the $K_q$ and $K_c$ of chapter 9), the friction by a slope, each chamber by a capacitor with a fixed $V/\beta$. The linear model is a chain of these tangents.</p>
 <div class="callout"><div class="ctag">Where linearization fails</div>The derivative must exist. The critically lapped valve has a kink at $x_v = 0$, where the flow gain jumps from $K_v\sqrt{p_a}$ to $K_v\sqrt{p_s - p_a}$, and the friction law has a near-jump at $\dot{y} = 0$. Around such points a linear model describes only one side; problems 3 and 4 explore what follows.</div>
+
+<h3 id="laplace">14.3 Transfer functions in one page</h3>
+<div class="picture">Ring a bell and it hums at its own notes; push it slowly and it just leans. A linear system has a small set of motions of its own, and every response is built from them.</div>
+<p>Try a solution of the form $\delta\mathbf{x}(t) = \mathbf{X}e^{st}$ in $\delta\dot{\mathbf{x}} = A\,\delta\mathbf{x}$, with $s$ a complex number. Differentiation brings down a factor $s$, so $s\mathbf{X} = A\mathbf{X}$: the exponents $s$ the system can follow on its own are the eigenvalues of $A$. They are its <b>poles</b>. A pole $s = \sigma + j\omega$ is a motion that oscillates at angular frequency $\omega$ and grows or decays at rate $\sigma$. The system is stable when every pole has $\sigma &lt; 0$: every motion of its own dies away.</p>
+<p>To handle inputs as well, use the <b>Laplace transform</b>, which turns a function of time into a function of $s$,</p>
+$$X(s) = \int_0^\infty x(t)\,e^{-st}\,dt.$$
+<p>Its one essential property is what it does to a derivative. Integrate by parts:</p>
+$$\begin{aligned}
+\int_0^\infty \dot{x}\,e^{-st}\,dt &= \Big[x\,e^{-st}\Big]_0^\infty + s\int_0^\infty x\,e^{-st}\,dt\\
+&= s\,X(s) - x(0).
+\end{aligned}$$
+<p>Starting from rest, $x(0) = 0$, every time derivative becomes a multiplication by $s$. A set of linear differential equations becomes a set of algebraic ones, which can be solved for the output in terms of the input. The ratio is the <b>transfer function</b>: for $\delta\dot{\mathbf{x}} = A\delta\mathbf{x} + B\delta u$ and $\delta y = C\delta\mathbf{x}$, $s\mathbf{X} = A\mathbf{X} + BU$ gives</p>
+$$\frac{Y(s)}{U(s)} = C\left(sI - A\right)^{-1}B.$$
+<p>Its denominator is $\det(sI - A)$, which vanishes at the poles. Setting $s = j\omega$ gives the response to a sine of angular frequency $\omega$, as in chapter 10: the size of $Y/U$ is the gain, its angle the phase.</p>
 </section>
 
 <section id="merritt" class="chapter">
 <h2><span class="chn">15</span> The classical valve-controlled cylinder</h2>
-<p>Before trusting a computer with an eight-state model, it pays to derive the textbook three-state version by hand. Take a symmetric cylinder of area $A$ with equal chamber volumes $V_t/2$, no hose, a symmetric valve, and define the load pressure $p_L = p_1 - p_2$ and the load flow $Q_L = (Q_1 + Q_2)/2$. Linearized, the valve gives</p>
+<p>Before trusting a computer with an eight-state model, it pays to derive the textbook three-state version by hand. Take a symmetric cylinder of area $A$ with equal chamber volumes $V_t/2$, no hose, a symmetric valve, and define the load pressure $p_L = p_1 - p_2$ and the load flow $Q_L = (Q_1 + Q_2)/2$, where $Q_1$ flows into chamber 1 and $Q_2$ out of chamber 2. These two combinations are chosen because they are what the piston feels: the net force on it is $Ap_L$, and in steady motion $Q_L$ is exactly the flow that moves it. Linearized as in (9.3), the valve gives</p>
 $$Q_L = K_q\,x_v - K_c\,p_L. \tag{15.1}$$
 <p>Write the build-up equation (7.2) for each chamber, $(V_t/2\beta)\,\dot{p}_1 = Q_1 - A\dot{y} - C_{tp}p_L$ and $(V_t/2\beta)\,\dot{p}_2 = -Q_2 + A\dot{y} + C_{tp}p_L$, where $C_{tp}$ is the leakage across the piston. Subtract the second from the first and divide by 2:</p>
 $$Q_L = A\,\dot{y} + C_{tp}\,p_L + \frac{V_t}{4\beta}\,\dot{p}_L. \tag{15.2}$$
@@ -40,16 +56,24 @@ $$\begin{aligned}
 N(s) &= \frac{V_t m}{4\beta A^2}s^2 + \left(\frac{K_{ce}m}{A^2} + \frac{bV_t}{4\beta A^2}\right)s\\
 &\quad + 1 + \frac{bK_{ce}}{A^2}.
 \end{aligned} \tag{15.3}$$
-<p>The last term $bK_{ce}/A^2$ is tiny in practice. Dropping it leaves the classic form</p>
+<p>The last term $bK_{ce}/A^2$ is tiny in practice: friction times leakage, both small. Dropping it, $N(s)$ is a quadratic with constant term 1. Write any such quadratic in the standard form of a damped oscillator, $s^2/\omega_h^2 + 2\zeta_h s/\omega_h + 1$, and compare coefficients. The $s^2$ terms give $1/\omega_h^2 = V_tm/(4\beta A^2)$. The $s$ terms give</p>
+$$\frac{2\zeta_h}{\omega_h} = \frac{K_{ce}m}{A^2} + \frac{bV_t}{4\beta A^2} \qquad\Rightarrow\qquad \zeta_h = \frac{\omega_h}{2}\left(\frac{K_{ce}m}{A^2} + \frac{bV_t}{4\beta A^2}\right),$$
+<p>and substituting $\omega_h = 2A\sqrt{\beta/(V_tm)}$ gives the $\zeta_h$ below. This is the classic form:</p>
 $$\boxed{\;\frac{Y(s)}{X_v(s)} = \frac{K_q/A}{s\left(\dfrac{s^2}{\omega_h^2} + \dfrac{2\zeta_h}{\omega_h}s + 1\right)},\qquad \omega_h^2 = \frac{4\beta A^2}{V_t\,m},\qquad \zeta_h = \frac{K_{ce}}{A}\sqrt{\frac{\beta m}{V_t}} + \frac{b}{4A}\sqrt{\frac{V_t}{\beta m}}\;} \tag{15.4}$$
-<p>Read it as two pieces. The integrator $1/s$: a valve opening produces a flow, and a flow produces a speed, not a position. And a resonance at $\omega_h$: the ram bouncing on the oil springs of its two chambers. For the differential cylinder of the press, the two springs differ, and the same reasoning gives</p>
+<p>Read it as two pieces. The integrator $1/s$: a valve opening produces a flow, and a flow produces a speed, not a position. And a resonance at $\omega_h$: the ram bouncing on the oil springs of its two chambers. The oil spring can be derived directly, which also handles the differential cylinder of the press, whose two chambers differ. Close both ports and push the ram up by a small $\delta y$. The cap chamber grows by $A_A\delta y$, and by (7.1) its pressure falls by $\beta_A A_A\delta y/V_A$; the force on the ram falls by $A_A$ times that. The rod chamber shrinks by $A_B\delta y$; its pressure rises by $\beta_B A_B\delta y/V_B$ and pushes down on the annulus $A_B$. Both changes oppose the push, so the two chambers are springs in parallel:</p>
+$$k_{\mathrm{oil}} = \frac{\beta_A A_A^2}{V_A} + \frac{\beta_B A_B^2}{V_B}.$$
+<p>The ram of mass $m$ bounces on them at $\omega_h^2 = k_{\mathrm{oil}}/m$:</p>
 $$\omega_h^2 = \frac{1}{m}\left(\frac{\beta_A A_A^2}{V_A} + \frac{\beta_B A_B^2}{V_B}\right). \tag{15.5}$$
 <div class="press"><div class="ctag">In our press</div>With both ports closed, (15.5) gives 245 Hz near the bottom of the stroke, 213 Hz near the top and a minimum of 170 Hz at 115 mm. With the hose attached, the full model's pole table shows the ram at 88 Hz with damping 0.26 at the cruise point: the hose slug and the extra volume soften and couple the resonance.</div>
-<p>The shape of (15.4) explains the most famous rule of thumb in hydraulic servo design. A proportional position loop around an integrator has loop gain $K_{\mathrm{vel}}/s$, where the velocity gain $K_{\mathrm{vel}}$ (in 1/s) is the ram speed per metre of position error. It is not the valve coefficient $K_v$ of (8.2). It stays stable only if the loop gain has fallen well below 1 by the time the resonance lifts it again, which gives approximately $K_{\mathrm{vel}} &lt; 2\zeta_h\omega_h$. Problem 9 shows why the real limit is lower.</p>
+<p>The shape of (15.4) explains the most famous rule of thumb in hydraulic servo design. A proportional position loop around an integrator has loop gain $K_{\mathrm{vel}}/s$, where the velocity gain $K_{\mathrm{vel}}$ (in 1/s) is the ram speed per metre of position error. It is not the valve coefficient $K_v$ of (8.2). It stays stable only if the loop gain has fallen well below 1 by the time the resonance lifts it again, which gives approximately $K_{\mathrm{vel}} &lt; 2\zeta_h\omega_h$. Here is why. With the controller’s gain folded in, the loop gain is $L(s) = K_{\mathrm{vel}}/[s(s^2/\omega_h^2 + 2\zeta_hs/\omega_h + 1)]$. At $s = j\omega_h$ the quadratic equals $-1 + 2j\zeta_h + 1 = 2j\zeta_h$, so</p>
+$$L(j\omega_h) = \frac{K_{\mathrm{vel}}}{j\omega_h\cdot 2j\zeta_h} = -\frac{K_{\mathrm{vel}}}{2\zeta_h\omega_h}.$$
+<p>It is a negative real number: at the resonance the signal comes back exactly inverted. Chapter 18 shows that the loop goes unstable when such a signal comes back larger than it left, $|L| &gt; 1$, which is the rule. Problem 9 on the press page shows why the real limit is lower: the valve’s own lag and the sampling delay add phase, so the inversion happens below $\omega_h$, where the gain is larger.</p>
 </section>
 
 <section id="sampling" class="chapter">
 <h2><span class="chn">16</span> From continuous to discrete: sample and hold</h2>
+<p>The controller is a computer. It does not see the press continuously: it reads the sensors once a millisecond, computes, and writes one number to the valve, which then stays put until the next millisecond. Two blocks of the map do this, the sampler and the hold, and this chapter finds what they do to the loop.</p>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>continuous signals $y(t)$ and $F(t)$, and one command $u_k$ per sample</div><div class="bx">sampler and hold<small>read every $T_s$, hold in between</small></div><div class="io out"><span class="lbl">answers with</span>samples $y_k$, $F_k$, and a staircase command $u(t)$</div></div>
 <h3 id="variation">16.1 Solving the linear system exactly</h3>
 <p>A digital controller sees the plant only at the sampling instants $t_k = kT_s$ and holds its command constant in between (a <i>zero-order hold</i>). For a linear system we can then step from one sample to the next exactly. Multiply $\dot{\mathbf{x}} = A\mathbf{x} + B u$ by the integrating factor $e^{-At}$:</p>
 $$\frac{d}{dt}\left(e^{-At}\mathbf{x}\right) = e^{-At}\left(\dot{\mathbf{x}} - A\mathbf{x}\right) = e^{-At}B\,u.$$
@@ -71,9 +95,14 @@ $$\begin{aligned}
 <p>exactly the integral in (16.1). The page computes $e^{MT_s}$ by scaling and squaring: it divides $MT_s$ by $2^j$ until its norm is below one half, sums the Taylor series, and squares the result $j$ times. SciPy's <span class="mono">expm</span> agrees to $10^{-14}$.</p>
 
 <h3 id="ztransform">16.3 The z-transform</h3>
-<p>Let $z$ stand for “one sample later”, so that $\mathbf{x}_{k+1}$ becomes $z\,\mathbf{x}$. Then (16.1) gives $\mathbf{x} = (zI - \Phi)^{-1}\Gamma u$ and the discrete transfer function from command to output is</p>
+<p>The z-transform does for sequences what the Laplace transform does for functions. Define $X(z) = \sum_{k\ge0} x_k z^{-k}$. Shifting a sequence one step ahead multiplies its transform by $z$, if it starts from zero:</p>
+$$\begin{aligned}
+\sum_{k\ge0} x_{k+1}z^{-k} &= z\sum_{k\ge0} x_{k+1}z^{-(k+1)}\\
+&= z\left(X(z) - x_0\right) = z\,X(z).
+\end{aligned}$$
+<p>So $z$ means “one sample later”, and $\mathbf{x}_{k+1}$ becomes $z\,\mathbf{X}$. Then (16.1) gives $\mathbf{x} = (zI - \Phi)^{-1}\Gamma u$ and the discrete transfer function from command to output is</p>
 $$G(z) = C\left(zI - \Phi\right)^{-1}\Gamma. \tag{16.3}$$
-<p>A continuous pole $s$ becomes a discrete pole $z = e^{sT_s}$. The left half-plane, where continuous systems are stable, maps into the unit disc: a sampled system is stable when every pole satisfies $|z| &lt; 1$. A sinusoid of angular frequency $\omega$ corresponds to $z = e^{j\omega T_s}$, a point on the unit circle; frequencies run up to the Nyquist frequency, $\omega = \pi/T_s$ or $f = 1/(2T_s)$, which is 500 Hz at $T_s = 1$ ms.</p>
+<p>A continuous pole $s$ becomes a discrete pole $z = e^{sT_s}$, because a motion $e^{st}$ seen only at $t = kT_s$ is the sequence $(e^{sT_s})^k$. The left half-plane, where continuous systems are stable, maps into the unit disc: a sampled system is stable when every pole satisfies $|z| &lt; 1$. A sinusoid of angular frequency $\omega$ corresponds to $z = e^{j\omega T_s}$, a point on the unit circle; frequencies run up to the Nyquist frequency, $\omega = \pi/T_s$ or $f = 1/(2T_s)$, which is 500 Hz at $T_s = 1$ ms.</p>
 
 <h3 id="zoh">16.4 What the hold costs in phase</h3>
 <figure class="fig"><svg viewBox="0 0 420 150" role="img" aria-label="A smooth signal and its staircase approximation from a zero-order hold, lagging by half a sample on average">
@@ -81,7 +110,7 @@ $$G(z) = C\left(zI - \Phi\right)^{-1}\Gamma. \tag{16.3}$$
 <path d="M 20 120 H 60 V 116 H 100 V 98 H 140 V 66 H 180 V 40 H 220 V 30 H 260 V 40 H 300 V 66 H 340 V 84 H 380 V 78 H 400" fill="none" stroke="var(--wine)" stroke-width="2.5"/>
 <text x="250" y="140" class="svgt" fill="var(--wine)">held command (staircase)</text><text x="20" y="20" class="svgt" fill="var(--blue)">what the controller would like</text></svg>
 <figcaption>Figure 7. A zero-order hold turns a smooth command into a staircase that trails it by half a sample on average.</figcaption></figure>
-<p>A hold that keeps each value for one period has the impulse response of a rectangle of width $T_s$. Its transfer function, normalized to unit gain at zero frequency, is $(1 - e^{-sT_s})/(sT_s)$. On the imaginary axis, factor out half a period:</p>
+<p>Hit the hold with one unit sample and it answers with a rectangle: height 1 for one period, then nothing. The Laplace transform of that rectangle is $\int_0^{T_s} e^{-st}\,dt = (1 - e^{-sT_s})/s$. Divided by $T_s$, so that a steady input passes with unit gain, the hold’s transfer function is $(1 - e^{-sT_s})/(sT_s)$. On the imaginary axis, factor out half a period:</p>
 $$\begin{aligned}
 \frac{1 - e^{-j\omega T_s}}{j\omega T_s} &= e^{-j\omega T_s/2}\,\frac{e^{j\omega T_s/2} - e^{-j\omega T_s/2}}{j\omega T_s}\\
 &= e^{-j\omega T_s/2}\;\frac{\sin(\omega T_s/2)}{\omega T_s/2}.
@@ -93,9 +122,11 @@ $$\varphi_{\mathrm{sampling}} = 1.5\,\omega T_s. \tag{16.5}$$
 
 <section id="digital" class="chapter">
 <h2><span class="chn">17</span> The digital controller</h2>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>the set-point and the latest measurement, once a sample</div><div class="bx">the controller<small>PID, PI and a supervisor</small></div><div class="io out"><span class="lbl">answers with</span>the command $u_k \in [-1, 1]$</div></div>
 <h3 id="pid">17.1 PID in discrete time</h3>
-<p>A continuous PID controller acts on the error $e = y_{\mathrm{ref}} - y$ as $u = K_p e + K_i\int e\,dt + K_d\,\dot{e}$. In a computer the integral becomes a running sum. The <i>backward Euler</i> rule approximates $\int_0^{t_k} e\,dt$ by adding $T_s e_k$ each sample:</p>
+<p>A continuous PID controller acts on the error $e = y_{\mathrm{ref}} - y$ as $u = K_p e + K_i\int e\,dt + K_d\,\dot{e}$. Each term has a job. The <b>proportional</b> term pushes harder the further the ram is from where it should be. The <b>integral</b> term remembers: a steady load, such as the ram’s weight, needs a steady command, and a proportional term can only supply it if a steady error is left over; the integral keeps growing until that error is gone, because only then does it stop changing. The <b>derivative</b> term looks ahead: it brakes when the error is closing fast. In a computer the integral becomes a running sum. The <i>backward Euler</i> rule approximates $\int_0^{t_k} e\,dt$ by adding $T_s e_k$ each sample:</p>
 $$I_k = I_{k-1} + K_i T_s\,e_k \qquad\Rightarrow\qquad \frac{I(z)}{E(z)} = \frac{K_i T_s\,z}{z - 1}. \tag{17.1}$$
+<p>The transfer function follows from the shift rule: $I_{k-1}$ transforms to $z^{-1}I(z)$, so $I(z)(1 - z^{-1}) = K_iT_s\,E(z)$, and multiplying top and bottom by $z$ gives (17.1). Its pole at $z = 1$ is the discrete image of the integrator’s pole at $s = 0$.</p>
 <p>A pure derivative amplifies noise without limit, so it is filtered: $D(s) = K_d\,s/(T_f s + 1)$ with $T_f = 2$ ms. Backward Euler replaces $s$ by $(1 - z^{-1})/T_s$:</p>
 $$D(z) = \frac{K_d\,\dfrac{1 - z^{-1}}{T_s}}{T_f\,\dfrac{1 - z^{-1}}{T_s} + 1} = \frac{K_d\,(z - 1)}{(T_f + T_s)\,z - T_f}. \tag{17.2}$$
 <p>Cross-multiply, $\left[(T_f + T_s)\,z - T_f\right]D(z) = K_d\,(z - 1)\,E(z)$, and read a factor $z$ as one step ahead in time: $(T_f + T_s)\,D_{k+1} - T_f\,D_k = K_d\,(e_{k+1} - e_k)$. Shift every index down by one and solve for $D_k$. In the time domain this is the line the page runs:</p>
@@ -123,7 +154,7 @@ $$u_{\mathrm{ff}} = K_{\mathrm{ff}}\,v_{\mathrm{ref}}, \qquad K_{\mathrm{ff}} = 
 <h3 id="closed">18.1 The closed-loop matrix</h3>
 <p>Write the controller as a discrete state-space system from its input (the error) to its output (the command): $\mathbf{s}_{k+1} = A_c\mathbf{s}_k + B_c e_k$ and $u_k = C_c\mathbf{s}_k + D_c e_k$. Add one state $w_k$ for the command that is still waiting one sample to reach the valve. With $e_k = -C\mathbf{x}_k$ for deviations from the reference:</p>
 $$\begin{bmatrix}\mathbf{x}\\ \mathbf{s}\\ w\end{bmatrix}_{k+1} = \begin{bmatrix}\Phi & 0 & \Gamma\\ -B_cC & A_c & 0\\ -D_cC & C_c & 0\end{bmatrix}\begin{bmatrix}\mathbf{x}\\ \mathbf{s}\\ w\end{bmatrix}_{k}. \tag{18.1}$$
-<p>The loop is stable if and only if every eigenvalue of this matrix lies inside the unit circle. The page computes them with a balanced Hessenberg QR algorithm; NumPy agrees to $10^{-15}$.</p>
+<p>Read it row by row. The plant advances by (16.1), driven by the command $w_k$ that reached the valve this sample. The controller’s memory advances on the error $-C\mathbf{x}_k$. The command it computes now, $C_c\mathbf{s}_k - D_cC\mathbf{x}_k$, is stored in $w$ and reaches the valve one sample later. The loop is stable if and only if every eigenvalue of this matrix lies inside the unit circle. The page computes them with a balanced Hessenberg QR algorithm; NumPy agrees to $10^{-15}$.</p>
 
 <figure class="fig"><svg viewBox="0 0 560 190" role="img" aria-label="Block diagram: reference minus measurement gives the error; the controller K(z) computes the command; one sample of delay; the zero-order hold; the plant; the sampler feeds the measurement back">
 <circle cx="52" cy="70" r="14" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.5"/><text x="46" y="75" class="svgt">Σ</text>
@@ -145,7 +176,7 @@ $$\begin{bmatrix}\mathbf{x}\\ \mathbf{s}\\ w\end{bmatrix}_{k+1} = \begin{bmatrix
 <h3 id="nyquist">18.2 The loop gain and the Nyquist plot</h3>
 <p>Cut the loop at the controller output and follow a sinusoid around it: through the delay $z^{-1}$, the plant $G(z)$ and the controller $K(z)$. The ratio of what comes back to what went in is the <i>loop gain</i></p>
 $$L(z) = K(z)\,z^{-1}\,G(z), \qquad z = e^{j\omega T_s}. \tag{18.2}$$
-<p>The closed loop amplifies by $1/(1 + L)$, so trouble comes when $L$ approaches $-1$: a signal returns inverted with the same size and reinforces itself. Nyquist's criterion makes this exact. Plot $L(e^{j\omega T_s})$ as $\omega$ runs once around; the number of clockwise encirclements of $-1$ equals the number of unstable closed-loop poles minus the number of unstable open-loop poles. The integrators of our loops sit exactly on the unit circle, at $z = 1$; the contour goes around them on a small half-circle, which is why the curve comes in from infinity.</p>
+<p>The closed loop amplifies by $1/(1 + L)$, so trouble comes when $L$ approaches $-1$: a signal returns inverted with the same size and reinforces itself. Nyquist's criterion makes this exact, and the reason is a fact about complex functions, the argument principle. The closed-loop poles are the values of $z$ where $1 + L(z) = 0$. Walk $z$ once around the unit circle and watch the complex number $1 + L(z)$. Each zero of $1 + L$ outside the circle, which is an unstable closed-loop pole, makes $1 + L$ wind once around the origin; each pole of $L$ outside the circle, an unstable open-loop pole, winds it once the other way. Winding $1 + L$ around 0 is the same as winding $L$ around $-1$. So plot $L(e^{j\omega T_s})$ as $\omega$ runs once around: the number of clockwise encirclements of $-1$ equals the number of unstable closed-loop poles minus the number of unstable open-loop poles. The integrators of our loops sit exactly on the unit circle, at $z = 1$; the contour goes around them on a small half-circle, which is why the curve comes in from infinity.</p>
 
 <h3 id="margins">18.3 Gain and phase margins</h3>
 <p>Two numbers summarize how far the curve stays from $-1$. The <b>phase margin</b> is how much extra lag the loop tolerates at the crossover frequency, where $|L| = 1$: $\mathrm{PM} = 180^\circ + \angle L$. The <b>gain margin</b> is by how much the gain may grow at the frequency where the phase reaches $-180^\circ$: $\mathrm{GM} = -20\log_{10}|L|$ in decibels. Good designs keep $\mathrm{PM} \gtrsim 45^\circ$ and $\mathrm{GM} \gtrsim 6\ \mathrm{dB}$.</p>
@@ -154,8 +185,7 @@ $$L(z) = K(z)\,z^{-1}\,G(z), \qquad z = e^{j\omega T_s}. \tag{18.2}$$
 
 <section id="energy" class="chapter">
 <h2><span class="chn">19</span> Where the energy goes</h2>
-<p>Multiply each equation of the model by its “flow” partner and add them. The pump power $p_sQ_S$ splits as follows. The valve keeps (9.2). Each chamber turns $p\,(Q_{\mathrm{in}} - Q_{\mathrm{out}} - \dot{V})$ into compression energy; by (7.2) that is $p\,(V/\beta)\,\dot{p}$. The hose slug gains $\tfrac{d}{dt}(\tfrac12 IQ_h^2)$ and loses $\Delta p_f Q_h$ to friction. The ram gains kinetic energy $\tfrac{d}{dt}(\tfrac12 m\dot{y}^2)$ and height $mg\dot{y}$, and loses $F_f\dot{y}$ to the seals and $F_w\dot{y}$ to the specimen. Summing every term, all the internal pressures cancel in pairs:</p>
-<p>Step by step, with $p_T = 0$. The valve's power balance (9.2) says where the pump power goes first:</p>
+<p>Multiply each equation of the model by its “flow” partner and add them. The pump power $p_sQ_S$ splits as follows. The valve keeps (9.2). Each chamber turns $p\,(Q_{\mathrm{in}} - Q_{\mathrm{out}} - \dot{V})$ into compression energy; by (7.2) that is $p\,(V/\beta)\,\dot{p}$. The hose slug gains $\tfrac{d}{dt}(\tfrac12 IQ_h^2)$ and loses $\Delta p_f Q_h$ to friction. The ram gains kinetic energy $\tfrac{d}{dt}(\tfrac12 m\dot{y}^2)$ and height $mg\dot{y}$, and loses $F_f\dot{y}$ to the seals and $F_w\dot{y}$ to the specimen. Summing every term, all the internal pressures cancel in pairs. Here is the bookkeeping, with $p_T = 0$. The valve's power balance (9.2) says where the pump power goes first:</p>
 $$p_aQ_A + p_BQ_B = p_sQ_S - P_{\mathrm{valve}}.$$
 <p>Multiply the port-volume equation of (12.1) by $p_a$, the hose equation (11.1) by $Q_h$, and the two chamber equations of (12.1) by $p_A$ and $p_B$. With $I\dot{Q}_hQ_h = \frac{d}{dt}\left(\tfrac12 IQ_h^2\right)$:</p>
 $$\begin{aligned}
@@ -188,9 +218,9 @@ $$\begin{aligned}
 \mathbf{k}_4 &= \mathbf{f}\!\left(\mathbf{x}_n + h\,\mathbf{k}_3\right),\\
 \mathbf{x}_{n+1} &= \mathbf{x}_n + \tfrac{h}{6}\left(\mathbf{k}_1 + 2\mathbf{k}_2 + 2\mathbf{k}_3 + \mathbf{k}_4\right).
 \end{aligned} \tag{20.1}$$
-<p>The local error is of order $h^5$ and the global error of order $h^4$: halving the step cuts the error sixteen-fold. Applied to the test equation $\dot{x} = \lambda x$, one step multiplies $x$ by</p>
+<p>The local error is of order $h^5$ and the global error of order $h^4$: halving the step cuts the error sixteen-fold. To see what that means, apply one step to the test equation $\dot{x} = \lambda x$, whose exact solution grows by $e^{\lambda h}$ per step. Writing $z = \lambda h$: $\mathbf{k}_1 = \lambda x$, $\mathbf{k}_2 = \lambda x(1 + z/2)$, $\mathbf{k}_3 = \lambda x(1 + z/2 + z^2/4)$, $\mathbf{k}_4 = \lambda x(1 + z + z^2/2 + z^3/4)$. The weighted average multiplies $x$ by</p>
 $$R(\lambda h) = 1 + \lambda h + \frac{(\lambda h)^2}{2} + \frac{(\lambda h)^3}{6} + \frac{(\lambda h)^4}{24}.$$
-<p>The method is stable while $|R| \le 1$, which on the negative real axis means $\lambda h \ge -2.79$.</p>
+<p>These are the first five terms of $e^{\lambda h}$, so the error per step starts at $(\lambda h)^5/120$: the order $h^5$ quoted above. The method is stable while $|R| \le 1$, which on the negative real axis means $\lambda h \ge -2.79$.</p>
 <div class="press"><div class="ctag">In our press</div>The fastest mode of the servo model is the small valve-port volume charged through a wide-open valve while the pressure drop across it is small, where the rounded orifice law (8.3) is steepest: $\lambda \approx \beta K_v/(V_a\sqrt{p_{\mathrm{tr}}}) \approx 1.6\times10^4\ \mathrm{s^{-1}}$. With $h = 10^{-5}$ s, $\lambda h \approx 0.16$, far inside the stable region. Stops are located inside a step by bisection on the step length, to $10^{-12}$ s.</div>
 <p>Trust, but verify. Each page has an independent Python script that re-derives the equations with SymPy, recomputes the matrices with SciPy and NumPy, re-integrates the full nonlinear motion with SciPy's adaptive DOP853 integrator, and compares everything with the page, sample by sample.</p>
 <div class="callout"><div class="ctag">After Part III you can</div><ul>
