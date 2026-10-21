@@ -485,7 +485,7 @@ L(z) = K(z)·z⁻¹·G(z),   z = e^(jωT_s)           closed loop: x⁺ = Φx + 
       <li>Increase T<sub>s</sub> from 1 ms to 4 ms with the gains unchanged. Read off the phase margin before and after, and explain the loss using the phase of z⁻¹ and of the zero-order hold, −ωT<sub>s</sub> − ωT<sub>s</sub>/2. <a href="#sol-6">Worked solution ↓</a></li>
       <li>In force control the plant from spool to force is nearly an integrator. Show that for a stiff specimen dF/dt ≈ k<sub>eff</sub>·K<sub>q</sub>·x<sub>v</sub>/A<sub>A</sub>, with 1/k<sub>eff</sub> = 1/k<sub>w</sub> + V<sub>A</sub>/(β·A<sub>A</sub>²). Use this to choose K<sub>pF</sub> for a 10 Hz crossover, then check your answer in the Bode plot. <a href="#sol-7">Worked solution ↓</a></li>
       <li>The bumpless transfer loads the integrator with the last command. Remove it on paper: what jump in u, and in force, would the switch from creep to press produce at the default gains? <a href="#sol-8">Worked solution ↓</a></li>
-      <li>Find the largest K<sub>p</sub> for which the position loop is stable. Compare it with the textbook rule K<sub>v</sub> &lt; 2ζ<sub>h</sub>ω<sub>h</sub>, where K<sub>v</sub> is the velocity gain of the loop, and explain the difference. <a href="#sol-9">Worked solution ↓</a></li>
+      <li>Find the largest K<sub>p</sub> for which the position loop is stable. Compare it with the textbook rule K<sub>vel</sub> &lt; 2ζ<sub>h</sub>ω<sub>h</sub>, where K<sub>vel</sub> is the velocity gain of the loop, and explain the difference. <a href="#sol-9">Worked solution ↓</a></li>
     </ol>
   </section>
 
@@ -642,8 +642,8 @@ L ≈ K_pF·K_I/(jω)  ⇒  ω_c = K_pF·K_I  ⇒  K_pF = 2π·10 Hz / K_I</div>
         <h3 class="sub">Working</h3>
         <div class="eq">bisection on max|z| of the closed loop at the cruise point, K_i fixed at 125 %/(mm·s):
 K_{p,max} = 897.5 m⁻¹ = 89.8 %/mm,   crossover at the edge 37.8 Hz
-velocity gain K_v = K_p · (ẏ per unit u) = K_p · 0.246 m/s:   61.5 s⁻¹ (default), 220.8 s⁻¹ (edge)
-rule K_v &lt; 2ζ_h·ω_h,  ram mode 87.9 Hz, ζ_h = 0.26:   2·0.26·552 = 286.8 s⁻¹  ⇒  K_p = 116.6 %/mm</div>
+velocity gain K_vel = K_p · (ẏ per unit u) = K_p · 0.246 m/s:   61.5 s⁻¹ (default), 220.8 s⁻¹ (edge)
+rule K_vel &lt; 2ζ_h·ω_h,  ram mode 87.9 Hz, ζ_h = 0.26:   2·0.26·552 = 286.8 s⁻¹  ⇒  K_p = 116.6 %/mm</div>
         <p>The rule assumes an integrator times one resonance and is 30 % optimistic here. At 37.8 Hz the 60 Hz valve already lags 55.6°, the delay and hold another 20.4°, and the PI zero and hose mode add more. The phase runs out before the resonance peak does.</p>
         <p><span class="tag">Twist</span> At 98.7 %/mm, 10 % past the edge, the nonlinear cycle still completes. The instability exists only around the cruise point, grows slowly (|z| = 1.006 at 95 %/mm), and the ram passes through quickly. A linear instability is a local statement.</p>
         <div class="row-buttons">
@@ -1756,7 +1756,9 @@ function drawValve(c, v, st, ports, fs, mono) {
   c.fillStyle = bg; roundRect(c, x0, y0, v.w, H, 8); c.fill();
   c.save(); roundRect(c, x0, y0, v.w, H, 8); c.clip();
   c.strokeStyle = 'rgba(35, 22, 15, 0.09)'; c.lineWidth = 1;
-  for (let k = -H; k < v.w; k += 7) { c.beginPath(); c.moveTo(x0 + k, y0 + H); c.lineTo(x0 + k + H, y0); c.stroke(); }
+  c.beginPath();   // one path for all the hatch lines: one stroke instead of forty
+  for (let k = -H; k < v.w; k += 7) { c.moveTo(x0 + k, y0 + H); c.lineTo(x0 + k + H, y0); }
+  c.stroke();
   c.restore();
 
   // drillings and the tank gallery

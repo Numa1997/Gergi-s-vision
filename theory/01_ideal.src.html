@@ -15,6 +15,14 @@
 
 <section id="pressure" class="chapter">
 <h2><span class="chn">1</span> Pressure, and why it spreads</h2>
+<div class="callout"><div class="ctag">The ideal press, in symbols</div>
+<p>Two vertical cylinders stand on a horizontal pipe, all full of oil of density $\rho = 870\ \mathrm{kg/m^3}$, with $g = 9.81\ \mathrm{m/s^2}$. The numbers are the defaults of the first animation.</p>
+<ul>
+<li>Input cylinder: bore $d_1 = 4\ \mathrm{cm}$, area $A_1 = \pi d_1^2/4 = 12.57\ \mathrm{cm^2}$. Its piston has mass $m_1 = 2\ \mathrm{kg}$ and is pushed down by the force $F_1$, which rises to 170 N over $\tau = 0.3\ \mathrm{s}$.</li>
+<li>Output cylinder: bore $d_2 = 12\ \mathrm{cm}$, area $A_2 = 113.1\ \mathrm{cm^2}$. Its piston has mass $m_2 = 10\ \mathrm{kg}$ and carries the load $M = 150\ \mathrm{kg}$.</li>
+<li>Connecting pipe: bore $d_p = 1\ \mathrm{cm}$, area $A_p = 0.785\ \mathrm{cm^2}$, length $L_p = 0.8\ \mathrm{m}$.</li>
+<li>At rest both oil columns stand $H_0 = 0.40\ \mathrm{m}$ high. The input piston can travel 0.30 m before it reaches its stop.</li>
+</ul></div>
 <h3 id="pressure-isotropic">1.1 Pressure has no direction</h3>
 <div class="picture">Press your palm flat into a bathtub and then turn it sideways: the push of the water on your palm does not change with its orientation, only with how deep it is.</div>
 <p>Take a tiny wedge of fluid at rest: a right-angled prism with a vertical face of height $dy$, a horizontal face of width $dx$, and a sloping face of length $ds$ at angle $\theta$, all of depth $dz$ into the page. The geometry gives $dx = ds\cos\theta$ and $dy = ds\sin\theta$. Call the pressures on the three faces $p_x$, $p_y$ and $p_n$. In a fluid at rest there is no shear, so every force is normal to its face.</p>
@@ -39,12 +47,12 @@ $$p(z)\,A - p(z+dz)\,A - \rho g A\,dz = 0.$$
 <p>Divide by $A\,dz$ and let $dz \to 0$:</p>
 $$\frac{dp}{dz} = -\rho g \qquad\Rightarrow\qquad p(z) = p(z_0) - \rho g\,(z - z_0). \tag{1.3}$$
 <div class="check"><div class="ctag">Check</div>Units: $\mathrm{kg/m^3}\cdot\mathrm{m/s^2} = \mathrm{N/m^3} = \mathrm{Pa/m}$, a pressure per metre. Sign: going up ($z$ increasing) the pressure falls, as it should.</div>
-<div class="press"><div class="ctag">In our press</div>For oil of $\rho = 870\ \mathrm{kg/m^3}$, $\rho g = 8.53\ \mathrm{kPa}$ per metre of depth. The 0.40 m columns of the ideal press add only 3.4 kPa at their base, against 150 kPa under the input piston.</div>
+<div class="press"><div class="ctag">In our press</div>For oil of $\rho = 870\ \mathrm{kg/m^3}$, $\rho g = 8.53\ \mathrm{kPa}$ per metre of depth. The 0.40 m columns of the ideal press add only 3.4 kPa at their base, against about 150 kPa under the input piston: at rest $(F_1 + m_1 g)/A_1 = (170 + 19.6)\ \mathrm{N}/12.57\ \mathrm{cm^2} = 151\ \mathrm{kPa}$.</div>
 
 <h3 id="pascal">1.3 Pascal's principle and the force multiplier</h3>
 <p>Equation (1.3) says that pressure differences in a fluid at rest depend only on height differences. Raise the pressure at one point by $\Delta p$, wait for the fluid to settle, and the pressure everywhere rises by the same $\Delta p$. That is Pascal's principle. Put a piston of area $A_1$ on one side and a piston of area $A_2$ on the other, at the same height:</p>
 $$p = \frac{F_1}{A_1} = \frac{F_2}{A_2} \qquad\Rightarrow\qquad F_2 = F_1\,\frac{A_2}{A_1}. \tag{1.4}$$
-<div class="press"><div class="ctag">In our press</div>$d_1 = 4\ \mathrm{cm}$ and $d_2 = 12\ \mathrm{cm}$ give $A_2/A_1 = 9$. A push of 170 N becomes 1530 N. The load and its piston weigh $160\times 9.81 = 1569.6\ \mathrm{N}$, so the push alone would not lift them; the 19.6 N weight of the input piston tips the balance (section 4.7).</div>
+<div class="press"><div class="ctag">In our press</div>$d_1 = 4\ \mathrm{cm}$ and $d_2 = 12\ \mathrm{cm}$ give $A_2/A_1 = 9$. A push of 170 N becomes 1530 N. The load and its piston weigh $160\times 9.81 = 1569.6\ \mathrm{N}$, so the push alone would not lift them; the 19.6 N weight of the input piston tips the balance, see (4.6).</div>
 </section>
 
 <section id="continuity" class="chapter">
@@ -110,7 +118,7 @@ $$\frac{d}{dt}\frac{\partial T}{\partial \dot{x}} - \frac{\partial T}{\partial x
 $$\frac{d}{dt}\left(\mu\dot{x}\right) = \mu\ddot{x} + \frac{d\mu}{dx}\frac{dx}{dt}\dot{x} = \mu\ddot{x} + \mu'\dot{x}^2, \qquad \frac{\partial T}{\partial x} = \tfrac12\mu'\dot{x}^2.$$
 <p>Insert into (4.4):</p>
 $$\boxed{\;\mu(x)\,\ddot{x} + \tfrac12\,\mu'\,\dot{x}^2 = F_1(t) - V'(x)\;}\qquad \mu' = \rho A_1\left(r^2 - 1\right). \tag{4.5}$$
-<p>This is the equation the first animation integrates, with fourth-order Runge–Kutta and a step of $10^{-4}$ s.</p>
+<p>This is the equation the first animation integrates, with fourth-order Runge–Kutta and a step of $10^{-4}$ s (chapter 20 explains the method).</p>
 
 <h3 id="lag-mu">4.5 What the strange term means</h3>
 <p>The term $\tfrac12\mu'\dot{x}^2$ appears because the effective mass changes as the press moves. As $x$ grows, oil leaves the left column, where it moved at speed $v$, and joins the right column, where it moves at only $rv$. With $r < 1$ the moving mass shrinks: $\mu' < 0$. Each bit of oil that changes columns gives up momentum, and the term accounts for that exchange. A chain sliding off the edge of a table obeys an equation of the same form.</p>
@@ -135,7 +143,7 @@ $$\begin{aligned}
 <section id="pressure-field" class="chapter">
 <h2><span class="chn">5</span> The pressure field inside a moving fluid</h2>
 <h3 id="euler">5.1 Newton's law for a fluid particle</h3>
-<p>Follow a small cylinder of fluid of cross-section $dA$ and length $ds$ along a streamline, with $s$ measured along the flow. Its mass is $\rho\,dA\,ds$. Its acceleration is the rate of change of its speed $v(s,t)$ as it moves, which has two parts: the speed changes in time at a fixed place, and the particle moves to a place where the speed is different:</p>
+<p>Follow a small cylinder of fluid of cross-section $dA$ and length $ds$ along a streamline (a line that is everywhere tangent to the flow velocity), with $s$ measured along the flow. Its mass is $\rho\,dA\,ds$. Its acceleration is the rate of change of its speed $v(s,t)$ as it moves, which has two parts: the speed changes in time at a fixed place, and the particle moves to a place where the speed is different:</p>
 $$\frac{Dv}{Dt} = \frac{\partial v}{\partial t} + v\,\frac{\partial v}{\partial s}.$$
 <p>The forces along $s$ are the pressure difference across its two ends, $-\frac{\partial p}{\partial s}\,ds\,dA$, and the component of its weight, $-\rho g\,dA\,ds\,\frac{\partial z}{\partial s}$. Newton's second law, divided by $dA\,ds$:</p>
 $$\rho\left(\frac{\partial v}{\partial t} + v\frac{\partial v}{\partial s}\right) = -\frac{\partial p}{\partial s} - \rho g\frac{\partial z}{\partial s}. \tag{5.1}$$
@@ -184,14 +192,14 @@ $$\begin{aligned}
 &\quad + \tfrac12\rho A_1\left(r^2-1\right)v^2 + \rho g A_1(1+r)\,x.
 \end{aligned}$$
 <p>Divide by $A_1$: this is exactly (5.9) with $p_{\mathrm{top}} = p_2$. The pressure walk and the Lagrangian agree, term by term. The page uses $p_{\mathrm{top}} = p_2$ as a live self-test; the error stays below $10^{-10}$ Pa.</p>
-<div class="press"><div class="ctag">In our press</div>With a 5 mm pipe, $A_1/A_p = 64$ and the oil in the pipe reaches 23.5 m/s just before the stop. The Bernoulli drop $\tfrac12\rho v_p^2 \approx 240\ \mathrm{kPa}$ is larger than the 150 kPa in the oil, and the gauge pressure at the pipe outlet falls to −96 kPa: the oil there is under suction, which is why the page warns about cavitation.</div>
+<div class="press"><div class="ctag">In our press</div>With a 5 mm pipe, $A_1/A_p = 64$ and the oil in the pipe reaches 23.5 m/s just before the stop. The Bernoulli drop $\tfrac12\rho v_p^2 \approx 240\ \mathrm{kPa}$ is larger than the 150 kPa in the oil, and the gauge pressure at the pipe outlet falls to −96 kPa: the oil there is under suction, which is why the page warns about cavitation. Cavitation is what happens when the absolute pressure falls to the vapour pressure of the oil: dissolved air and vapour come out as bubbles, which collapse violently where the pressure recovers and pit the metal.</div>
 </section>
 
 <section id="ideal-limits" class="chapter">
 <h2><span class="chn">6</span> What “ideal” leaves out</h2>
-<p>The stops in the first animation are perfectly rigid and perfectly inelastic: the speed drops to zero in zero time and the kinetic energy $\tfrac12\mu v^2$ disappears. That needs an infinite force. With real oil of bulk modulus $\beta$ the stop is a stiff spring; Part II builds exactly that. A rough estimate of the pressure spike: the moving mass $\mu$ hitting an oil spring of stiffness $k_o = \beta A_1^2/V$ carries $\tfrac12\mu v^2 = \tfrac12 k_o \delta^2$ into it, so the peak force is $v\sqrt{k_o\mu}$ and</p>
+<p>The stops in the first animation are perfectly rigid and perfectly inelastic: the speed drops to zero in zero time and the kinetic energy $\tfrac12\mu v^2$ disappears. That needs an infinite force. With real oil of bulk modulus $\beta$ (the pressure it takes to squeeze a volume by a given fraction, chapter 7) the stop is a stiff spring; Part II builds exactly that. A rough estimate of the pressure spike: the moving mass $\mu$ hitting an oil spring of stiffness $k_o = \beta A_1^2/V$ carries $\tfrac12\mu v^2 = \tfrac12 k_o \delta^2$ into it, so the peak force is $v\sqrt{k_o\mu}$ and</p>
 $$\Delta p_{\mathrm{peak}} \approx \frac{v\sqrt{k_o\,\mu}}{A_1}. \tag{6.1}$$
-<p>Take all 5.1 L of oil as the spring volume $V$, $\beta = 1.5\ \mathrm{GPa}$ and the impact speed $v = 0.67\ \mathrm{m/s}$: this is about 1.5 MPa, ten times the working pressure, ringing at $\sqrt{k_o/\mu}/2\pi \approx 25\ \mathrm{Hz}$. Two more losses are missing. Where the jet leaves the pipe into the wide column it does not slow down gently: it mixes, and the Borda–Carnot loss $\tfrac12\rho(v_p - rv)^2$ is burnt as heat. And viscosity resists every flow; chapter 11 derives how much.</p>
+<p>Take all 5.1 L of oil as the spring volume $V$, $\beta = 1.5\ \mathrm{GPa}$ and the impact speed $v = 0.67\ \mathrm{m/s}$: this is about 1.5 MPa, ten times the working pressure, ringing at $\sqrt{k_o/\mu}/2\pi \approx 25\ \mathrm{Hz}$. Two more losses are missing. Where the jet leaves the pipe into the wide column it does not slow down gently: it mixes, and the Borda–Carnot loss of a sudden widening, $\tfrac12\rho(v_p - rv)^2$ per unit volume, the kinetic energy of the speed the jet has to shed, is burnt as heat. And viscosity resists every flow; chapter 11 derives how much.</p>
 <div class="callout"><div class="ctag">After Part I you can</div><ul>
 <li>derive Pascal's force multiplier from the hydrostatic balance (1.3) and continuity (2.1);</li>
 <li>write the kinetic and potential energy of a constrained fluid system and get its equation of motion from Lagrange (4.5);</li>

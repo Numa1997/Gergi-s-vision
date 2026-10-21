@@ -27,7 +27,8 @@ eq_ids = set()
 
 def inner(tex):
     """MathML for a fragment, without the outer <math> element."""
-    mml = convert(tex) if tex.strip() else '<math><mrow></mrow></math>'
+    # display mode, as the cells of aligned are: big operators take their limits underneath
+    mml = convert(tex, display='block') if tex.strip() else '<math><mrow></mrow></math>'
     return re.sub(r'^<math[^>]*>|</math>$', '', mml)
 
 
@@ -38,7 +39,9 @@ def aligned(tex):
     trs = []
     for r in rows:
         cells = r.split('&')
-        tds = ''.join(f'<mtd class="{"ar" if j % 2 == 0 else "al"}">{inner(c)}</mtd>' for j, c in enumerate(cells))
+        # cells of aligned are in display style, as in LaTeX: full-size fractions and limits
+        tds = ''.join(f'<mtd class="{"ar" if j % 2 == 0 else "al"}"><mstyle displaystyle="true" scriptlevel="0">{inner(c)}</mstyle></mtd>'
+                      for j, c in enumerate(cells))
         trs.append(f'<mtr>{tds}</mtr>')
     return f'<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mtable class="aligned">{"".join(trs)}</mtable></math>'
 
