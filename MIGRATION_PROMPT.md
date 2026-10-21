@@ -132,7 +132,7 @@ Report in a few lines and wait for my yes.
      - context line, a draft: "An interactive study · from first principles · 2026";
      - fields: "fluid mechanics · control engineering · numerical simulation".
    - **Title:** "Hydraulic Press Study". **Subtitle,** a draft: "How a digital controller makes 12 MPa of
-     oil press exactly 60 kN."
+     oil press a specimen with 60 kN, and hold it."
    - **Abstract:** in my voice, the same length and register as the other two; show me a draft. It should
      say what you see and can do:
      - a servo-hydraulic press (pump, four-way servo valve, 2 m of hose, differential cylinder and
