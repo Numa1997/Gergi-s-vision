@@ -2289,7 +2289,7 @@ const SYMBOLS = [
   ] },
   { group: 'Oil and hose', rows: [
     ['ρ', 'oil density', () => `${C0.rho} kg/m³`],
-    ['ν, μ', 'kinematic and dynamic viscosity, μ = ρ·ν', () => `${fmt(C0.nu * 1e6, 0)} mm²/s, ${fmt(C0.rho * C0.nu * 1000, 1)} mPa·s`],
+    ['ν, η', 'kinematic and dynamic viscosity, η = ρ·ν', () => `${fmt(C0.nu * 1e6, 0)} mm²/s, ${fmt(C0.rho * C0.nu * 1000, 1)} mPa·s`],
     ['β_oil', 'bulk modulus of oil without air', () => `${fmt(P.betaOil / 1e9, 2)} GPa`],
     ['β_eff(p)', 'bulk modulus with the entrained air; depends on pressure', () => `${fmt(run.plant.beta(0) / 1e6, 1)} MPa at 0, ${fmt(run.plant.beta(1e7) / 1e9, 2)} GPa at 10 MPa`],
     ['α₀', 'air volume fraction at atmospheric pressure', () => `${fmt(100 * P.alpha0, 2)} %`],
@@ -2297,7 +2297,7 @@ const SYMBOLS = [
     ['L_h, d_h', 'hose length and bore', () => `${fmt(P.Lh, 1)} m, ${fmt(P.dh * 1000, 1)} mm`],
     ['A_h, V_h', 'hose cross-section and volume', () => `${fmt(run.plant.Ah * 1e6, 1)} mm², ${fmt(run.plant.Vh * 1e6, 0)} cm³`],
     ['I', 'inertance ρ·L_h/A_h: the oil slug resisting acceleration', () => sci(run.plant.I, 'kg/m⁴')],
-    ['R_lam', 'laminar resistance 128·μ·L_h/(π·d_h⁴)', () => sci(run.plant.Rlam, 'Pa·s/m³')],
+    ['R_lam', 'laminar resistance 128·η·L_h/(π·d_h⁴)', () => sci(run.plant.Rlam, 'Pa·s/m³')],
     ['K_t', 'turbulent and fitting loss coefficient', () => sci(run.plant.Kt, 'kg/m⁷')],
     ['V_a', 'oil volume between valve and hose (port + half the hose)', () => `${fmt(run.plant.Va * 1e6, 0)} cm³`],
     ['V_A, V_B', 'cap and rod chamber volumes; they change with y', () => 'V_A0 + V_h/2 + A_A·y, V_B0 + A_B·(S − y)']
