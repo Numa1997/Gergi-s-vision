@@ -1450,7 +1450,7 @@ function sceneLayout(portrait) {
         tank: { x: 20, y: 1030, w: 200, h: 60 }, pump: [90, 1000],
         cluster: { top: 1100, cy: 1150, r: 33, xs: [44, 130, 216, 302, 388, 474] } }
     : { portrait, W: 1000, H: 868, k: 750, axis: 760, base: 660, fs: 1,
-        valve: { x: 260, y: 380, w: 200, h: 64 }, ctrl: { x: 30, y: 30, w: 330, h: 150 },
+        valve: { x: 260, y: 380, w: 200, h: 64 }, ctrl: { x: 30, y: 30, w: 400, h: 210 },
         tank: { x: 40, y: 610, w: 220, h: 60 }, pump: [110, 560],
         cluster: { top: 722, cy: 778, r: 36, xs: [100, 260, 420, 580, 740, 900] } };
 }
@@ -1491,9 +1491,9 @@ function networkRoutes(L, X, Z, g) {
     lineB: [portB, [portB[0], 300], [rodPort[0] - 40, 300], [rodPort[0] - 40, rodPort[1]], rodPort],
     lineP: [[pumpX, pumpY - 22], [pumpX, 520], [portP[0], 520], portP],
     lineT: [portT, [portT[0], 560], [230, 560], [230, tank.y]],
-    sigU: [[330, 180], [330, v.y - 60], [v.x + 100, v.y - 60], [v.x + 100, motor.y]],
-    sigF: [cellIn, [X(0.31), cellIn[1]], [X(0.31), 22], [440, 22], [440, 60], [360, 60]],
-    sigY: [lvdtIn, [X(0.20), lvdtIn[1]], [X(0.20), 150], [360, 150]],
+    sigU: [[330, L.ctrl.y + L.ctrl.h], [330, v.y - 60], [v.x + 100, v.y - 60], [v.x + 100, motor.y]],
+    sigF: [cellIn, [X(0.31), cellIn[1]], [X(0.31), 22], [445, 22], [445, 60], [L.ctrl.x + L.ctrl.w, 60]],
+    sigY: [lvdtIn, [X(0.20), lvdtIn[1]], [X(0.20), 150], [L.ctrl.x + L.ctrl.w, 150]],
     labels: { u: [336, v.y - 70], F: [X(0.31) - 14, 36], y: [X(0.21), 165] }
   };
 }
@@ -1874,34 +1874,85 @@ function drawSignal(c, pts, phase) {
   c.moveTo(b[0], b[1]); c.lineTo(b[0] - 8 * ux - 4 * uy, b[1] - 8 * uy + 4 * ux); c.lineTo(b[0] - 8 * ux + 4 * uy, b[1] - 8 * uy - 4 * ux); c.closePath(); c.fill();
 }
 /** Controller panel: mode, active law, set-point against measurement, and a bar for the command u. */
-function drawControllerPanel(c, cb, st, fs, portrait, mono, sans) {
+function drawControllerPanel(c, cb, st, fs, portrait, mono, sans, i) {
   c.fillStyle = '#f6eee0'; roundRect(c, cb.x, cb.y, cb.w, cb.h, 10); c.fill();
   c.strokeStyle = COL.wine; c.lineWidth = 1.5; c.stroke();
+  // rows as fractions of the panel height; the landscape panel has a full-width scope strip,
+  // the phone panel puts the scope at its top right, beside the header and the mode
+  const Lr = portrait
+    ? { head: 0.13, mode: 0.34, read: 0.56, bar: 0.78 }
+    : { head: 0.10, mode: 0.27, read: 0.43, scope: [0.51, 0.76], bar: 0.86 };
   const lx = cb.x + 14 * fs, row = f => cb.y + f * cb.h;
   c.textBaseline = 'middle'; c.textAlign = 'left';
   c.fillStyle = COL.wine; c.font = `600 ${10.5 * fs}px "IBM Plex Sans", Arial, sans-serif`;
-  fillRich(c, `DIGITAL CONTROLLER · T_s ${fmt(P.Ts * 1000, 2)} ms`, lx, row(0.13));
+  fillRich(c, `DIGITAL CONTROLLER · T_s ${fmt(P.Ts * 1000, 2)} ms`, lx, row(Lr.head));
   c.font = `${portrait ? 38 : 30}px "Instrument Serif", Georgia, serif`; c.fillStyle = COL.wineDeep;
-  fillRich(c, st.mode, lx, row(0.34));
+  fillRich(c, st.mode, lx, row(Lr.mode));
   const lawW = richWidth(c, st.mode);
   const tagTxt = st.force ? 'FORCE LAW' : 'POSITION LAW';
   c.font = `600 ${9.5 * fs}px "IBM Plex Sans", Arial, sans-serif`;
   const tw = richWidth(c, tagTxt) + 14 * fs;
-  c.fillStyle = st.force ? COL.wine : COL.blue; roundRect(c, lx + lawW + 12, row(0.34) - 9 * fs, tw, 18 * fs, 9 * fs); c.fill();
-  c.fillStyle = '#fbf3e8'; fillRich(c, tagTxt, lx + lawW + 12 + 7 * fs, row(0.34) + 0.5);
+  c.fillStyle = st.force ? COL.wine : COL.blue; roundRect(c, lx + lawW + 12, row(Lr.mode) - 9 * fs, tw, 18 * fs, 9 * fs); c.fill();
+  c.fillStyle = '#fbf3e8'; fillRich(c, tagTxt, lx + lawW + 12 + 7 * fs, row(Lr.mode) + 0.5);
   c.font = mono(12); c.fillStyle = COL.ink;
-  fillRich(c, st.force ? `set ${fmt(st.Fr / 1000, 2)} kN   meas ${fmt(st.F / 1000, 2)} kN` : `set ${fmt(st.yr * 1000, 2)} mm   meas ${fmt(st.y * 1000, 2)} mm`, lx, row(0.56));
+  fillRich(c, st.force ? `set ${fmt(st.Fr / 1000, 2)} kN   meas ${fmt(st.F / 1000, 2)} kN` : `set ${fmt(st.yr * 1000, 2)} mm   meas ${fmt(st.y * 1000, 2)} mm`, lx, row(Lr.read));
+  if (portrait) {
+    const sw = 186, sx = cb.x + cb.w - sw - 12;
+    drawScope(c, sx, row(0.08), sw, row(0.47) - row(0.08), i, st.force, fs);
+  } else {
+    drawScope(c, lx, row(Lr.scope[0]), cb.w - 28 * fs, row(Lr.scope[1]) - row(Lr.scope[0]), i, st.force, fs);
+  }
   // command bar, −100 … +100 %
-  const bx = lx, bw = cb.w - 28 * fs, by = row(0.78), bh = 9 * fs, mid = bx + bw / 2;
+  const bx = lx, bw = cb.w - 28 * fs, by = row(Lr.bar), bh = 9 * fs, mid = bx + bw / 2;
   c.fillStyle = '#e8dcc8'; roundRect(c, bx, by - bh / 2, bw, bh, bh / 2); c.fill();
   const uw = (bw / 2) * Math.max(-1, Math.min(1, st.u));
   c.fillStyle = st.u >= 0 ? COL.wine : COL.blue;
   roundRect(c, Math.min(mid, mid + uw), by - bh / 2, Math.abs(uw), bh, bh / 2); c.fill();
-  c.strokeStyle = COL.ink; c.lineWidth = 1; c.beginPath(); c.moveTo(mid, by - bh); c.lineTo(mid, by + bh); c.stroke();
+  c.strokeStyle = COL.ink; c.lineWidth = 1; c.beginPath(); c.moveTo(mid, by - bh); c.lineTo(mid, by + 0.7 * bh); c.stroke();
   c.font = mono(10.5); c.fillStyle = COL.muted;
   c.textAlign = 'left'; fillRich(c, '−100 %', bx, by + bh * 1.6);
   c.textAlign = 'right'; fillRich(c, '+100 %', bx + bw, by + bh * 1.6);
   c.textAlign = 'center'; c.fillStyle = COL.ink; fillRich(c, `u = ${fmt(100 * st.u, 1)} %`, mid, by + bh * 1.6);
+}
+/** Oscilloscope of the active law over the last second: set-point dashed, measurement solid. */
+function drawScope(c, x, y, w, h, i, force, fs) {
+  const R = run.rec, t1 = R.t[i], t0 = t1 - 1, k0 = recIndex(Math.max(0, t0));
+  const ref = force ? R.Fr : R.yr, meas = force ? R.F : R.y, scale = force ? 1e-3 : 1e3;
+  const same = k => (R.force[k] === 1) === force;
+  let lo = Infinity, hi = -Infinity;
+  for (let k = k0; k <= i; k++) if (same(k)) for (const v of [ref[k] * scale, meas[k] * scale]) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (!Number.isFinite(lo)) { lo = 0; hi = 1; }
+  const span = Math.max(hi - lo, 2), mid = (hi + lo) / 2; lo = mid - 0.6 * span; hi = mid + 0.6 * span;
+  const band = 12 * fs, top = y + band, ph = h - band - 2;      // caption band, then the trace area
+  const px = t => x + w * (t - t0), py = v => top + ph * (1 - (v - lo) / (hi - lo));
+  c.save();
+  c.fillStyle = '#efe4d1'; roundRect(c, x, y, w, h, 5); c.fill();
+  c.strokeStyle = 'rgba(108, 88, 73, 0.18)'; c.lineWidth = 1;
+  for (let q = 1; q < 4; q++) { c.beginPath(); c.moveTo(x + q * w / 4, top); c.lineTo(x + q * w / 4, top + ph); c.stroke(); }
+  c.beginPath(); c.moveTo(x, top + ph / 2); c.lineTo(x + w, top + ph / 2); c.stroke();
+  c.beginPath(); c.moveTo(x, top); c.lineTo(x + w, top); c.stroke();
+  c.beginPath(); c.rect(x, top, w, ph); c.clip();
+  const stride = Math.max(1, Math.floor((i - k0) / (2 * w)));
+  for (const [arr, col, dash] of [[ref, COL.blue, [4, 3]], [meas, COL.wine, []]]) {
+    c.strokeStyle = col; c.lineWidth = 1.6; c.setLineDash(dash); c.beginPath();
+    let pen = false;
+    for (let k = k0; k <= i; k += stride) {
+      if (!same(k)) { pen = false; continue; }
+      const X = px(R.t[k]), Y = py(arr[k] * scale);
+      if (pen) c.lineTo(X, Y); else { c.moveTo(X, Y); pen = true; }
+    }
+    c.stroke();
+  }
+  c.setLineDash([]);
+  c.restore();
+  c.strokeStyle = 'rgba(108, 88, 73, 0.6)'; c.lineWidth = 1; roundRect(c, x, y, w, h, 5); c.stroke();
+  c.font = `${8.5 * fs}px "IBM Plex Mono", ui-monospace, monospace`; c.textBaseline = 'middle';
+  // caption: the long form when it fits, else the short one
+  const unit = force ? 'kN' : 'mm', spanTxt = `span ${fmt(1.2 * span, span < 10 ? 1 : 0)} ${unit}`;
+  let left = `last 1 s · ${force ? 'F, F_ref' : 'y, y_ref'}`;
+  if (richWidth(c, left) + richWidth(c, spanTxt) + 18 > w) left = 'last 1 s';
+  c.fillStyle = COL.muted; c.textAlign = 'left'; fillRich(c, left, x + 5, y + band / 2 + 0.5);
+  c.textAlign = 'right'; fillRich(c, spanTxt, x + w - 5, y + band / 2 + 0.5);
 }
 /** Analogue dial: 270° scale, coloured arc up to the value, main needle, optional second needle (e.g. command). */
 function drawDial(c, cx, cy, r, d, fs) {
@@ -2063,10 +2114,10 @@ function drawScene(i) {
     pillLabel(c, 'servo valve', L.valve.x - 12, L.valve.y + 18, 'right', sans(12), COL.ink);
     pillLabel(c, `x_v = ${fmt(100 * R.xv[i], 1)} %`, L.valve.x - 12, L.valve.y + 38, 'right', mono(11.5), COL.ink);
     pillLabel(c, `pump + relief, p_s = ${fmt(P.ps / 1e6, 1)} MPa`, 40, 485, 'left', sans(12), COL.ink);
-    pillLabel(c, `hose: L_h = ${fmt(P.Lh, 1)} m, d_h = ${fmt(P.dh * 1000, 1)} mm`, 30, 205, 'left', sans(12), COL.ink);
+    pillLabel(c, `hose: L_h = ${fmt(P.Lh, 1)} m, d_h = ${fmt(P.dh * 1000, 1)} mm`, 30, 268, 'left', sans(12), COL.ink);
   }
   // controller and its wiring
-  drawControllerPanel(c, L.ctrl, st, fs, L.portrait, mono, sans);
+  drawControllerPanel(c, L.ctrl, st, fs, L.portrait, mono, sans, i);
   const phase = (tView * 40) % 12;
   drawSignal(c, net.sigU, phase); drawSignal(c, net.sigF, phase); drawSignal(c, net.sigY, phase);
   pillLabel(c, 'u', net.labels.u[0], net.labels.u[1], 'left', sans(11), COL.wine);
