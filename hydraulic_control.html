@@ -1,0 +1,1422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Servo-Hydraulic Press</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+/* Layout: a control-room sheet. Plant schematic and playback on the left, gauges and knobs on the right,
+   time traces, then the loop analysis (Bode, Nyquist, z-plane), then the theory and the problem set. */
+:root {
+  --bg: #ebe0cc;
+  --panel: #f7f0e2;
+  --paper: #fbf6ec;
+  --ink: #2b1a14;
+  --muted: #6c5849;
+  --line: #4a352c;
+  --rule: #d9cbb4;
+  --wine: #7b1e2f;
+  --wine-deep: #57101f;
+  --blue: #3e6887;
+  --ochre: #b06a1f;
+  --green: #3d6b45;
+  --warn-bg: #f6d7cf;
+  --f-display: "Instrument Serif", "Times New Roman", Georgia, serif;
+  --f-text: "IBM Plex Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-text); font-size: 15px; line-height: 1.5; }
+.wrap {
+  max-width: 1320px; margin: 0 auto; padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 16px;
+}
+header h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw, 56px); line-height: 1.02; margin: 0; color: var(--wine-deep); text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 78ch; }
+h2 { font-family: var(--f-display); font-weight: 400; font-size: 26px; line-height: 1.1; margin: 0 0 10px; color: var(--wine-deep); text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 400; font-size: 22px; margin: 22px 0 6px; color: var(--wine-deep); }
+.box { background: var(--panel); border: 1.5px solid var(--line); border-radius: 3px; padding: 14px; min-width: 0; }
+.grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); align-items: start; }
+.col { display: grid; gap: 16px; min-width: 0; }
+@media (max-width: 960px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+canvas { display: block; width: 100%; }
+#scene { border: 1px solid var(--line); background: var(--paper); }
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+.cbar { width: 150px; height: 12px; border: 1px solid var(--line); background: linear-gradient(90deg, rgb(246,232,196), rgb(222,146,70) 45%, rgb(92,14,34)); }
+.swatch { display: inline-block; width: 14px; height: 12px; border: 1px solid var(--line); vertical-align: -2px; }
+.num, .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.status { margin-top: 10px; display: grid; gap: 6px; }
+.status > div { border: 1.5px solid var(--line); padding: 7px 10px; font-size: 13.5px; background: var(--paper); }
+.status .warn { border-color: var(--wine); background: var(--warn-bg); color: var(--wine-deep); font-weight: 500; }
+.transport { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+button, select { font: 500 14px var(--f-text); color: var(--ink); background: var(--paper); border: 1.5px solid var(--line); border-radius: 3px; padding: 6px 12px; cursor: pointer; }
+button:hover { background: #f1e6d2; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
+button.primary { background: var(--wine); color: #fbf3e8; border-color: var(--wine-deep); min-width: 76px; }
+button.primary:hover { background: var(--wine-deep); }
+.seg { display: inline-flex; flex-wrap: wrap; }
+.seg button { border-radius: 0; margin-left: -1.5px; font-family: var(--f-mono); }
+.seg button:first-child { border-radius: 3px 0 0 3px; margin-left: 0; }
+.seg button:last-child { border-radius: 0 3px 3px 0; }
+.seg button[aria-pressed="true"] { background: var(--wine); color: #fbf3e8; }
+.scrub { display: flex; align-items: center; gap: 10px; flex: 1 1 260px; min-width: 0; }
+.scrub input { flex: 1; min-width: 0; }
+input[type=range] { accent-color: var(--wine); }
+.readouts { display: grid; grid-template-columns: minmax(0, 1fr) auto; margin: 0; }
+.readouts dt, .readouts dd { margin: 0; padding: 3px 0; border-bottom: 1px solid var(--rule); }
+.readouts dt { color: var(--muted); font-size: 13px; }
+.readouts dd { font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; font-size: 13.5px; white-space: nowrap; }
+.readouts .sep { grid-column: 1 / -1; height: 8px; border: 0; }
+.controls { display: grid; gap: 8px; }
+.controls h4 { margin: 8px 0 0; font: 600 12px var(--f-text); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.ctl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 10px; align-items: center; }
+.ctl label { font-size: 13px; }
+.ctl output { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 13.5px; text-align: right; }
+.ctl input { grid-column: 1 / -1; width: 100%; }
+.busy { font-size: 13px; color: var(--wine); min-height: 1.4em; }
+.plots { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); }
+.plots canvas { height: 180px; border: 1px solid var(--line); background: var(--paper); }
+.an-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-bottom: 10px; }
+.an-grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 1100px) { .an-grid { grid-template-columns: minmax(0, 1fr); } }
+.an-grid canvas { border: 1px solid var(--line); background: var(--paper); }
+#bode { height: 360px; }
+#nyq, #zpl { height: 360px; }
+.tables { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); margin-top: 12px; }
+.tbl { overflow-x: auto; border: 1.5px solid var(--line); background: var(--paper); }
+.tbl table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.tbl th, .tbl td { padding: 4px 8px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+.tbl th { font-weight: 600; color: var(--muted); background: #f3eadb; }
+.tbl td { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.tbl caption { text-align: left; padding: 6px 8px; font-weight: 600; caption-side: top; }
+.verdict { font-weight: 600; }
+.verdict.bad { color: var(--wine); }
+.verdict.good { color: var(--green); }
+.theory p, .theory li { max-width: 76ch; }
+.eq { font-family: var(--f-mono); font-size: 13.5px; background: var(--paper); border: 1px solid #cdbca3; padding: 8px 10px; margin: 8px 0; overflow-x: auto; white-space: pre; max-width: 100%; }
+.theory ul, .theory ol { padding-left: 22px; }
+.problems li { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Servo-Hydraulic Press</h1>
+    <p>A pump, a four-way servo valve, two metres of hose and a differential cylinder pressing a specimen. A digital controller drives the ram to the specimen in position control, then switches to force control, holds the force, releases, and retracts. Every curve below comes from the nonlinear model; the analysis panel linearizes it and asks whether the loop survives.</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="box" aria-label="Plant">
+        <canvas id="scene" aria-label="Animated servo-hydraulic press"></canvas>
+        <div class="legend">
+          <span>Gauge pressure</span><span class="num">0</span><span class="cbar" aria-hidden="true"></span><span class="num" id="psLbl">–</span>
+          <span><span class="swatch" style="background: rgb(62,104,135)" aria-hidden="true"></span> below 0</span>
+        </div>
+        <p class="note">The cylinder, rod, platen and specimen are drawn to scale; the valve, pump and hose route are schematic. Dots in the hose follow the oil and wrap around at the ends. Spool travel is exaggerated.</p>
+        <div class="status" id="status"></div>
+      </section>
+      <section class="box" aria-label="Playback">
+        <div class="transport">
+          <button class="primary" id="play" type="button">Play</button>
+          <button id="reset" type="button">Reset</button>
+          <div class="scrub">
+            <input type="range" id="scrub" min="0" max="1" step="0.001" value="0" aria-label="Time">
+            <span class="num" id="tLbl">0.000 s</span>
+          </div>
+          <div class="seg" role="group" aria-label="Playback speed">
+            <button type="button" data-speed="0.05" aria-pressed="false">×0.05</button>
+            <button type="button" data-speed="0.25" aria-pressed="false">×0.25</button>
+            <button type="button" data-speed="1" aria-pressed="true">×1</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="box" aria-label="Gauges">
+        <h2>Gauges</h2>
+        <dl class="readouts">
+          <dt>controller mode</dt><dd id="r_mode">–</dd>
+          <dt>t [s]</dt><dd id="r_t">–</dd>
+          <dt>y ram position [mm]</dt><dd id="r_y">–</dd>
+          <dt>y_ref [mm]</dt><dd id="r_yr">–</dd>
+          <dt>ẏ ram speed [mm/s]</dt><dd id="r_v">–</dd>
+          <dt>F specimen force [kN]</dt><dd id="r_F">–</dd>
+          <dt>F_ref [kN]</dt><dd id="r_Fr">–</dd>
+          <dd class="sep" aria-hidden="true"></dd>
+          <dt>p_a valve port A [MPa]</dt><dd id="r_pa">–</dd>
+          <dt>p_A cap chamber [MPa]</dt><dd id="r_pA">–</dd>
+          <dt>p_B rod chamber [MPa]</dt><dd id="r_pB">–</dd>
+          <dt>β_eff(p_A) [GPa]</dt><dd id="r_beta">–</dd>
+          <dt>Q_h hose flow [L/min]</dt><dd id="r_Q">–</dd>
+          <dt>x_v spool / u command [%]</dt><dd id="r_xv">–</dd>
+          <dd class="sep" aria-hidden="true"></dd>
+          <dt>W supplied by the pump [kJ]</dt><dd id="r_W">–</dd>
+          <dt>lost in the valve [kJ]</dt><dd id="r_Lv">–</dd>
+          <dt>lost in hose + seals [kJ]</dt><dd id="r_Lh">–</dd>
+          <dt>stored (kinetic, height, compression) [kJ]</dt><dd id="r_St">–</dd>
+          <dt>into specimen + stop [kJ]</dt><dd id="r_Ws">–</dd>
+        </dl>
+      </section>
+      <section class="box" aria-label="Settings">
+        <h2>Settings</h2>
+        <div class="controls" id="controls"></div>
+        <div class="busy" id="busy" aria-live="polite"></div>
+        <p class="note">Any change re-runs the whole cycle and the loop analysis.</p>
+      </section>
+    </div>
+  </div>
+
+  <section class="box" aria-label="Time traces">
+    <h2>Time traces</h2>
+    <div class="plots">
+      <canvas id="pl_y" aria-label="Position"></canvas>
+      <canvas id="pl_F" aria-label="Force"></canvas>
+      <canvas id="pl_p" aria-label="Pressures"></canvas>
+      <canvas id="pl_u" aria-label="Spool and command"></canvas>
+      <canvas id="pl_E" aria-label="Energy"></canvas>
+      <canvas id="pl_e" aria-label="Tracking error"></canvas>
+    </div>
+    <p class="note">Shaded bands mark the controller mode: settle, approach, creep, press, release, retract, done.</p>
+  </section>
+
+  <section class="box" aria-label="Loop analysis">
+    <h2>Loop analysis</h2>
+    <div class="an-head">
+      <label for="loopSel">Operating point</label>
+      <select id="loopSel">
+        <option value="position">Position loop: cruising up at 0.1 m/s, y = 60 mm</option>
+        <option value="force">Force loop: holding F_ref on the specimen</option>
+      </select>
+      <span id="anVerdict" class="verdict"></span>
+    </div>
+    <div class="an-grid">
+      <canvas id="bode" aria-label="Bode plot"></canvas>
+      <canvas id="nyq" aria-label="Nyquist plot"></canvas>
+      <canvas id="zpl" aria-label="Closed-loop poles in the z-plane"></canvas>
+    </div>
+    <div class="tables">
+      <div class="tbl"><table id="tMargins"></table></div>
+      <div class="tbl"><table id="tOL"></table></div>
+      <div class="tbl"><table id="tCL"></table></div>
+    </div>
+    <p class="note">The loop gain is L(z) = K(z)·z⁻¹·G(z): G is the zero-order-hold discretization of the plant linearized at the operating point, z⁻¹ the one-sample computation delay, K the discrete controller. Stability is decided by the closed-loop eigenvalues (all |z| &lt; 1); the margins and the Nyquist curve say how close it is.</p>
+  </section>
+
+  <section class="box theory" aria-label="Theory">
+    <h2>The model, equation by equation</h2>
+
+    <h3>1 · What you are looking at</h3>
+    <p>Pick up a garden hose full of water and swing one end: the water lags, then pushes back. Two metres of oil in a 12 mm hose weigh about 0.2 kg, but squeezed through that narrow bore they behave like a heavy slug. Inertance I = ρL<sub>h</sub>/A<sub>h</sub> ≈ 1.5·10⁷ kg/m⁴ sits between two springs made of oil: the small volume at the valve port and the cap chamber of the cylinder. Oil is stiff (β ≈ 1.5 GPa) only when it is free of air. Half a percent of entrained air at atmospheric pressure turns it into something closer to a stiff rubber: β<sub>eff</sub> drops to about 28 MPa at zero gauge pressure. The ram, 160 kg, rides on these springs. The controller sees all of it through a position sensor, a load cell and a 1 ms clock.</p>
+
+    <h3>2 · The servo valve</h3>
+    <p>The spool is a second-order system driven by the command u ∈ [−1, 1]. Each metering edge is a sharp-edged orifice, so the flow grows with the square root of the pressure drop; a small regularization (p<sub>tr</sub> = 0.1 MPa) removes the infinite slope at zero drop. The valve is critically lapped: at x<sub>v</sub> = 0 only the internal leakage K<sub>L</sub> flows.</p>
+    <div class="eq">ẍ_v + 2ζ_v·ω_v·ẋ_v + ω_v²·x_v = ω_v²·u                      ω_v = 2π f_v,  ζ_v = 0.7
+x̂ = clamp(x_v, −1, 1),  x⁺ = max(x̂, 0),  x⁻ = min(x̂, 0),  g(Δp) = Δp / (Δp² + p_tr²)^¼  ≈ sign(Δp)·√|Δp|
+Q_A = K_v·[x⁺·g(p_s − p_a) + x⁻·g(p_a − p_T)] + K_L·(p_s − 2p_a + p_T)
+Q_B = −K_v·[x⁺·g(p_B − p_T) + x⁻·g(p_s − p_B)] + K_L·(p_s − 2p_B + p_T)
+Q_S = K_v·[x⁺·g(p_s − p_a) − x⁻·g(p_s − p_B)] + K_L·(2p_s − p_a − p_B)
+K_v = Q_N / √(Δp_N/2),  Q_N = 100 L/min at Δp_N = 7 MPa,  K_L = 2·10⁻¹³ m³/(s·Pa)</div>
+    <p>Notice what this does to a linear analysis: opening the valve towards the cap side meters against p<sub>s</sub> − p<sub>a</sub>, closing it meters against p<sub>a</sub>. The flow gain on the two sides of x<sub>v</sub> = 0 differs, and the model is not differentiable there.</p>
+
+    <h3>3 · Oil that is not quite incompressible</h3>
+    <p>Entrained air of volume fraction α₀ at atmospheric pressure p₀ is squeezed polytropically (n = 1.4). Mixing the compliances of oil and air gives</p>
+    <div class="eq">α(p) = α₀/(1 − α₀)·(p₀/p_abs)^(1/n),        β_eff(p) = β_oil·(1 + α) / (1 + α·β_oil/(n·p_abs)),        p_abs = p + p₀</div>
+    <p>At 10 MPa the air is crushed and β<sub>eff</sub> ≈ 1.47 GPa; near zero gauge pressure it collapses to tens of MPa, and towards vacuum it goes to zero, which also keeps the pressure from falling below absolute zero.</p>
+
+    <h3>4 · Volumes, the hose, and the ram</h3>
+    <div class="eq">ṗ_a = β(p_a)/V_a·(Q_A − Q_h)                              V_a = V_a0 + V_h/2
+I·Q̇_h = p_a − p_A − R_lam·Q_h − K_t·Q_h·|Q_h|               I = ρL_h/A_h,  R_lam = 128·μ·L_h/(π·d_h⁴),  K_t = ρ(f·L_h/d_h + K_m)/(2A_h²)
+ṗ_A = β(p_A)/(V_A0 + V_h/2 + A_A·y)·(Q_h − A_A·ẏ)
+ṗ_B = β(p_B)/(V_B0 + A_B·(S − y))·(Q_B + A_B·ẏ)
+m·ÿ = p_A·A_A − p_B·A_B − m·g − F_f(ẏ) − F_w(y, ẏ) + F_stop(y, ẏ)
+F_f = F_c·tanh(ẏ/v_s)·[1 + (k_st − 1)·exp(−(ẏ/v_str)²)] + b_v·ẏ          (Stribeck: break-away 1.3·F_c)
+F_w = max(0, k_w·δ + c_w·δ̇),  δ = y − y_c > 0                          (the specimen can push, not pull)
+F_stop = max(0, −k_s·y − c_s·ẏ),  y &lt; 0                                    (bottom stop)</div>
+    <p>Bore 120 mm, rod 80 mm: A<sub>A</sub> = 113.1 cm², A<sub>B</sub> = 62.8 cm². Stroke S = 200 mm, the specimen starts at y<sub>c</sub> = 120 mm. Ram plus tooling m = 10 kg + M.</p>
+
+    <h3>5 · The digital controller</h3>
+    <p>Every T<sub>s</sub> the controller samples y and F, computes u, and the valve receives it one sample later (computation delay); between samples u is held constant (zero-order hold). A supervisor decides which law runs:</p>
+    <ul>
+      <li><b>settle</b> (0.1 s): hold y_ref = 0. <b>approach</b>: quintic profile to y<sub>c</sub> − 2 mm in 1 s. <b>creep</b>: y_ref rises at 10 mm/s until the load cell reads more than 1 kN.</li>
+      <li><b>press</b>: force control, F_ref ramps to its target in 0.25 s and holds 0.5 s. <b>release</b>: ramps down to 1 kN in 0.25 s.</li>
+      <li><b>retract</b>: position control, quintic back to y = 0 in 1.8 s. <b>done</b>: hold 0.3 s.</li>
+    </ul>
+    <div class="eq">position:  e_k = y_ref − y_k
+           D_k = T_f/(T_f+T_s)·D_(k−1) + K_d/(T_f+T_s)·(e_k − e_(k−1))       filtered derivative, T_f = 2 ms
+           I_k = I_(k−1) + K_i·T_s·e_k        (frozen while saturated in the same direction: anti-windup)
+           u_k = sat(K_p·e_k + I_k + D_k + K_ff·v_ref),   K_ff = A_A / (K_v·√(p_s/2))
+force:     u_k = sat(K_pF·(F_ref − F_k) + I_F,k),   I_F,k = I_F,(k−1) + K_iF·T_s·(F_ref − F_k)
+switching: the integrator of the new law is loaded with the last command, so u does not jump (bumpless transfer)</div>
+
+    <h3>6 · Linearize, discretize, close the loop</h3>
+    <p>At an operating point (x₀, u₀) where all states are steady except y, which drifts at the cruising speed, the eight plant states obey δẋ = A·δx + B·δu, with A and B taken by central differences of the nonlinear right-hand side. The zero-order hold turns this into an exact discrete model:</p>
+    <div class="eq">exp( [A  B; 0  0]·T_s ) = [Φ  Γ; 0  1]          Φ = e^(A·T_s),   Γ = ∫₀^T_s e^(A·σ) dσ · B
+G(z) = C·(zI − Φ)⁻¹·Γ           K_pos(z) = K_p + K_i·T_s·z/(z−1) + K_d·(z−1)/((T_f+T_s)·z − T_f)
+L(z) = K(z)·z⁻¹·G(z),   z = e^(jωT_s)           closed loop: x⁺ = Φx + Γw,  s⁺ = A_c s − B_c C x,  w⁺ = C_c s − D_c C x</div>
+    <p>The closed-loop state contains the plant (8), the controller memory (3 for PID, 1 for PI) and the delayed command (1). The system is stable when every eigenvalue lies inside the unit circle. Each z maps back to a continuous pole s = ln(z)/T<sub>s</sub>, which gives a frequency and a damping ratio you can feel.</p>
+
+    <h3>7 · Where the energy goes</h3>
+    <p>The pump delivers p<sub>s</sub>·Q<sub>S</sub>. The valve burns p<sub>s</sub>Q<sub>S</sub> − p<sub>a</sub>Q<sub>A</sub> − p<sub>B</sub>Q<sub>B</sub> as heat. The rest compresses oil (Σ p·V/β·ṗ), accelerates the hose slug (½IQ<sub>h</sub>²) and the ram (½mẏ²), lifts the ram (mgy), heats the hose and the seals, and does work on the specimen and the stop. The page integrates every term separately; their sum must equal the pump work, and the check is shown under the scene.</p>
+
+    <h3>8 · Problems</h3>
+    <ol class="problems">
+      <li>Derive the hydraulic natural frequency of the ram with both chambers closed, ω<sub>h</sub>² = (β<sub>A</sub>A<sub>A</sub>²/V<sub>A</sub> + β<sub>B</sub>A<sub>B</sub>²/V<sub>B</sub>)/m. Evaluate it at y = 10 mm and y = 190 mm. Where in the stroke is the press softest, and why does a differential cylinder make this asymmetric?</li>
+      <li>Treat the hose as a lumped mass between two compliances, C<sub>a</sub> = V<sub>a</sub>/β and C<sub>A</sub> = V<sub>A</sub>/β. Show that the slosh mode has ω² = (1/C<sub>a</sub> + 1/C<sub>A</sub>)/I and find it in the open-loop pole table. What happens to it when you double the hose length? When you halve the bore?</li>
+      <li>Linearize the valve flow Q<sub>A</sub>(x<sub>v</sub>, p<sub>a</sub>) at x<sub>v</sub> = 0⁺ and at x<sub>v</sub> = 0⁻. Show that the flow gain differs by √((p<sub>s</sub> − p<sub>a</sub>)/p<sub>a</sub>), and argue why a single linear model cannot describe a critically lapped valve at null.</li>
+      <li>At standstill the smoothed Coulomb friction has slope F<sub>c</sub>·k<sub>st</sub>/v<sub>s</sub> ≈ 10⁶ N·s/m. Explain why linearizing about ẏ = 0 then predicts an absurdly well damped ram, and what this tells you about using small-signal analysis on stick-slip systems.</li>
+      <li>Set α₀ = 2 % and rerun. Explain from β<sub>eff</sub>(p) why the force loop barely changes while the start of the approach does.</li>
+      <li>Increase T<sub>s</sub> from 1 ms to 4 ms with the gains unchanged. Read off the phase margin before and after, and explain the loss using the phase of z⁻¹ and of the zero-order hold, −ωT<sub>s</sub> − ωT<sub>s</sub>/2.</li>
+      <li>In force control the plant from spool to force is nearly an integrator. Show that for a stiff specimen dF/dt ≈ k<sub>eff</sub>·K<sub>q</sub>·x<sub>v</sub>/A<sub>A</sub>, with 1/k<sub>eff</sub> = 1/k<sub>w</sub> + V<sub>A</sub>/(β·A<sub>A</sub>²). Use this to choose K<sub>pF</sub> for a 10 Hz crossover, then check your answer in the Bode plot.</li>
+      <li>The bumpless transfer loads the integrator with the last command. Remove it on paper: what jump in u, and in force, would the switch from creep to press produce at the default gains?</li>
+      <li>Find the largest K<sub>p</sub> for which the position loop is stable. Compare it with the textbook rule K<sub>v</sub> &lt; 2ζ<sub>h</sub>ω<sub>h</sub>, where K<sub>v</sub> is the velocity gain of the loop, and explain the difference.</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+/*PHYSICS-BEGIN*/
+// Servo-hydraulic press: nonlinear plant, sampled-data controller with supervisor, and loop analysis.
+const C0 = {
+  rho: 870, nu: 32e-6, patm: 101325, npoly: 1.4, g: 9.81, pT: 0,
+  QN: 100 / 60000, dpN: 7e6, ptr: 1e5, zetaV: 0.7, KL: 2e-13,
+  Va0: 1.5e-4, D: 0.12, dr: 0.08, stroke: 0.20, VA0: 3e-4, VB0: 2e-4,
+  mRam: 10, bv: 2000, vs: 1e-3, vstr: 5e-3, kst: 1.3,
+  yc: 0.12, zetaW: 0.05, kStop: 2e8, zetaStop: 0.7, fTurb: 0.02, Kminor: 1.5,
+  Tf: 0.002, vCreep: 0.01, Fswitch: 1000, Frelease: 1000,
+  tSettle: 0.1, Tapp: 1.0, appGap: 0.002, Tramp: 0.25, Thold: 0.5, Tret: 1.8, tTail: 0.3,
+  dtTarget: 1e-5, tMax: 10, yOp: 0.06, vOp: 0.1
+};
+const DEFAULTS = {
+  ps: 12e6, betaOil: 1.5e9, alpha0: 0.005, Lh: 2.0, dh: 0.012, fv: 60,
+  M: 150, Fc: 800, kw: 2e7, Fref: 60e3,
+  Ts: 0.001, Kp: 250, Ki: 1250, Kd: 0, KpF: 1.5e-5, KiF: 1e-4
+};
+const MODES = ['settle', 'approach', 'creep', 'press', 'release', 'retract', 'done'];
+const NX = 8;   // plant states: xv, vv, pa, Qh, pA, pB, y, yd
+
+function makePlant(P) {
+  const c = C0;
+  const m = c.mRam + P.M;
+  const AA = Math.PI * c.D * c.D / 4, AB = AA - Math.PI * c.dr * c.dr / 4;
+  const Ah = Math.PI * P.dh * P.dh / 4, Vh = Ah * P.Lh;
+  const I = c.rho * P.Lh / Ah;
+  const Rlam = 128 * c.rho * c.nu * P.Lh / (Math.PI * Math.pow(P.dh, 4));
+  const Kt = c.rho * (c.fTurb * P.Lh / P.dh + c.Kminor) / (2 * Ah * Ah);
+  const Kv = c.QN / Math.sqrt(c.dpN / 2);
+  const wv = 2 * Math.PI * P.fv;
+  const cw = 2 * c.zetaW * Math.sqrt(P.kw * m);
+  const cs = 2 * c.zetaStop * Math.sqrt(c.kStop * m);
+  const Va = c.Va0 + Vh / 2;
+  const ar0 = P.alpha0 / (1 - P.alpha0);
+  const beta = p => {
+    const pabs = Math.max(p + c.patm, 1);
+    const ar = ar0 * Math.pow(c.patm / pabs, 1 / c.npoly);
+    return P.betaOil * (1 + ar) / (1 + ar * P.betaOil / (c.npoly * pabs));
+  };
+  const gq = dp => dp / Math.pow(dp * dp + c.ptr * c.ptr, 0.25);
+  const dpf = Q => Rlam * Q + Kt * Q * Math.abs(Q);
+  const fric = v => P.Fc * Math.tanh(v / c.vs) * (1 + (c.kst - 1) * Math.exp(-(v / c.vstr) * (v / c.vstr))) + c.bv * v;
+  const contact = (y, v) => (y > c.yc ? Math.max(0, P.kw * (y - c.yc) + cw * v) : 0);
+  const stop = (y, v) => (y < 0 ? Math.max(0, -c.kStop * y - cs * v) : 0);
+  function flows(xv, pa, pB) {
+    const xh = Math.min(1, Math.max(-1, xv)), xp = Math.max(xh, 0), xn = Math.min(xh, 0);
+    const QA = Kv * (xp * gq(P.ps - pa) + xn * gq(pa - c.pT)) + c.KL * (P.ps - 2 * pa + c.pT);
+    const QB = -Kv * (xp * gq(pB - c.pT) + xn * gq(P.ps - pB)) + c.KL * (P.ps - 2 * pB + c.pT);
+    const QS = Kv * (xp * gq(P.ps - pa) - xn * gq(P.ps - pB)) + c.KL * (2 * P.ps - pa - pB);
+    return { QA, QB, QS };
+  }
+  // Right-hand side for the 8 plant states plus 8 bookkeeping integrals.
+  function deriv(x, u, out) {
+    const xv = x[0], vv = x[1], pa = x[2], Qh = x[3], pA = x[4], pB = x[5], y = x[6], yd = x[7];
+    const f = flows(xv, pa, pB);
+    const VA = c.VA0 + Vh / 2 + AA * y, VB = c.VB0 + AB * (c.stroke - y);
+    const dph = dpf(Qh), Ff = fric(yd), Fw = contact(y, yd), Fs = stop(y, yd);
+    out[0] = vv;
+    out[1] = wv * wv * (u - xv) - 2 * c.zetaV * wv * vv;
+    out[2] = beta(pa) / Va * (f.QA - Qh);
+    out[3] = (pa - pA - dph) / I;
+    out[4] = beta(pA) / VA * (Qh - AA * yd);
+    out[5] = beta(pB) / VB * (f.QB + AB * yd);
+    out[6] = yd;
+    out[7] = (pA * AA - pB * AB - m * c.g - Ff - Fw + Fs) / m;
+    out[8] = P.ps * f.QS;                                   // pump work
+    out[9] = P.ps * f.QS - pa * f.QA - pB * f.QB - c.pT * (f.QS - f.QA - f.QB);   // valve throttling
+    out[10] = dph * Qh;                                     // hose friction
+    out[11] = Ff * yd;                                      // seal friction
+    out[12] = Fw * yd;                                      // work into the specimen
+    out[13] = -Fs * yd;                                     // work into the bottom stop
+    out[14] = pa * (f.QA - Qh) + pA * (Qh - AA * yd) + pB * (f.QB + AB * yd);   // oil compression
+    out[15] = Qh;                                           // oil volume through the hose
+  }
+  return { P, m, AA, AB, Ah, Vh, I, Rlam, Kt, Kv, wv, cw, cs, Va, beta, gq, dpf, fric, contact, stop, flows, deriv };
+}
+
+function solveLinear(Ain, bin) {   // Gaussian elimination with partial pivoting (real)
+  const n = bin.length, A = Ain.map(r => r.slice()), b = bin.slice();
+  for (let k = 0; k < n; k++) {
+    let p = k;
+    for (let i = k + 1; i < n; i++) if (Math.abs(A[i][k]) > Math.abs(A[p][k])) p = i;
+    [A[k], A[p]] = [A[p], A[k]]; [b[k], b[p]] = [b[p], b[k]];
+    for (let i = k + 1; i < n; i++) {
+      const f = A[i][k] / A[k][k];
+      for (let j = k; j < n; j++) A[i][j] -= f * A[k][j];
+      b[i] -= f * b[k];
+    }
+  }
+  const x = new Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = b[i];
+    for (let j = i + 1; j < n; j++) s -= A[i][j] * x[j];
+    x[i] = s / A[i][i];
+  }
+  return x;
+}
+
+// Steady state with the ram at y0 moving at v0: unknowns spool xv and chamber pressures pA, pB.
+function equilibrium(pl, y0, v0) {
+  const P = pl.P, c = C0;
+  const Qh = pl.AA * v0, dph = pl.dpf(Qh);
+  const load = pl.m * c.g + pl.fric(v0) + pl.contact(y0, v0) - pl.stop(y0, v0);
+  const sc = [1, P.ps, P.ps];
+  const res = z => {
+    const xv = z[0], pA = z[1], pB = z[2], f = pl.flows(xv, pA + dph, pB);
+    return [(f.QA - Qh) / c.QN, (f.QB + pl.AB * v0) / c.QN, (pA * pl.AA - pB * pl.AB - load) / (P.ps * pl.AA)];
+  };
+  const norm = r => Math.hypot(r[0], r[1], r[2]);
+  const pB0 = 0.5 * P.ps;
+  let z = [v0 > 0 ? 0.3 : (v0 < 0 ? -0.3 : 0), (load + pB0 * pl.AB) / pl.AA, pB0];
+  let r = res(z), it = 0;
+  for (; it < 200 && norm(r) > 1e-14; it++) {
+    const J = [[], [], []];
+    for (let j = 0; j < 3; j++) {
+      const h = 1e-7 * sc[j], zp = z.slice(), zm = z.slice();
+      zp[j] += h; zm[j] -= h;
+      const rp = res(zp), rm = res(zm);
+      for (let i = 0; i < 3; i++) J[i][j] = (rp[i] - rm[i]) / (2 * h);
+    }
+    const dz = solveLinear(J, r.map(v => -v));
+    let lam = 1, zn, rn;
+    for (let k = 0; k < 40; k++) {
+      zn = z.map((v, i) => v + lam * dz[i]);
+      rn = res(zn);
+      if (norm(rn) < norm(r)) break;
+      lam /= 2;
+    }
+    z = zn; r = rn;
+  }
+  return { xv: z[0], pA: z[1], pB: z[2], pa: z[1] + dph, Qh, y: y0, v: v0, residual: norm(r), iterations: it };
+}
+
+function rk4Step(pl, x, u, h, k1, k2, k3, k4, tmp) {
+  const n = x.length;
+  pl.deriv(x, u, k1);
+  for (let i = 0; i < n; i++) tmp[i] = x[i] + 0.5 * h * k1[i];
+  pl.deriv(tmp, u, k2);
+  for (let i = 0; i < n; i++) tmp[i] = x[i] + 0.5 * h * k2[i];
+  pl.deriv(tmp, u, k3);
+  for (let i = 0; i < n; i++) tmp[i] = x[i] + h * k3[i];
+  pl.deriv(tmp, u, k4);
+  for (let i = 0; i < n; i++) x[i] += h / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+}
+
+function quintic(tau) {
+  const s = Math.min(1, Math.max(0, tau));
+  return { p: s * s * s * (10 - 15 * s + 6 * s * s), dp: 30 * s * s * (1 - s) * (1 - s) };
+}
+
+// Sampled controller with supervisor. step() is called once per sample and returns the new command,
+// which the plant receives one sample later.
+function makeController(P, pl, u0) {
+  const c = C0, Ts = P.Ts;
+  const a = c.Tf / (c.Tf + Ts), bd = P.Kd / (c.Tf + Ts);
+  const Kff = pl.AA / (pl.Kv * Math.sqrt(P.ps / 2));
+  const yTarget = c.yc - c.appGap;
+  const S = { mode: 'settle', t0: 0, I: u0, D: 0, ePrev: 0, IF: 0, yStart: 0, FStart: 0, uPend: u0, events: [] };
+  const sat = v => Math.min(1, Math.max(-1, v));
+  const accept = (v, e) => Math.abs(v) <= 1 || (v > 1 && e < 0) || (v < -1 && e > 0);
+  const enter = (mode, t) => { S.mode = mode; S.t0 = t; S.events.push({ t, mode }); };
+  S.step = function (t, yM, FM) {
+    const tm = t - S.t0;
+    if (S.mode === 'settle' && tm >= c.tSettle - 1e-12) { enter('approach', t); S.yStart = 0; }
+    else if (S.mode === 'approach' && tm >= c.Tapp - 1e-12) { enter('creep', t); S.yStart = yTarget; }
+    else if (S.mode === 'creep' && FM > c.Fswitch) { enter('press', t); S.FStart = FM; S.IF = S.uPend; }
+    else if (S.mode === 'press' && tm >= c.Tramp + c.Thold - 1e-12) { enter('release', t); }
+    else if (S.mode === 'release' && tm >= c.Tramp - 1e-12) { enter('retract', t); S.yStart = yM; S.I = S.uPend; S.D = 0; S.ePrev = 0; }
+    else if (S.mode === 'retract' && tm >= c.Tret - 1e-12) { enter('done', t); }
+    const tau = t - S.t0;
+    let yr = 0, vr = 0, Fr = 0, force = false;
+    if (S.mode === 'approach') {
+      const q = quintic(tau / c.Tapp);
+      yr = S.yStart + (yTarget - S.yStart) * q.p; vr = (yTarget - S.yStart) * q.dp / c.Tapp;
+    } else if (S.mode === 'creep') {
+      yr = S.yStart + c.vCreep * tau; vr = c.vCreep;
+    } else if (S.mode === 'press') {
+      force = true; Fr = S.FStart + (P.Fref - S.FStart) * Math.min(tau / c.Tramp, 1);
+    } else if (S.mode === 'release') {
+      force = true; Fr = P.Fref + (c.Frelease - P.Fref) * Math.min(tau / c.Tramp, 1);
+    } else if (S.mode === 'retract') {
+      const q = quintic(tau / c.Tret);
+      yr = S.yStart * (1 - q.p); vr = -S.yStart * q.dp / c.Tret;
+    }
+    let u;
+    if (force) {
+      const e = Fr - FM, Ic = S.IF + P.KiF * Ts * e;
+      let v = P.KpF * e + Ic;
+      if (accept(v, e)) S.IF = Ic; else v = P.KpF * e + S.IF;
+      u = sat(v);
+    } else {
+      const e = yr - yM;
+      S.D = a * S.D + bd * (e - S.ePrev); S.ePrev = e;
+      const Ic = S.I + P.Ki * Ts * e;
+      let v = P.Kp * e + Ic + S.D + Kff * vr;
+      if (accept(v, e)) S.I = Ic; else v = P.Kp * e + S.I + S.D + Kff * vr;
+      u = sat(v);
+    }
+    S.uPend = u;
+    return { u, yr, vr, Fr, force };
+  };
+  return S;
+}
+
+const REC_KEYS = ['t', 'mode', 'yr', 'Fr', 'force', 'y', 'yd', 'xv', 'uCmd', 'uApp', 'pa', 'Qh', 'pA', 'pB', 'F',
+  'QA', 'QB', 'betaA', 'W', 'Lv', 'Lh', 'Lf', 'Ws', 'Wst', 'Ec', 'stored', 'closure', 'Vh'];
+
+function simulate(P) {
+  const pl = makePlant(P), c = C0, Ts = P.Ts;
+  const N = Math.max(1, Math.round(Ts / c.dtTarget)), h = Ts / N;
+  const eq0 = equilibrium(pl, 0, 0);
+  const x = new Float64Array(16);
+  x[0] = eq0.xv; x[2] = eq0.pa; x[4] = eq0.pA; x[5] = eq0.pB;
+  const yInit = x[6];
+  const k1 = new Float64Array(16), k2 = new Float64Array(16), k3 = new Float64Array(16), k4 = new Float64Array(16), tmp = new Float64Array(16);
+  const ctl = makeController(P, pl, eq0.xv);
+  const rec = {};
+  REC_KEYS.forEach(key => { rec[key] = []; });
+  let outcome = 'time limit', closureMax = 0, pMin = Infinity, pMinWhere = '', pMinT = 0;
+  for (let k = 0; ; k++) {
+    const t = k * Ts;
+    const yM = x[6], FM = pl.contact(x[6], x[7]);
+    const uApp = ctl.uPend;               // computed one sample ago
+    const out = ctl.step(t, yM, FM);      // new command, applied from the next sample
+    const f = pl.flows(x[0], x[2], x[5]);
+    const stored = 0.5 * pl.m * x[7] * x[7] + pl.m * c.g * (x[6] - yInit) + 0.5 * pl.I * x[3] * x[3] + x[14];
+    const closure = x[8] - stored - x[9] - x[10] - x[11] - x[12] - x[13];
+    closureMax = Math.max(closureMax, Math.abs(closure));
+    for (const [v, where] of [[x[2], 'valve port A'], [x[4], 'cap chamber'], [x[5], 'rod chamber']]) {
+      if (v < pMin) { pMin = v; pMinWhere = where; pMinT = t; }
+    }
+    const row = {
+      t, mode: MODES.indexOf(ctl.mode), yr: out.yr, Fr: out.Fr, force: out.force ? 1 : 0,
+      y: x[6], yd: x[7], xv: x[0], uCmd: out.u, uApp, pa: x[2], Qh: x[3], pA: x[4], pB: x[5], F: FM,
+      QA: f.QA, QB: f.QB, betaA: pl.beta(x[4]), W: x[8], Lv: x[9], Lh: x[10], Lf: x[11], Ws: x[12], Wst: x[13],
+      Ec: x[14], stored, closure, Vh: x[15]
+    };
+    REC_KEYS.forEach(key => rec[key].push(row[key]));
+    if (ctl.mode === 'done' && t >= ctl.t0 + c.tTail - 1e-12) { outcome = 'complete'; break; }
+    if (t >= c.tMax) break;
+    for (let j = 0; j < N; j++) rk4Step(pl, x, uApp, h, k1, k2, k3, k4, tmp);
+  }
+  return { P, plant: pl, rec, events: ctl.events, outcome, tEnd: rec.t[rec.t.length - 1], eq0, closureMax, pMin, pMinWhere, pMinT, substeps: N };
+}
+
+// ---------------------------------------------------------------- linear algebra for the analysis
+function matMul(A, B) {
+  const n = A.length, m = B[0].length, k = B.length, C = [];
+  for (let i = 0; i < n; i++) {
+    const row = new Array(m).fill(0);
+    for (let l = 0; l < k; l++) { const a = A[i][l]; if (a !== 0) for (let j = 0; j < m; j++) row[j] += a * B[l][j]; }
+    C.push(row);
+  }
+  return C;
+}
+function expm(M) {   // scaling and squaring with a truncated Taylor series
+  const n = M.length;
+  let nrm = 0;
+  for (let i = 0; i < n; i++) nrm = Math.max(nrm, M[i].reduce((s, v) => s + Math.abs(v), 0));
+  const s = Math.max(0, Math.ceil(Math.log2(Math.max(nrm, 1e-300) / 0.5)));
+  const X = M.map(r => r.map(v => v / Math.pow(2, s)));
+  let E = X.map((r, i) => r.map((_, j) => (i === j ? 1 : 0)));
+  let T = E.map(r => r.slice());
+  for (let k = 1; k <= 30; k++) {
+    T = matMul(T, X).map(r => r.map(v => v / k));
+    let tn = 0;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { E[i][j] += T[i][j]; tn = Math.max(tn, Math.abs(T[i][j])); }
+    if (tn < 1e-20) break;
+  }
+  for (let i = 0; i < s; i++) E = matMul(E, E);
+  return E;
+}
+// Eigenvalues of a real matrix: balance, reduce to Hessenberg form, shifted QR (after Numerical Recipes).
+function eigenvalues(M) {
+  const n = M.length, a = [];
+  for (let i = 0; i <= n; i++) a.push(new Float64Array(n + 1));
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) a[i + 1][j + 1] = M[i][j];
+  balanc(a, n); elmhes(a, n);
+  for (let i = 1; i <= n; i++) for (let j = 1; j < i - 1; j++) a[i][j] = 0;
+  return hqr(a, n);
+}
+function balanc(a, n) {
+  const RADIX = 2, sqrdx = RADIX * RADIX;
+  let last = 0;
+  while (last === 0) {
+    last = 1;
+    for (let i = 1; i <= n; i++) {
+      let r = 0, c = 0;
+      for (let j = 1; j <= n; j++) if (j !== i) { c += Math.abs(a[j][i]); r += Math.abs(a[i][j]); }
+      if (c !== 0 && r !== 0) {
+        let g = r / RADIX, f = 1;
+        const s = c + r;
+        while (c < g) { f *= RADIX; c *= sqrdx; }
+        g = r * RADIX;
+        while (c > g) { f /= RADIX; c /= sqrdx; }
+        if ((c + r) / f < 0.95 * s) {
+          last = 0; g = 1 / f;
+          for (let j = 1; j <= n; j++) a[i][j] *= g;
+          for (let j = 1; j <= n; j++) a[j][i] *= f;
+        }
+      }
+    }
+  }
+}
+function elmhes(a, n) {
+  for (let m = 2; m < n; m++) {
+    let x = 0, i = m;
+    for (let j = m; j <= n; j++) if (Math.abs(a[j][m - 1]) > Math.abs(x)) { x = a[j][m - 1]; i = j; }
+    if (i !== m) {
+      for (let j = m - 1; j <= n; j++) { const t = a[i][j]; a[i][j] = a[m][j]; a[m][j] = t; }
+      for (let j = 1; j <= n; j++) { const t = a[j][i]; a[j][i] = a[j][m]; a[j][m] = t; }
+    }
+    if (x !== 0) {
+      for (i = m + 1; i <= n; i++) {
+        let y = a[i][m - 1];
+        if (y !== 0) {
+          y /= x; a[i][m - 1] = y;
+          for (let j = m; j <= n; j++) a[i][j] -= y * a[m][j];
+          for (let j = 1; j <= n; j++) a[j][m] += y * a[j][i];
+        }
+      }
+    }
+  }
+}
+function hqr(a, n) {
+  const wr = new Array(n + 1).fill(0), wi = new Array(n + 1).fill(0);
+  const SIGN = (p, q) => (q >= 0 ? Math.abs(p) : -Math.abs(p));
+  let anorm = 0;
+  for (let i = 1; i <= n; i++) for (let j = Math.max(i - 1, 1); j <= n; j++) anorm += Math.abs(a[i][j]);
+  let nn = n, t = 0;
+  let p = 0, q = 0, r = 0, s = 0, w = 0, x = 0, y = 0, z = 0;
+  while (nn >= 1) {
+    let its = 0, l;
+    do {
+      for (l = nn; l >= 2; l--) {
+        s = Math.abs(a[l - 1][l - 1]) + Math.abs(a[l][l]);
+        if (s === 0) s = anorm;
+        if (Math.abs(a[l][l - 1]) + s === s) { a[l][l - 1] = 0; break; }
+      }
+      x = a[nn][nn];
+      if (l === nn) {
+        wr[nn] = x + t; wi[nn--] = 0;
+      } else {
+        y = a[nn - 1][nn - 1];
+        w = a[nn][nn - 1] * a[nn - 1][nn];
+        if (l === nn - 1) {
+          p = 0.5 * (y - x); q = p * p + w; z = Math.sqrt(Math.abs(q)); x += t;
+          if (q >= 0) {
+            z = p + SIGN(z, p);
+            wr[nn - 1] = wr[nn] = x + z;
+            if (z) wr[nn] = x - w / z;
+            wi[nn - 1] = wi[nn] = 0;
+          } else {
+            wr[nn - 1] = wr[nn] = x + p;
+            wi[nn - 1] = -(wi[nn] = z);
+          }
+          nn -= 2;
+        } else {
+          if (its === 60) throw new Error('hqr: too many iterations');
+          if (its === 10 || its === 20) {
+            t += x;
+            for (let i = 1; i <= nn; i++) a[i][i] -= x;
+            s = Math.abs(a[nn][nn - 1]) + Math.abs(a[nn - 1][nn - 2]);
+            y = x = 0.75 * s;
+            w = -0.4375 * s * s;
+          }
+          ++its;
+          let m;
+          for (m = nn - 2; m >= l; m--) {
+            z = a[m][m]; r = x - z; s = y - z;
+            p = (r * s - w) / a[m + 1][m] + a[m][m + 1];
+            q = a[m + 1][m + 1] - z - r - s;
+            r = a[m + 2][m + 1];
+            s = Math.abs(p) + Math.abs(q) + Math.abs(r);
+            p /= s; q /= s; r /= s;
+            if (m === l) break;
+            const u = Math.abs(a[m][m - 1]) * (Math.abs(q) + Math.abs(r));
+            const v = Math.abs(p) * (Math.abs(a[m - 1][m - 1]) + Math.abs(z) + Math.abs(a[m + 1][m + 1]));
+            if (u + v === v) break;
+          }
+          for (let i = m + 2; i <= nn; i++) {
+            a[i][i - 2] = 0;
+            if (i !== m + 2) a[i][i - 3] = 0;
+          }
+          for (let k = m; k <= nn - 1; k++) {
+            if (k !== m) {
+              p = a[k][k - 1]; q = a[k + 1][k - 1]; r = 0;
+              if (k !== nn - 1) r = a[k + 2][k - 1];
+              if ((x = Math.abs(p) + Math.abs(q) + Math.abs(r)) !== 0) { p /= x; q /= x; r /= x; }
+            }
+            if ((s = SIGN(Math.sqrt(p * p + q * q + r * r), p)) !== 0) {
+              if (k === m) {
+                if (l !== m) a[k][k - 1] = -a[k][k - 1];
+              } else {
+                a[k][k - 1] = -s * x;
+              }
+              p += s; x = p / s; y = q / s; z = r / s; q /= p; r /= p;
+              for (let j = k; j <= nn; j++) {
+                p = a[k][j] + q * a[k + 1][j];
+                if (k !== nn - 1) { p += r * a[k + 2][j]; a[k + 2][j] -= p * z; }
+                a[k + 1][j] -= p * y; a[k][j] -= p * x;
+              }
+              const mmin = nn < k + 3 ? nn : k + 3;
+              for (let i = l; i <= mmin; i++) {
+                p = x * a[i][k] + y * a[i][k + 1];
+                if (k !== nn - 1) { p += z * a[i][k + 2]; a[i][k + 2] -= p * r; }
+                a[i][k + 1] -= p * q; a[i][k] -= p;
+              }
+            }
+          }
+        }
+      }
+    } while (l < nn - 1);
+  }
+  const out = [];
+  for (let i = 1; i <= n; i++) out.push([wr[i], wi[i]]);
+  return out;
+}
+function complexSolve(Are, Aim, bre, bim) {   // (Are + i Aim) x = (bre + i bim)
+  const n = bre.length;
+  const R = Are.map(r => r.slice()), M = Aim.map(r => r.slice()), xr = bre.slice(), xi = bim.slice();
+  for (let k = 0; k < n; k++) {
+    let p = k, best = 0;
+    for (let i = k; i < n; i++) { const mag = Math.hypot(R[i][k], M[i][k]); if (mag > best) { best = mag; p = i; } }
+    [R[k], R[p]] = [R[p], R[k]]; [M[k], M[p]] = [M[p], M[k]]; [xr[k], xr[p]] = [xr[p], xr[k]]; [xi[k], xi[p]] = [xi[p], xi[k]];
+    const d = R[k][k] * R[k][k] + M[k][k] * M[k][k];
+    for (let i = k + 1; i < n; i++) {
+      const fr = (R[i][k] * R[k][k] + M[i][k] * M[k][k]) / d, fi = (M[i][k] * R[k][k] - R[i][k] * M[k][k]) / d;
+      for (let j = k; j < n; j++) {
+        R[i][j] -= fr * R[k][j] - fi * M[k][j];
+        M[i][j] -= fr * M[k][j] + fi * R[k][j];
+      }
+      const br = xr[k], bi = xi[k];
+      xr[i] -= fr * br - fi * bi; xi[i] -= fr * bi + fi * br;
+    }
+  }
+  const sr = new Array(n).fill(0), si = new Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i--) {
+    let ar = xr[i], ai = xi[i];
+    for (let j = i + 1; j < n; j++) { ar -= R[i][j] * sr[j] - M[i][j] * si[j]; ai -= R[i][j] * si[j] + M[i][j] * sr[j]; }
+    const d = R[i][i] * R[i][i] + M[i][i] * M[i][i];
+    sr[i] = (ar * R[i][i] + ai * M[i][i]) / d; si[i] = (ai * R[i][i] - ar * M[i][i]) / d;
+  }
+  return [sr, si];
+}
+
+// ---------------------------------------------------------------- loop analysis
+function analyse(P, loop) {
+  const pl = makePlant(P), c = C0, Ts = P.Ts;
+  const y0 = loop === 'position' ? c.yOp : c.yc + P.Fref / P.kw;
+  const v0 = loop === 'position' ? c.vOp : 0;
+  const eq = equilibrium(pl, y0, v0);
+  const x0 = [eq.xv, 0, eq.pa, eq.Qh, eq.pA, eq.pB, y0, v0];
+  const u0 = eq.xv;
+  const scale = [1, pl.wv, P.ps, c.QN, P.ps, P.ps, 0.01, 0.1];
+  const f8 = (x, u) => {
+    const full = new Float64Array(16), out = new Float64Array(16);
+    for (let i = 0; i < NX; i++) full[i] = x[i];
+    pl.deriv(full, u, out);
+    return Array.from(out.slice(0, NX));
+  };
+  const h = 1e-6;
+  const As = [], Bs = [];
+  for (let i = 0; i < NX; i++) As.push(new Array(NX).fill(0));
+  for (let j = 0; j < NX; j++) {
+    const xp = x0.slice(), xm = x0.slice();
+    xp[j] += h * scale[j]; xm[j] -= h * scale[j];
+    const fp = f8(xp, u0), fm = f8(xm, u0);
+    for (let i = 0; i < NX; i++) As[i][j] = (fp[i] - fm[i]) / (2 * h) / scale[i];
+  }
+  { const fp = f8(x0, u0 + h), fm = f8(x0, u0 - h); for (let i = 0; i < NX; i++) Bs.push((fp[i] - fm[i]) / (2 * h) / scale[i]); }
+  let C;
+  if (loop === 'position') C = [0, 0, 0, 0, 0, 0, 1, 0];
+  else C = [0, 0, 0, 0, 0, 0, P.kw, pl.cw];
+  const Cs = C.map((v, i) => v * scale[i]);
+  const A = As.map((r, i) => r.map((v, j) => v * scale[i] / scale[j]));
+  const B = Bs.map((v, i) => v * scale[i]);
+  // zero-order hold
+  const Maug = [];
+  for (let i = 0; i <= NX; i++) {
+    const row = new Array(NX + 1).fill(0);
+    if (i < NX) { for (let j = 0; j < NX; j++) row[j] = As[i][j] * Ts; row[NX] = Bs[i] * Ts; }
+    Maug.push(row);
+  }
+  const E = expm(Maug);
+  const Phi = E.slice(0, NX).map(r => r.slice(0, NX));
+  const Gam = E.slice(0, NX).map(r => r[NX]);
+  // discrete controller (input e = r − y, output u)
+  let Ac, Bc, Cc, Dc;
+  if (loop === 'position') {
+    const a = c.Tf / (c.Tf + Ts), bd = P.Kd / (c.Tf + Ts);
+    Ac = [[1, 0, 0], [0, a, -bd], [0, 0, 0]]; Bc = [P.Ki * Ts, bd, 1]; Cc = [1, a, -bd]; Dc = P.Kp + P.Ki * Ts + bd;
+  } else {
+    Ac = [[1]]; Bc = [P.KiF * Ts]; Cc = [1]; Dc = P.KpF + P.KiF * Ts;
+  }
+  const ns = Bc.length, ncl = NX + ns + 1;
+  const Acl = [];
+  for (let i = 0; i < ncl; i++) Acl.push(new Array(ncl).fill(0));
+  for (let i = 0; i < NX; i++) { for (let j = 0; j < NX; j++) Acl[i][j] = Phi[i][j]; Acl[i][ncl - 1] = Gam[i]; }
+  for (let i = 0; i < ns; i++) {
+    for (let j = 0; j < NX; j++) Acl[NX + i][j] = -Bc[i] * Cs[j];
+    for (let j = 0; j < ns; j++) Acl[NX + i][NX + j] = Ac[i][j];
+  }
+  for (let j = 0; j < NX; j++) Acl[ncl - 1][j] = -Dc * Cs[j];
+  for (let j = 0; j < ns; j++) Acl[ncl - 1][NX + j] = Cc[j];
+  const olPoles = eigenvalues(As);
+  const clPoles = eigenvalues(Acl);
+  const maxAbsZ = Math.max(...clPoles.map(([re, im]) => Math.hypot(re, im)));
+  // frequency response of L(z) = K(z) z^-1 G(z)
+  const fN = 1 / (2 * Ts), nf = 500, f = [], Lre = [], Lim = [], mag = [], ph = [];
+  const fmin = 0.1, fmax = 0.999 * fN;
+  let prev = null;
+  for (let k = 0; k < nf; k++) {
+    const fr = fmin * Math.pow(fmax / fmin, k / (nf - 1)), th = 2 * Math.PI * fr * Ts;
+    const zr = Math.cos(th), zi = Math.sin(th);
+    const Mre = Phi.map((r, i) => r.map((v, j) => (i === j ? zr : 0) - v));
+    const Mim = Phi.map((r, i) => r.map((_, j) => (i === j ? zi : 0)));
+    const [xr, xi] = complexSolve(Mre, Mim, Gam.slice(), new Array(NX).fill(0));
+    let Gr = 0, Gi = 0;
+    for (let i = 0; i < NX; i++) { Gr += Cs[i] * xr[i]; Gi += Cs[i] * xi[i]; }
+    // K(z): sum of terms
+    const cdiv = (ar, ai, br, bi) => { const d = br * br + bi * bi; return [(ar * br + ai * bi) / d, (ai * br - ar * bi) / d]; };
+    let Kr, Ki;
+    if (loop === 'position') {
+      const integ = cdiv(P.Ki * Ts * zr, P.Ki * Ts * zi, zr - 1, zi);
+      const der = cdiv(P.Kd * (zr - 1), P.Kd * zi, (c.Tf + Ts) * zr - c.Tf, (c.Tf + Ts) * zi);
+      Kr = P.Kp + integ[0] + der[0]; Ki = integ[1] + der[1];
+    } else {
+      const integ = cdiv(P.KiF * Ts * zr, P.KiF * Ts * zi, zr - 1, zi);
+      Kr = P.KpF + integ[0]; Ki = integ[1];
+    }
+    const KG = [Kr * Gr - Ki * Gi, Kr * Gi + Ki * Gr];
+    const L = cdiv(KG[0], KG[1], zr, zi);
+    let phase = Math.atan2(L[1], L[0]) * 180 / Math.PI;
+    if (prev === null) { while (phase > 0) phase -= 360; while (phase <= -360) phase += 360; }
+    else { while (phase - prev > 180) phase -= 360; while (phase - prev < -180) phase += 360; }
+    prev = phase;
+    f.push(fr); Lre.push(L[0]); Lim.push(L[1]); mag.push(Math.hypot(L[0], L[1])); ph.push(phase);
+  }
+  // margins
+  let pm = Infinity, fc = NaN, gm = Infinity, fg = NaN;
+  for (let k = 0; k < nf - 1; k++) {
+    if ((mag[k] - 1) * (mag[k + 1] - 1) < 0) {
+      const s = Math.log(mag[k]) / (Math.log(mag[k]) - Math.log(mag[k + 1]));
+      const phi = ph[k] + s * (ph[k + 1] - ph[k]);
+      const phw = phi - 360 * Math.ceil(phi / 360);
+      const m = 180 + phw;
+      if (m < pm) { pm = m; fc = Math.exp(Math.log(f[k]) + s * (Math.log(f[k + 1]) - Math.log(f[k]))); }
+    }
+    const r0 = Math.floor((ph[k] + 180) / 360), r1 = Math.floor((ph[k + 1] + 180) / 360);
+    if (r0 !== r1) {
+      const target = 360 * Math.max(r0, r1) - 180;
+      const s = (target - ph[k]) / (ph[k + 1] - ph[k]);
+      const mg = Math.exp(Math.log(mag[k]) + s * (Math.log(mag[k + 1]) - Math.log(mag[k])));
+      const g = -20 * Math.log10(mg);   // negative when |L| > 1 at a −180° crossing
+      if (g < gm) { gm = g; fg = Math.exp(Math.log(f[k]) + s * (Math.log(f[k + 1]) - Math.log(f[k]))); }
+    }
+  }
+  return {
+    loop, Ts, eq, x0, u0, scale, A, B, C, As, Bs, Cs, Phi, Gam, Acl, olPoles, clPoles, maxAbsZ,
+    stable: maxAbsZ < 1, freq: { f, Lre, Lim, mag, ph }, margins: { pm, fc, gm, fg }, ctrl: { Ac, Bc, Cc, Dc }
+  };
+}
+/*PHYSICS-END*/
+
+// ================================================================= user interface
+const $ = id => document.getElementById(id);
+const COL = {
+  paper: '#fbf6ec', ink: '#2b1a14', muted: '#6c5849', line: '#4a352c', rule: '#d9cbb4', grid: '#e4d8c4',
+  wine: '#7b1e2f', blue: '#3e6887', ochre: '#b06a1f', green: '#3d6b45', steel: '#5d534c', steelLite: '#8d8279',
+  air: '#fdf9f1', neg: 'rgb(62,104,135)'
+};
+const MODE_TINT = ['rgba(108,88,73,0.07)', 'rgba(62,104,135,0.10)', 'rgba(62,104,135,0.18)', 'rgba(123,30,47,0.14)',
+  'rgba(176,106,31,0.14)', 'rgba(61,107,69,0.12)', 'rgba(108,88,73,0.07)'];
+const CMAP = [[0, [246, 232, 196]], [0.45, [222, 146, 70]], [1, [92, 14, 34]]];
+
+const SLIDERS = [
+  { group: 'Hydraulics' },
+  { key: 'ps', label: 'p_s supply pressure', unit: 'MPa', min: 4, max: 21, step: 0.5, k: 1e-6, dec: 1 },
+  { key: 'betaOil', label: 'β oil bulk modulus', unit: 'GPa', min: 0.8, max: 2, step: 0.05, k: 1e-9, dec: 2 },
+  { key: 'alpha0', label: 'α₀ entrained air at 1 atm', unit: '%', min: 0, max: 3, step: 0.05, k: 100, dec: 2 },
+  { key: 'Lh', label: 'L_h hose length', unit: 'm', min: 0.5, max: 6, step: 0.1, k: 1, dec: 1 },
+  { key: 'dh', label: 'd_h hose bore', unit: 'mm', min: 6, max: 25, step: 0.5, k: 1000, dec: 1 },
+  { key: 'fv', label: 'f_v valve bandwidth', unit: 'Hz', min: 20, max: 200, step: 1, k: 1, dec: 0 },
+  { group: 'Mechanics' },
+  { key: 'M', label: 'M tooling mass', unit: 'kg', min: 0, max: 400, step: 5, k: 1, dec: 0 },
+  { key: 'Fc', label: 'F_c Coulomb friction', unit: 'N', min: 0, max: 3000, step: 50, k: 1, dec: 0 },
+  { key: 'kw', label: 'k_w specimen stiffness', unit: 'MN/m', min: 5, max: 100, step: 1, k: 1e-6, dec: 0 },
+  { key: 'Fref', label: 'F_ref press force', unit: 'kN', min: 10, max: 120, step: 1, k: 1e-3, dec: 0 },
+  { group: 'Controller' },
+  { key: 'Ts', label: 'T_s sample period', unit: 'ms', min: 0.25, max: 4, step: 0.25, k: 1000, dec: 2 },
+  { key: 'Kp', label: 'K_p position gain', unit: '%/mm', min: 0, max: 60, step: 0.5, k: 0.1, dec: 1 },
+  { key: 'Ki', label: 'K_i position integral', unit: '%/(mm·s)', min: 0, max: 300, step: 1, k: 0.1, dec: 0 },
+  { key: 'Kd', label: 'K_d position derivative', unit: '%/(mm/s)', min: 0, max: 0.2, step: 0.002, k: 0.1, dec: 3 },
+  { key: 'KpF', label: 'K_pF force gain', unit: '%/kN', min: 0, max: 6, step: 0.05, k: 1e5, dec: 2 },
+  { key: 'KiF', label: 'K_iF force integral', unit: '%/(kN·s)', min: 0, max: 60, step: 0.5, k: 1e5, dec: 1 }
+];
+
+let P = { ...DEFAULTS }, run = null, an = null, tView = 0, playing = false, speed = 1, lastTs = null, dirty = true;
+let loopSel = 'position', recomputeTimer = null;
+const scene = $('scene'), sctx = scene.getContext('2d');
+const PLOTS = [
+  { id: 'pl_y', title: 'Position [mm]' }, { id: 'pl_F', title: 'Force [kN]' }, { id: 'pl_p', title: 'Pressure [MPa]' },
+  { id: 'pl_u', title: 'Valve [%]' }, { id: 'pl_E', title: 'Energy [kJ]' }, { id: 'pl_e', title: 'Tracking error' }
+].map(p => ({ ...p, cv: $(p.id) }));
+
+const fmt = (v, d) => (Math.abs(v) < 0.5 * Math.pow(10, -d) ? 0 : v).toFixed(d).replace('-', '−');
+
+function buildControls() {
+  const box = $('controls');
+  for (const s of SLIDERS) {
+    if (s.group) { const h = document.createElement('h4'); h.textContent = s.group; box.appendChild(h); continue; }
+    const div = document.createElement('div');
+    div.className = 'ctl';
+    div.innerHTML = `<label for="in_${s.key}">${s.label}</label><output id="out_${s.key}" for="in_${s.key}"></output>` +
+      `<input type="range" id="in_${s.key}" min="${s.min}" max="${s.max}" step="${s.step}" value="${(P[s.key] * s.k).toFixed(4)}">`;
+    box.appendChild(div);
+    const input = div.querySelector('input'), out = div.querySelector('output');
+    const show = () => { out.textContent = `${Number(input.value).toFixed(s.dec)} ${s.unit}`; };
+    show();
+    input.addEventListener('input', () => { P[s.key] = Number(input.value) / s.k; show(); scheduleRecompute(); });
+  }
+}
+function scheduleRecompute() {
+  $('busy').textContent = 'Computing…';
+  clearTimeout(recomputeTimer);
+  recomputeTimer = setTimeout(recompute, 200);
+}
+
+function pColor(p) {
+  if (p < 0) return COL.neg;
+  const s = Math.min(1, p / P.ps);
+  for (let i = 1; i < CMAP.length; i++) {
+    if (s <= CMAP[i][0]) {
+      const [s0, c0] = CMAP[i - 1], [s1, c1] = CMAP[i], u = (s - s0) / (s1 - s0);
+      return `rgb(${c0.map((c, j) => Math.round(c + (c1[j] - c) * u)).join(',')})`;
+    }
+  }
+  return `rgb(${CMAP[2][1].join(',')})`;
+}
+
+function recompute() {
+  const t0 = performance.now();
+  try {
+    run = simulate(P);
+    an = analyse(P, loopSel);
+    $('busy').textContent = `Computed in ${fmt((performance.now() - t0) / 1000, 2)} s.`;
+  } catch (err) {
+    $('busy').textContent = `The computation failed: ${err.message}. Move a setting back towards its default.`;
+    return;
+  }
+  tView = 0; playing = false; $('play').textContent = 'Play';
+  $('scrub').max = run.tEnd.toFixed(3); $('scrub').value = 0;
+  $('psLbl').textContent = `${fmt(P.ps / 1e6, 1)} MPa (p_s)`;
+  updateStatus();
+  layout();
+  drawAnalysis();
+}
+function reanalyse() {
+  an = analyse(P, loopSel);
+  drawAnalysis();
+}
+
+function updateStatus() {
+  const R = run.rec, parts = [];
+  const ev = name => run.events.find(e => e.mode === name);
+  const press = ev('press');
+  if (run.outcome === 'complete') {
+    parts.push(`<div>Cycle complete in <span class="num">${fmt(run.tEnd, 3)} s</span>. Contact detected at t = <span class="num">${press ? fmt(press.t, 3) : '–'} s</span>; peak force <span class="num">${fmt(Math.max(...R.F) / 1000, 2)} kN</span> for a target of <span class="num">${fmt(P.Fref / 1000, 0)} kN</span>.</div>`);
+  } else {
+    parts.push(`<div class="warn">The cycle did not finish within ${C0.tMax} s (stuck in mode “${MODES[R.mode[R.mode.length - 1]]}”). The loop is probably unstable or saturated; see the analysis below.</div>`);
+  }
+  const satFrac = R.uCmd.filter(u => Math.abs(u) >= 1).length / R.uCmd.length;
+  if (satFrac > 0) parts.push(`<div class="warn">The valve command is saturated for ${fmt(100 * satFrac, 1)} % of the cycle.</div>`);
+  if (run.pMin < 0) parts.push(`<div class="warn">Gauge pressure falls to <span class="num">${fmt(run.pMin / 1e6, 3)} MPa</span> in the ${run.pMinWhere} at t = <span class="num">${fmt(run.pMinT, 3)} s</span>: suction, air release, risk of cavitation.</div>`);
+  const rel = run.closureMax / Math.max(1, Math.abs(R.W[R.W.length - 1]));
+  parts.push(`<div>Energy audit: max |W_pump − stored − losses − work on specimen and stop| = <span class="num">${run.closureMax.toExponential(2)} J</span> (${rel.toExponential(1)} of the pump work) ${rel < 1e-6 ? '✓' : '✗'} · ${run.substeps} RK4 steps per sample.</div>`);
+  $('status').innerHTML = parts.join('');
+}
+
+// ---------------------------------------------------------------- scene
+// Logical drawing space 1000 × 720; the press itself is drawn at 750 px per metre.
+const SC = { W: 1000, H: 720, k: 750, axis: 760, base: 660 };
+let G = null;
+function layout() {
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = scene.clientWidth || 700, cssH = cssW * SC.H / SC.W;
+  scene.style.height = cssH + 'px';
+  scene.width = Math.round(cssW * dpr); scene.height = Math.round(cssH * dpr);
+  G = { s: cssW / SC.W, dpr, cssW, cssH };
+  for (const p of PLOTS) { p.cv.width = Math.round(p.cv.clientWidth * dpr); p.cv.height = Math.round(p.cv.clientHeight * dpr); }
+  buildPlots();
+  dirty = true;
+}
+function frameIndex(t) {
+  const T = run.rec.t;
+  let lo = 0, hi = T.length - 1;
+  if (t >= T[hi]) return hi;
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (T[mid] <= t) lo = mid; else hi = mid; }
+  return lo;
+}
+function polyLength(pts) { let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; }
+function pointAt(pts, s) {
+  for (let i = 1; i < pts.length; i++) {
+    const L = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    if (s <= L) { const u = s / L; return [pts[i - 1][0] + u * (pts[i][0] - pts[i - 1][0]), pts[i - 1][1] + u * (pts[i][1] - pts[i - 1][1])]; }
+    s -= L;
+  }
+  return pts[pts.length - 1];
+}
+
+function drawScene(i) {
+  const c = sctx, R = run.rec, pl = run.plant, k = SC.k;
+  c.setTransform(G.dpr * G.s, 0, 0, G.dpr * G.s, 0, 0);
+  c.fillStyle = COL.paper; c.fillRect(0, 0, SC.W, SC.H);
+  const Z = z => SC.base - k * z;                      // metres above the base plate → logical y
+  const X = xm => SC.axis + k * xm;                    // metres from the cylinder axis → logical x
+  const y = R.y[i], pa = R.pa[i], pA = R.pA[i], pB = R.pB[i];
+  const mono = size => `${size}px "IBM Plex Mono", ui-monospace, monospace`;
+  const sans = size => `${size}px "IBM Plex Sans", Arial, sans-serif`;
+
+  // press geometry [m]
+  const Rb = C0.D / 2, Rr = C0.dr / 2, wall = 0.02;
+  const zCapIn = 0.03, zPist = 0.04 + y, tPist = 0.04, zTopIn = 0.04 + C0.stroke + tPist + 0.01, zTop = zTopIn + 0.03;
+  const zRodTop = zPist + tPist + 0.30, zPlatenTop = zRodTop + 0.04;
+  const zSpecTop = 0.42 + C0.yc + 0.10, zCell = zSpecTop + 0.04, zCross = zCell + 0.06;
+  const zSpecBot = Math.max(0.42 + C0.yc, zPlatenTop);
+  // frame
+  c.fillStyle = COL.steel;
+  c.fillRect(X(-0.30), Z(0), k * 0.60, k * 0.03);                                   // base plate
+  c.fillRect(X(-0.27), Z(zCross + 0.07), k * 0.04, Z(0) - Z(zCross + 0.07));         // columns
+  c.fillRect(X(0.23), Z(zCross + 0.07), k * 0.04, Z(0) - Z(zCross + 0.07));
+  c.fillRect(X(-0.30), Z(zCross + 0.07), k * 0.60, k * 0.07);                        // crosshead
+  // cylinder body
+  c.fillRect(X(-Rb - wall), Z(zTop), k * 2 * (Rb + wall), Z(0) - Z(zTop));
+  // chambers coloured by pressure
+  c.fillStyle = pColor(pA); c.fillRect(X(-Rb), Z(zPist), k * 2 * Rb, Z(zCapIn) - Z(zPist));
+  c.fillStyle = pColor(pB); c.fillRect(X(-Rb), Z(zTopIn), k * 2 * Rb, Z(zPist + tPist) - Z(zTopIn));
+  // piston, rod, platen
+  c.fillStyle = COL.steelLite; c.strokeStyle = COL.ink; c.lineWidth = 1;
+  c.fillRect(X(-Rb), Z(zPist + tPist), k * 2 * Rb, k * tPist); c.strokeRect(X(-Rb), Z(zPist + tPist), k * 2 * Rb, k * tPist);
+  c.fillRect(X(-Rr), Z(zRodTop), k * 2 * Rr, Z(zPist + tPist) - Z(zRodTop)); c.strokeRect(X(-Rr), Z(zRodTop), k * 2 * Rr, Z(zPist + tPist) - Z(zRodTop));
+  c.fillStyle = '#3d3430'; c.fillRect(X(-0.15), Z(zPlatenTop), k * 0.30, k * 0.04);
+  c.fillStyle = '#f7efe3'; c.font = mono(11); c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(`m = ${fmt(pl.m, 0)} kg`, X(0), Z(zPlatenTop - 0.02));
+  // specimen (true scale), load cell
+  const Fn = R.F[i];
+  c.fillStyle = Fn > 0 ? `rgb(${Math.round(150 + 80 * Math.min(1, Fn / 1.2e5))},${Math.round(160 - 90 * Math.min(1, Fn / 1.2e5))},120)` : '#a7a08a';
+  c.fillRect(X(-0.05), Z(zSpecTop), k * 0.10, Z(zSpecBot) - Z(zSpecTop));
+  c.strokeRect(X(-0.05), Z(zSpecTop), k * 0.10, Z(zSpecBot) - Z(zSpecTop));
+  c.fillStyle = COL.ink; c.font = sans(12); c.textAlign = 'left';
+  c.fillText('specimen', X(0.06), Z((zSpecTop + zSpecBot) / 2));
+  c.fillStyle = COL.ochre; c.fillRect(X(-0.04), Z(zCell), k * 0.08, k * 0.04);
+  c.fillStyle = COL.ink; c.textAlign = 'right'; c.fillText('load cell F', X(-0.06), Z(zCell - 0.02)); c.textAlign = 'left';
+  // LVDT beside the rod
+  c.strokeStyle = COL.blue; c.lineWidth = 3;
+  c.beginPath(); c.moveTo(X(0.17), Z(zTop)); c.lineTo(X(0.17), Z(zTop + 0.12)); c.stroke();
+  c.lineWidth = 1.5; c.beginPath(); c.moveTo(X(0.15), Z(zPlatenTop - 0.02)); c.lineTo(X(0.17), Z(zPlatenTop - 0.02)); c.stroke();
+  c.fillStyle = COL.blue; c.fillText('LVDT y', X(0.18), Z(zTop + 0.06));
+
+  // hydraulic network (schematic)
+  const valve = { x: 260, y: 380, w: 200, h: 56 };
+  const portA = [valve.x + 50, valve.y], portB = [valve.x + 150, valve.y];
+  const portP = [valve.x + 50, valve.y + valve.h], portT = [valve.x + 150, valve.y + valve.h];
+  const capPort = [X(-Rb - wall), Z(zCapIn + 0.015)];
+  const rodPort = [X(-Rb - wall), Z(zTopIn - 0.015)];
+  const hose = [portA, [portA[0], 330], [500, 330], [500, 430], [530, 430], [530, 520], [500, 520], [500, 610], [capPort[0] - 30, 610], [capPort[0] - 30, capPort[1]], capPort];
+  const lineB = [portB, [portB[0], 300], [rodPort[0] - 40, 300], [rodPort[0] - 40, rodPort[1]], rodPort];
+  const lineP = [[110, 538], [110, 520], [portP[0], 520], portP];
+  const lineT = [portT, [portT[0], 560], [230, 560], [230, 610]];
+  const strokeLine = (pts, w, style) => { c.strokeStyle = style; c.lineWidth = w; c.lineJoin = 'round'; c.beginPath(); pts.forEach((p, j) => (j ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.stroke(); };
+  // hose: outline, then pressure gradient along its length
+  strokeLine(hose, 14, COL.ink);
+  const Lh = polyLength(hose), nseg = 60;
+  for (let s = 0; s < nseg; s++) {
+    const a = pointAt(hose, Lh * s / nseg), b = pointAt(hose, Lh * (s + 1) / nseg);
+    c.strokeStyle = pColor(pa + (pA - pa) * (s + 0.5) / nseg); c.lineWidth = 10; c.lineCap = 'butt';
+    c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke();
+  }
+  strokeLine(lineB, 12, COL.ink); strokeLine(lineB, 8, pColor(pB));
+  strokeLine(lineP, 12, COL.ink); strokeLine(lineP, 8, pColor(P.ps));
+  strokeLine(lineT, 12, COL.ink); strokeLine(lineT, 8, pColor(0));
+  // oil tracers in the hose (wrap at the ends)
+  const disp = R.Vh[i] / pl.Ah / P.Lh;          // hose volumes pushed through so far
+  c.fillStyle = '#fffaf0'; c.strokeStyle = 'rgba(43,26,20,0.75)'; c.lineWidth = 1;
+  for (let j = 0; j < 24; j++) {
+    let s = ((j / 24 + disp) % 1 + 1) % 1;
+    const p = pointAt(hose, s * Lh);
+    c.beginPath(); c.arc(p[0], p[1], 2.4, 0, 2 * Math.PI); c.fill(); c.stroke();
+  }
+  // valve body and spool
+  c.fillStyle = '#e9dfcd'; c.strokeStyle = COL.ink; c.lineWidth = 1.5;
+  c.fillRect(valve.x, valve.y, valve.w, valve.h); c.strokeRect(valve.x, valve.y, valve.w, valve.h);
+  const shift = 22 * Math.max(-1.1, Math.min(1.1, R.xv[i]));
+  c.fillStyle = COL.steelLite;
+  for (const lx of [20, 90, 160]) c.fillRect(valve.x + lx + shift, valve.y + 10, 22, valve.h - 20);
+  c.fillStyle = COL.steel; c.fillRect(valve.x + 10 + shift, valve.y + valve.h / 2 - 3, 180, 6);
+  c.fillStyle = COL.ink; c.font = mono(11); c.textAlign = 'center';
+  c.fillText('A', portA[0] - 14, portA[1] - 10); c.fillText('B', portB[0] + 14, portB[1] - 10);
+  c.fillText('P', portP[0] - 14, portP[1] + 12); c.fillText('T', portT[0] + 14, portT[1] + 12);
+  c.font = sans(12); c.textAlign = 'right'; c.fillText('servo valve', valve.x - 12, valve.y + 18); c.fillText(`x_v = ${fmt(100 * R.xv[i], 1)} %`, valve.x - 12, valve.y + 36);
+  // torque motor
+  c.fillStyle = '#d6c9b2'; c.fillRect(valve.x + 70, valve.y - 34, 60, 26); c.strokeRect(valve.x + 70, valve.y - 34, 60, 26);
+  // pump, tank, relief
+  c.fillStyle = '#e9dfcd'; c.fillRect(40, 610, 220, 60); c.strokeRect(40, 610, 220, 60);
+  c.fillStyle = COL.ink; c.font = sans(12); c.textAlign = 'center'; c.fillText('tank, 0 MPa', 150, 650);
+  c.fillStyle = '#e9dfcd'; c.beginPath(); c.arc(110, 560, 22, 0, 2 * Math.PI); c.fill(); c.stroke();
+  c.fillStyle = COL.ink; c.beginPath(); c.moveTo(110, 542); c.lineTo(100, 560); c.lineTo(120, 560); c.closePath(); c.fill();
+  c.textAlign = 'left'; c.fillText(`pump + relief, p_s = ${fmt(P.ps / 1e6, 1)} MPa`, 40, 485);
+  c.fillText(`hose: L_h = ${fmt(P.Lh, 1)} m, d_h = ${fmt(P.dh * 1000, 1)} mm`, 30, 205);
+  // flow arrows on the hose and on line B
+  const arrow = (pts, frac, q, scaleQ) => {
+    if (Math.abs(q) < 1e-7) return;
+    const L = polyLength(pts), a = pointAt(pts, L * frac), b = pointAt(pts, L * frac + 1);
+    let dx = b[0] - a[0], dy = b[1] - a[1];
+    const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+    if (q < 0) { dx = -dx; dy = -dy; }
+    const len = 8 + 16 * Math.min(1, Math.abs(q) / scaleQ);
+    c.fillStyle = COL.ink; c.beginPath();
+    c.moveTo(a[0] + dx * len, a[1] + dy * len);
+    c.lineTo(a[0] - dy * 7, a[1] + dx * 7); c.lineTo(a[0] + dy * 7, a[1] - dx * 7); c.closePath(); c.fill();
+  };
+  arrow(hose, 0.18, R.Qh[i], C0.QN); arrow(hose, 0.82, R.Qh[i], C0.QN); arrow(lineB, 0.5, R.QB[i], C0.QN);
+  // controller block and signal lines
+  c.fillStyle = '#f3eadb'; c.strokeStyle = COL.wine; c.lineWidth = 1.5;
+  c.fillRect(30, 30, 330, 150); c.strokeRect(30, 30, 330, 150);
+  const mode = MODES[R.mode[i]], force = R.force[i] === 1;
+  c.fillStyle = COL.wine; c.font = sans(13); c.textAlign = 'left';
+  c.fillText(`Digital controller · T_s = ${fmt(P.Ts * 1000, 2)} ms`, 44, 50);
+  c.font = '28px "Instrument Serif", Georgia, serif'; c.fillText(mode, 44, 84);
+  c.font = mono(12); c.fillStyle = COL.ink;
+  c.fillText(force ? `force law   F_ref = ${fmt(R.Fr[i] / 1000, 2)} kN` : `position law y_ref = ${fmt(R.yr[i] * 1000, 2)} mm`, 44, 112);
+  c.fillText(force ? `            F     = ${fmt(R.F[i] / 1000, 2)} kN` : `             y    = ${fmt(R.y[i] * 1000, 2)} mm`, 44, 132);
+  c.fillText(`u = ${fmt(100 * R.uCmd[i], 1)} %   (applied ${fmt(100 * R.uApp[i], 1)} %)`, 44, 158);
+  c.setLineDash([6, 5]); c.strokeStyle = COL.wine; c.lineWidth = 1.2;
+  c.beginPath(); c.moveTo(330, 180); c.lineTo(330, valve.y - 60); c.lineTo(valve.x + 100, valve.y - 60); c.lineTo(valve.x + 100, valve.y - 34); c.stroke();
+  c.beginPath(); c.moveTo(360, 60); c.lineTo(440, 60); c.lineTo(440, 22); c.lineTo(X(0.31), 22); c.lineTo(X(0.31), Z(zCell - 0.02)); c.lineTo(X(0.04), Z(zCell - 0.02)); c.stroke();
+  c.beginPath(); c.moveTo(360, 150); c.lineTo(X(0.20), 150); c.lineTo(X(0.20), Z(zTop + 0.10)); c.lineTo(X(0.17), Z(zTop + 0.10)); c.stroke();
+  c.setLineDash([]);
+  c.fillStyle = COL.wine; c.font = sans(11);
+  c.fillText('u', 336, valve.y - 70); c.fillText('F', X(0.31) - 12, 34); c.fillText('y', X(0.21), 165);
+  // 10 cm scale bar
+  c.strokeStyle = COL.ink; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(X(-0.30), Z(-0.05)); c.lineTo(X(-0.20), Z(-0.05)); c.moveTo(X(-0.30), Z(-0.05) - 4); c.lineTo(X(-0.30), Z(-0.05)); c.moveTo(X(-0.20), Z(-0.05) - 4); c.lineTo(X(-0.20), Z(-0.05)); c.stroke();
+  c.fillStyle = COL.ink; c.font = mono(11); c.textAlign = 'left'; c.fillText('10 cm', X(-0.20) + 8, Z(-0.05));
+}
+
+// ---------------------------------------------------------------- time plots
+function niceStep(range, n) {
+  const raw = range / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+}
+function decimals(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+function buildPlots() {
+  const R = run.rec, kJ = v => v / 1000;
+  const e = R.t.map((_, i) => (R.force[i] ? (R.Fr[i] - R.F[i]) / 1000 : (R.yr[i] - R.y[i]) * 1e6 / 1000));
+  const series = {
+    pl_y: [{ name: 'y', color: COL.wine, y: R.y.map(v => v * 1000) }, { name: 'y_ref', color: COL.blue, y: R.yr.map((v, i) => (R.force[i] ? NaN : v * 1000)), dash: [5, 4] }],
+    pl_F: [{ name: 'F', color: COL.wine, y: R.F.map(v => v / 1000) }, { name: 'F_ref', color: COL.blue, y: R.Fr.map((v, i) => (R.force[i] ? v / 1000 : NaN)), dash: [5, 4] }],
+    pl_p: [{ name: 'p_a', color: COL.ochre, y: R.pa.map(v => v / 1e6) }, { name: 'p_A', color: COL.wine, y: R.pA.map(v => v / 1e6) }, { name: 'p_B', color: COL.blue, y: R.pB.map(v => v / 1e6) }],
+    pl_u: [{ name: 'u', color: COL.blue, y: R.uCmd.map(v => 100 * v) }, { name: 'x_v', color: COL.wine, y: R.xv.map(v => 100 * v) }],
+    pl_E: [{ name: 'pump', color: COL.ink, y: R.W.map(kJ) }, { name: 'valve loss', color: COL.wine, y: R.Lv.map(kJ) },
+      { name: 'hose+seals', color: COL.ochre, y: R.Lh.map((v, i) => kJ(v + R.Lf[i])) }, { name: 'stored', color: COL.blue, y: R.stored.map(kJ) },
+      { name: 'specimen', color: COL.green, y: R.Ws.map((v, i) => kJ(v + R.Wst[i])) }],
+    pl_e: [{ name: 'e_y [mm] / e_F [kN]', color: COL.wine, y: e }]
+  };
+  for (const p of PLOTS) { p.series = series[p.id]; p.cache = renderPlot(p); }
+}
+function renderPlot(p) {
+  const dpr = window.devicePixelRatio || 1, W = p.cv.clientWidth, H = p.cv.clientHeight;
+  const off = document.createElement('canvas');
+  off.width = Math.round(W * dpr); off.height = Math.round(H * dpr);
+  const c = off.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ml = 50, mr = 10, mt = 26, mb = 24, pw = W - ml - mr, ph = H - mt - mb;
+  const R = run.rec, T = R.t, tEnd = run.tEnd;
+  let lo = Infinity, hi = -Infinity;
+  for (const s of p.series) for (const v of s.y) if (Number.isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (!Number.isFinite(lo)) { lo = 0; hi = 1; }
+  if (lo > 0) lo = 0;
+  if (hi - lo < 1e-12) hi = lo + 1;
+  const pad = 0.06 * (hi - lo); hi += pad; if (lo < 0) lo -= pad;
+  const px = t => ml + pw * t / tEnd, py = v => mt + ph * (1 - (v - lo) / (hi - lo));
+  c.fillStyle = COL.paper; c.fillRect(0, 0, W, H);
+  // mode bands
+  let start = 0;
+  for (let k = 1; k <= T.length; k++) {
+    if (k === T.length || R.mode[k] !== R.mode[start]) {
+      c.fillStyle = MODE_TINT[R.mode[start]];
+      c.fillRect(px(T[start]), mt, px(T[Math.min(k, T.length - 1)]) - px(T[start]), ph);
+      start = k;
+    }
+  }
+  c.font = '11px "IBM Plex Mono", ui-monospace, monospace'; c.textBaseline = 'middle';
+  const ys = niceStep(hi - lo, 4), yd = decimals(ys);
+  c.strokeStyle = COL.grid; c.lineWidth = 1; c.fillStyle = COL.muted; c.textAlign = 'right';
+  for (let v = Math.ceil(lo / ys) * ys; v <= hi + 1e-12; v += ys) {
+    c.beginPath(); c.moveTo(ml, py(v)); c.lineTo(ml + pw, py(v)); c.stroke();
+    c.fillText(fmt(v, yd), ml - 5, py(v));
+  }
+  const ts = niceStep(tEnd, 6), td = decimals(ts);
+  c.textAlign = 'center';
+  for (let t = 0; t <= tEnd + 1e-9; t += ts) {
+    c.beginPath(); c.moveTo(px(t), mt); c.lineTo(px(t), mt + ph); c.stroke();
+    c.fillText(fmt(t, td), px(t), mt + ph + 11);
+  }
+  c.textAlign = 'right'; c.fillText('t [s]', ml - 5, mt + ph + 11);
+  c.strokeStyle = COL.ink; c.strokeRect(ml, mt, pw, ph);
+  c.save(); c.beginPath(); c.rect(ml, mt, pw, ph); c.clip();
+  const stride = Math.max(1, Math.floor(T.length / (pw * 2)));
+  for (const s of p.series) {
+    c.strokeStyle = s.color; c.lineWidth = 1.5; c.setLineDash(s.dash || []); c.beginPath();
+    let pen = false;
+    for (let k = 0; k < T.length; k += stride) {
+      const v = s.y[k];
+      if (!Number.isFinite(v)) { pen = false; continue; }
+      if (pen) c.lineTo(px(T[k]), py(v)); else { c.moveTo(px(T[k]), py(v)); pen = true; }
+    }
+    c.stroke();
+  }
+  c.restore(); c.setLineDash([]);
+  c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif'; c.fillStyle = COL.ink; c.fillText(p.title, 6, 12);
+  let lx = 6 + c.measureText(p.title).width + 12;
+  c.font = '11px "IBM Plex Mono", ui-monospace, monospace';
+  for (const s of p.series) {
+    if (lx > W - 40) break;
+    c.fillStyle = s.color; c.fillRect(lx, 10, 12, 3);
+    c.fillStyle = COL.ink; c.fillText(s.name, lx + 15, 12);
+    lx += 15 + c.measureText(s.name).width + 10;
+  }
+  return { off, px };
+}
+function drawPlots() {
+  for (const p of PLOTS) {
+    const c = p.cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(p.cache.off, 0, 0);
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const xx = p.cache.px(Math.min(tView, run.tEnd));
+    c.strokeStyle = COL.wine; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(xx, 26); c.lineTo(xx, p.cv.clientHeight - 24); c.stroke();
+  }
+}
+
+// ---------------------------------------------------------------- analysis plots
+function prepCanvas(cv) {
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.fillStyle = COL.paper; c.fillRect(0, 0, W, H);
+  c.font = '11px "IBM Plex Mono", ui-monospace, monospace'; c.textBaseline = 'middle';
+  return { c, W, H };
+}
+function drawBode() {
+  const { c, W, H } = prepCanvas($('bode'));
+  const { f, mag, ph } = an.freq;
+  const ml = 54, mr = 12, gap = 30, mt = 26, mb = 26, pw = W - ml - mr, phh = (H - mt - mb - gap) / 2;
+  const lf0 = Math.log10(f[0]), lf1 = Math.log10(f[f.length - 1]);
+  const px = fr => ml + pw * (Math.log10(fr) - lf0) / (lf1 - lf0);
+  const dB = mag.map(m => 20 * Math.log10(m));
+  let d0 = Math.max(-80, Math.min(...dB)), d1 = Math.min(120, Math.max(...dB));
+  d0 = Math.floor(d0 / 20) * 20; d1 = Math.ceil(d1 / 20) * 20; if (d1 - d0 < 40) d1 = d0 + 40;
+  let p0 = Math.floor(Math.min(...ph) / 90) * 90, p1 = Math.ceil(Math.max(...ph) / 90) * 90; if (p1 - p0 < 180) p1 = p0 + 180;
+  const pyM = v => mt + phh * (1 - (v - d0) / (d1 - d0));
+  const pyP = v => mt + phh + gap + phh * (1 - (v - p0) / (p1 - p0));
+  const panel = (top, lo, hi, step, py, unit) => {
+    c.strokeStyle = COL.grid; c.fillStyle = COL.muted; c.textAlign = 'right';
+    for (let v = lo; v <= hi + 1e-9; v += step) { c.beginPath(); c.moveTo(ml, py(v)); c.lineTo(ml + pw, py(v)); c.stroke(); c.fillText(fmt(v, 0), ml - 5, py(v)); }
+    for (let e = Math.ceil(lf0); e <= Math.floor(lf1); e++) for (const m of [1, 2, 5]) {
+      const fr = m * Math.pow(10, e); if (fr < f[0] || fr > f[f.length - 1]) continue;
+      c.strokeStyle = m === 1 ? '#d2c3aa' : COL.grid; c.beginPath(); c.moveTo(px(fr), top); c.lineTo(px(fr), top + phh); c.stroke();
+    }
+    c.strokeStyle = COL.ink; c.strokeRect(ml, top, pw, phh);
+    c.save(); c.translate(12, top + phh / 2); c.rotate(-Math.PI / 2); c.textAlign = 'center'; c.fillStyle = COL.ink; c.fillText(unit, 0, 0); c.restore();
+  };
+  panel(mt, d0, d1, d1 - d0 > 120 ? 40 : 20, pyM, '|L| [dB]');
+  panel(mt + phh + gap, p0, p1, p1 - p0 > 540 ? 180 : 90, pyP, '∠L [°]');
+  c.fillStyle = COL.muted; c.textAlign = 'center';
+  for (let e = Math.ceil(lf0); e <= Math.floor(lf1); e++) c.fillText(`${Math.pow(10, e)}`, px(Math.pow(10, e)), H - 12);
+  c.textAlign = 'right'; c.fillText('f [Hz]', ml + pw, H - 12 + 0.1);
+  c.strokeStyle = COL.wine; c.lineWidth = 1; c.setLineDash([4, 4]);
+  c.beginPath(); c.moveTo(ml, pyM(0)); c.lineTo(ml + pw, pyM(0)); c.stroke();
+  for (let v = Math.ceil((p0 + 180) / 360) * 360 - 180; v <= p1; v += 360) { c.beginPath(); c.moveTo(ml, pyP(v)); c.lineTo(ml + pw, pyP(v)); c.stroke(); }
+  c.setLineDash([]);
+  const line = (vals, py, color) => {
+    c.save(); c.beginPath(); c.rect(ml, mt - 2, pw, H); c.clip();
+    c.strokeStyle = color; c.lineWidth = 1.8; c.beginPath();
+    vals.forEach((v, k) => (k ? c.lineTo(px(f[k]), py(v)) : c.moveTo(px(f[k]), py(v)))); c.stroke(); c.restore();
+  };
+  line(dB, v => pyM(Math.max(d0, Math.min(d1, v))), COL.wine);
+  line(ph, v => pyP(Math.max(p0, Math.min(p1, v))), COL.blue);
+  const m = an.margins;
+  if (Number.isFinite(m.fc)) { c.strokeStyle = COL.ink; c.setLineDash([2, 3]); c.beginPath(); c.moveTo(px(m.fc), mt); c.lineTo(px(m.fc), mt + 2 * phh + gap); c.stroke(); c.setLineDash([]); }
+  if (Number.isFinite(m.fg)) { c.strokeStyle = COL.ochre; c.setLineDash([2, 3]); c.beginPath(); c.moveTo(px(m.fg), mt); c.lineTo(px(m.fg), mt + 2 * phh + gap); c.stroke(); c.setLineDash([]); }
+  c.textAlign = 'left'; c.fillStyle = COL.ink; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
+  c.fillText(`Bode of L(e^{jωT_s}) up to the Nyquist frequency ${fmt(1 / (2 * P.Ts), 0)} Hz`, 8, 12);
+}
+function drawNyquist() {
+  const { c, W, H } = prepCanvas($('nyq'));
+  const { Lre, Lim } = an.freq;
+  const lim = 3, cx = W / 2, cy = H / 2 + 8, sc = Math.min(W, H - 30) / (2 * lim + 0.4);
+  const X = v => cx + sc * v, Y = v => cy - sc * v;
+  c.strokeStyle = COL.grid;
+  for (let v = -lim; v <= lim; v++) { c.beginPath(); c.moveTo(X(v), Y(-lim)); c.lineTo(X(v), Y(lim)); c.stroke(); c.beginPath(); c.moveTo(X(-lim), Y(v)); c.lineTo(X(lim), Y(v)); c.stroke(); }
+  c.strokeStyle = COL.muted; c.beginPath(); c.arc(X(0), Y(0), sc, 0, 2 * Math.PI); c.stroke();
+  c.save(); c.beginPath(); c.rect(X(-lim), Y(lim), 2 * lim * sc, 2 * lim * sc); c.clip();
+  for (const sgn of [1, -1]) {
+    c.strokeStyle = sgn > 0 ? COL.wine : 'rgba(123,30,47,0.35)'; c.lineWidth = 1.6; c.beginPath();
+    Lre.forEach((re, k) => { const im = sgn * Lim[k]; k ? c.lineTo(X(re), Y(im)) : c.moveTo(X(re), Y(im)); }); c.stroke();
+  }
+  c.restore();
+  c.fillStyle = COL.wine; c.beginPath(); c.arc(X(-1), Y(0), 4, 0, 2 * Math.PI); c.fill();
+  c.fillStyle = COL.ink; c.textAlign = 'left'; c.fillText('−1', X(-1) + 6, Y(0) - 10);
+  c.fillStyle = COL.muted; c.textAlign = 'center';
+  for (let v = -lim; v <= lim; v++) c.fillText(String(v).replace('-', '−'), X(v), Y(-lim) + 12);
+  c.fillStyle = COL.ink; c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
+  c.fillText('Nyquist, clipped to |Re|, |Im| ≤ 3 (unit circle grey)', 8, 12);
+}
+function drawZplane() {
+  const { c, W, H } = prepCanvas($('zpl'));
+  const lim = 1.2, cx = W / 2, cy = H / 2 + 8, sc = Math.min(W, H - 30) / (2 * lim);
+  const X = v => cx + sc * v, Y = v => cy - sc * v;
+  c.strokeStyle = COL.grid;
+  c.beginPath(); c.moveTo(X(-lim), Y(0)); c.lineTo(X(lim), Y(0)); c.stroke();
+  c.beginPath(); c.moveTo(X(0), Y(-lim)); c.lineTo(X(0), Y(lim)); c.stroke();
+  // lines of constant damping ratio for ζ = 0.1 ... 0.7
+  for (const z of [0.1, 0.3, 0.7]) {
+    c.strokeStyle = 'rgba(108,88,73,0.25)'; c.beginPath();
+    for (let k = 0; k <= 100; k++) {
+      const wn = Math.PI * k / 100, sr = -z * wn, si = wn * Math.sqrt(1 - z * z);
+      const re = Math.exp(sr) * Math.cos(si), im = Math.exp(sr) * Math.sin(si);
+      k ? c.lineTo(X(re), Y(im)) : c.moveTo(X(re), Y(im));
+    }
+    c.stroke();
+  }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.2; c.beginPath(); c.arc(X(0), Y(0), sc, 0, 2 * Math.PI); c.stroke();
+  for (const [re, im] of an.clPoles) {
+    const out = Math.hypot(re, im) >= 1;
+    const xx = X(Math.max(-lim, Math.min(lim, re))), yy = Y(Math.max(-lim, Math.min(lim, im)));
+    c.strokeStyle = out ? COL.wine : COL.blue; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(xx - 5, yy - 5); c.lineTo(xx + 5, yy + 5); c.moveTo(xx + 5, yy - 5); c.lineTo(xx - 5, yy + 5); c.stroke();
+  }
+  c.fillStyle = COL.ink; c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
+  c.fillText('Closed-loop poles in the z-plane (ζ = 0.1, 0.3, 0.7 curves)', 8, 12);
+}
+function poleRowsS(poles) {
+  return poles.map(([re, im]) => {
+    const wn = Math.hypot(re, im);
+    return { re, im, f: wn / (2 * Math.PI), zeta: wn > 1e-6 ? -re / wn : NaN };
+  }).filter(p => p.im >= -1e-9).sort((a, b) => a.f - b.f);
+}
+function drawTables() {
+  const m = an.margins, T = P.Ts;
+  const ok = an.stable;
+  $('anVerdict').textContent = ok ? `Closed loop stable (max |z| = ${fmt(an.maxAbsZ, 4)})` : `Closed loop UNSTABLE (max |z| = ${fmt(an.maxAbsZ, 4)})`;
+  $('anVerdict').className = `verdict ${ok ? 'good' : 'bad'}`;
+  const e = an.eq;
+  $('tMargins').innerHTML = `<caption>Operating point and margins</caption>
+    <tr><th>quantity</th><th>value</th></tr>
+    <tr><td style="text-align:left">y₀ [mm], ẏ₀ [mm/s]</td><td>${fmt(e.y * 1000, 2)}, ${fmt(e.v * 1000, 1)}</td></tr>
+    <tr><td style="text-align:left">x_v₀ [%]</td><td>${fmt(100 * e.xv, 3)}</td></tr>
+    <tr><td style="text-align:left">p_A₀, p_B₀ [MPa]</td><td>${fmt(e.pA / 1e6, 3)}, ${fmt(e.pB / 1e6, 3)}</td></tr>
+    <tr><td style="text-align:left">β_eff(p_A₀) [GPa]</td><td>${fmt(run.plant.beta(e.pA) / 1e9, 3)}</td></tr>
+    <tr><td style="text-align:left">phase margin [°] at [Hz]</td><td>${Number.isFinite(m.pm) ? fmt(m.pm, 1) : '–'} at ${Number.isFinite(m.fc) ? fmt(m.fc, 2) : '–'}</td></tr>
+    <tr><td style="text-align:left">gain margin [dB] at [Hz]</td><td>${Number.isFinite(m.gm) ? fmt(m.gm, 1) : '–'} at ${Number.isFinite(m.fg) ? fmt(m.fg, 1) : '–'}</td></tr>
+    <tr><td style="text-align:left">max |z| closed loop</td><td>${fmt(an.maxAbsZ, 5)}</td></tr>`;
+  const ol = poleRowsS(an.olPoles);
+  $('tOL').innerHTML = `<caption>Open-loop plant poles (continuous, s)</caption><tr><th>Re s [1/s]</th><th>Im s [rad/s]</th><th>f [Hz]</th><th>ζ</th></tr>` +
+    ol.map(p => `<tr><td>${fmt(p.re, 1)}</td><td>${fmt(p.im, 1)}</td><td>${fmt(p.f, 2)}</td><td>${Number.isFinite(p.zeta) ? fmt(p.zeta, 3) : '–'}</td></tr>`).join('');
+  const cl = poleRowsS(an.clPoles.map(([re, im]) => { const r = Math.hypot(re, im); return r > 0 ? [Math.log(r) / T, Math.atan2(im, re) / T] : [-Infinity, 0]; }))
+    .map((p, k) => p);
+  const zs = an.clPoles.filter(([, im]) => im >= -1e-12);
+  $('tCL').innerHTML = `<caption>Closed-loop poles (z and s = ln z / T_s)</caption><tr><th>|z|</th><th>∠z [°]</th><th>f [Hz]</th><th>ζ</th></tr>` +
+    zs.map(([re, im]) => {
+      const r = Math.hypot(re, im), s = r > 0 ? [Math.log(r) / T, Math.atan2(im, re) / T] : [-Infinity, 0], wn = Math.hypot(s[0], s[1]);
+      return { r, ang: Math.atan2(im, re) * 180 / Math.PI, f: Number.isFinite(wn) ? wn / (2 * Math.PI) : Infinity, zeta: Number.isFinite(wn) && wn > 0 ? -s[0] / wn : NaN };
+    }).sort((a, b) => b.r - a.r).map(p => `<tr${p.r >= 1 ? ' style="color: var(--wine); font-weight: 600"' : ''}><td>${fmt(p.r, 5)}</td><td>${fmt(p.ang, 2)}</td><td>${Number.isFinite(p.f) ? fmt(p.f, 2) : '∞'}</td><td>${Number.isFinite(p.zeta) ? fmt(p.zeta, 3) : '–'}</td></tr>`).join('');
+  void cl;
+}
+function drawAnalysis() { drawBode(); drawNyquist(); drawZplane(); drawTables(); }
+
+// ---------------------------------------------------------------- readouts and loop
+function updateReadouts(i) {
+  const R = run.rec, set = (id, v) => { $(id).textContent = v; };
+  set('r_mode', MODES[R.mode[i]] + (R.force[i] ? ' · force law' : ' · position law'));
+  set('r_t', fmt(R.t[i], 3));
+  set('r_y', fmt(R.y[i] * 1000, 3));
+  set('r_yr', R.force[i] ? '–' : fmt(R.yr[i] * 1000, 3));
+  set('r_v', fmt(R.yd[i] * 1000, 2));
+  set('r_F', fmt(R.F[i] / 1000, 3));
+  set('r_Fr', R.force[i] ? fmt(R.Fr[i] / 1000, 3) : '–');
+  set('r_pa', fmt(R.pa[i] / 1e6, 3));
+  set('r_pA', fmt(R.pA[i] / 1e6, 3));
+  set('r_pB', fmt(R.pB[i] / 1e6, 3));
+  set('r_beta', fmt(R.betaA[i] / 1e9, 3));
+  set('r_Q', fmt(R.Qh[i] * 60000, 2));
+  set('r_xv', `${fmt(100 * R.xv[i], 2)} / ${fmt(100 * R.uCmd[i], 2)}`);
+  set('r_W', fmt(R.W[i] / 1000, 3));
+  set('r_Lv', fmt(R.Lv[i] / 1000, 3));
+  set('r_Lh', fmt((R.Lh[i] + R.Lf[i]) / 1000, 3));
+  set('r_St', fmt(R.stored[i] / 1000, 3));
+  set('r_Ws', fmt((R.Ws[i] + R.Wst[i]) / 1000, 3));
+  $('tLbl').textContent = `${fmt(R.t[i], 3)} s`;
+}
+function render() { const i = frameIndex(tView); drawScene(i); drawPlots(); updateReadouts(i); }
+function loop(ts) {
+  if (playing && run) {
+    if (lastTs !== null) tView += (ts - lastTs) / 1000 * speed;
+    if (tView >= run.tEnd) { tView = run.tEnd; playing = false; $('play').textContent = 'Play'; }
+    $('scrub').value = tView; dirty = true;
+  }
+  lastTs = ts;
+  if (dirty && run) { render(); dirty = false; }
+  requestAnimationFrame(loop);
+}
+$('play').addEventListener('click', () => {
+  if (playing) { playing = false; $('play').textContent = 'Play'; return; }
+  if (tView >= run.tEnd) tView = 0;
+  playing = true; $('play').textContent = 'Pause';
+});
+$('reset').addEventListener('click', () => { playing = false; $('play').textContent = 'Play'; tView = 0; $('scrub').value = 0; dirty = true; });
+$('scrub').addEventListener('input', e => { tView = Number(e.target.value); dirty = true; });
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+  speed = Number(b.dataset.speed);
+  document.querySelectorAll('.seg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+}));
+$('loopSel').addEventListener('change', e => { loopSel = e.target.value; reanalyse(); });
+let resizeTimer = null;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { layout(); drawAnalysis(); }, 150); });
+
+buildControls();
+recompute();
+requestAnimationFrame(loop);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (run) { buildPlots(); drawAnalysis(); dirty = true; } });
+</script>
+</body>
+</html>
