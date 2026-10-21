@@ -2,11 +2,16 @@
 
 <section id="bulk" class="chapter">
 <h2><span class="chn">7</span> Oil is a stiff spring</h2>
+<p>Part I treated oil as incompressible, and for a hand press that is fine. A servo press is different: its oil is squeezed by 12 MPa and asked to respond within milliseconds, and at that scale the oil’s small give becomes a spring that the whole machine bounces on. This chapter finds the law of that spring. It is the law of every chamber on the map of chapter 0.</p>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>the net flow into it, $Q_{\mathrm{in}} - Q_{\mathrm{out}}$, and the speed of its moving wall, $\dot V$</div><div class="bx">a volume of oil<small>capacitor, $C = V/\beta$</small></div><div class="io out"><span class="lbl">answers with</span>its pressure $p$</div></div>
 <h3 id="bulk-def">7.1 The bulk modulus</h3>
 <div class="picture">Seal a syringe full of oil and lean on the plunger with all your weight: it moves by a hair. The oil is not incompressible, only very stiff.</div>
 <p>The bulk modulus measures how much pressure it takes to squeeze a volume $V$ by a fraction $dV/V$:</p>
 $$\beta = -V\,\frac{dp}{dV} = \rho\,\frac{dp}{d\rho}. \tag{7.1}$$
-<p>The second form follows because the mass $\rho V$ of a sealed sample is fixed, so $d\rho/\rho = -dV/V$. Mineral hydraulic oil has $\beta \approx 1.5\ \mathrm{GPa}$: squeezing it by 1 % takes 15 MPa.</p>
+<p>The minus sign makes $\beta$ positive, since volume falls as pressure rises. The second form follows because the mass $\rho V$ of a sealed sample is fixed: $d(\rho V) = V\,d\rho + \rho\,dV = 0$, so $d\rho/\rho = -dV/V$. Mineral hydraulic oil has $\beta \approx 1.5\ \mathrm{GPa}$: squeezing it by 1 % takes 15 MPa.</p>
+<p>Why so stiff? In a liquid the molecules already touch; squeezing it means pushing electron clouds into each other, and they resist hard. Water, at 2.2 GPa, is stiffer still. A gas is the opposite: its molecules are far apart and the pressure comes only from their impacts. For an ideal gas compressed as $pV^n = \text{const}$, differentiating gives $V^n\,dp + n p V^{n-1}dV = 0$, so</p>
+$$\beta_{\mathrm{gas}} = -V\frac{dp}{dV} = n\,p_{\mathrm{abs}}.$$
+<p>The exponent $n$ is 1 for a slow, isothermal squeeze, where heat has time to leave, and $\gamma = 1.4$ for a fast, adiabatic one. Air at atmospheric pressure has $\beta_{\mathrm{gas}} = 0.10$ to $0.14\ \mathrm{MPa}$, ten thousand times softer than oil. That contrast is the whole story of section 7.3.</p>
 
 <h3 id="buildup">7.2 The pressure build-up equation</h3>
 <figure class="fig"><svg viewBox="0 0 420 180" role="img" aria-label="A chamber of volume V with an inflow Q_in, an outflow Q_out and a piston moving out at speed y-dot">
@@ -37,13 +42,13 @@ $$\boxed{\;\frac{V}{\beta}\,\dot{p} = Q_{\mathrm{in}} - Q_{\mathrm{out}} - \dot{
 $$\frac{dV}{dp} = -\frac{V_\ell}{\beta_{\mathrm{oil}}} - \frac{V_g}{n\,p_{\mathrm{abs}}}.$$
 <p>Apply the definition (7.1) to the mixture, $\beta_{\mathrm{eff}} = -(V_\ell + V_g)/(dV/dp)$, and divide top and bottom by $V_\ell$, writing $\alpha = V_g/V_\ell$:</p>
 $$\beta_{\mathrm{eff}} = \frac{1 + \alpha}{\dfrac{1}{\beta_{\mathrm{oil}}} + \dfrac{\alpha}{n\,p_{\mathrm{abs}}}} = \beta_{\mathrm{oil}}\,\frac{1+\alpha}{1 + \alpha\,\dfrac{\beta_{\mathrm{oil}}}{n\,p_{\mathrm{abs}}}}. \tag{7.3}$$
-<p>The gas volume itself shrinks with pressure, while the liquid volume $V_\ell$ is held fixed: at 12 MPa the oil itself shrinks by only $p/\beta_{\mathrm{oil}} \approx 0.8\,\%$. If the air makes up a fraction $\alpha_0$ of the total volume at atmospheric pressure $p_0$, then $V_g/V_\ell = \alpha_0/(1-\alpha_0)$ there, and the polytropic law gives</p>
+<p>The gas volume itself shrinks with pressure, while the liquid volume $V_\ell$ is held fixed: at 12 MPa the oil itself shrinks by only $p/\beta_{\mathrm{oil}} \approx 0.8\,\%$. If the air makes up a fraction $\alpha_0$ of the total volume at atmospheric pressure $p_0$, its volume there is $V_{g0}$ with $V_{g0}/(V_\ell + V_{g0}) = \alpha_0$, so $V_{g0}/V_\ell = \alpha_0/(1-\alpha_0)$. The polytropic law carries the bubble from $p_0$ to $p_{\mathrm{abs}}$, $p_{\mathrm{abs}}V_g^n = p_0 V_{g0}^n$, so $V_g = V_{g0}\,(p_0/p_{\mathrm{abs}})^{1/n}$. Divide by $V_\ell$:</p>
 $$\alpha(p) = \frac{\alpha_0}{1-\alpha_0}\left(\frac{p_0}{p_{\mathrm{abs}}}\right)^{1/n}. \tag{7.4}$$
 <div class="press"><div class="ctag">In our press</div>
 <table class="mt"><tr><th>gauge pressure</th><th>0</th><th>0.1 MPa</th><th>0.5 MPa</th><th>1 MPa</th><th>2 MPa</th><th>4.4 MPa</th><th>7.8 MPa</th><th>12 MPa</th></tr>
 <tr><td>$\beta_{\mathrm{eff}}$, 0.5 % air</td><td>28 MPa</td><td>87 MPa</td><td>428 MPa</td><td>795 MPa</td><td>1.16 GPa</td><td>1.39 GPa</td><td>1.46 GPa</td><td>1.48 GPa</td></tr>
 <tr><td>$\beta_{\mathrm{eff}}$, 2 % air</td><td>7.1 MPa</td><td>23 MPa</td><td>135 MPa</td><td>327 MPa</td><td>686 MPa</td><td>1.13 GPa</td><td>1.34 GPa</td><td>1.42 GPa</td></tr></table>
-At zero gauge pressure half a percent of air makes the oil fifty times softer. Near vacuum ($p_{\mathrm{abs}}\to 0$) the effective modulus goes to zero, which in the model also stops the pressure from falling below absolute zero.</div>
+The model uses $n = 1.4$: the pressure in a press cycle changes in milliseconds, too fast for the bubbles to exchange much heat. At zero gauge pressure half a percent of air makes the oil fifty times softer. Near vacuum ($p_{\mathrm{abs}}\to 0$) the effective modulus goes to zero, which in the model also stops the pressure from falling below absolute zero.</div>
 </section>
 
 <section id="orifice" class="chapter">
@@ -57,23 +62,40 @@ At zero gauge pressure half a percent of air makes the oil fifty times softer. N
 <text x="215" y="118" class="svgt" fill="var(--wine)">vena contracta</text>
 <path d="M 300 80 q 12 -14 24 0 t 24 0 t 24 0" fill="none" stroke="var(--muted)" stroke-width="1.5"/><text x="300" y="112" class="svgt">turbulent mixing</text></svg>
 <figcaption>Figure 3. A sharp-edged orifice. The jet narrows downstream of the edge, then loses its kinetic energy in turbulence.</figcaption></figure>
+<p>Every edge of the valve is an orifice: a sharp-edged opening that the spool makes larger or smaller. This chapter derives how much oil flows through one, given the pressures on its two sides. It is the law of the “valve edges” box on the map.</p>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>the opening $A_o$ and the pressures $p_u$ upstream and $p_d$ downstream</div><div class="bx">a sharp-edged orifice<small>nonlinear resistor</small></div><div class="io out"><span class="lbl">answers with</span>the flow $Q$</div></div>
 <div class="picture">Squeeze a garden hose with your thumb and the water shoots out fast: pressure turned into speed. In the valve, the speed is then lost in a turbulent swirl, and the pressure difference becomes heat.</div>
 <p>Upstream of the opening the oil is almost still at pressure $p_u$. It accelerates through the gap and the jet keeps contracting a little beyond the edge, to its narrowest section, the <i>vena contracta</i>, where the streamlines are parallel and the pressure equals the downstream pressure $p_d$. Apply steady Bernoulli, (5.2) without the time term, between a point upstream and the vena contracta:</p>
 $$p_u = p_d + \tfrac12\rho\,v_j^2 \qquad\Rightarrow\qquad v_j = \sqrt{\frac{2\,(p_u - p_d)}{\rho}}.$$
-<p>The jet area is a fraction $C_c$ of the opening $A_o$ (about 0.61 for a sharp edge), and friction reduces the speed slightly. Both factors are lumped into a discharge coefficient $C_d \approx 0.6$ to $0.7$:</p>
+<p>The flow through the opening is the jet speed times the jet’s area at the vena contracta, and that area is smaller than the hole: a fraction $C_c$ of the opening $A_o$, the <i>contraction coefficient</i>. Why the jet contracts at all, and by how much, is the subject of the next section. A little friction also slows the jet, by a factor $C_v \approx 0.98$. Both factors are lumped into a <i>discharge coefficient</i> $C_d = C_cC_v \approx 0.6$ to $0.7$:</p>
 $$Q = C_d\,A_o\sqrt{\frac{2\,\Delta p}{\rho}}, \qquad \Delta p = p_u - p_d. \tag{8.1}$$
 <p>In a spool valve a stepped rod, the <i>spool</i>, slides in a close-fitting bore. Its wide sections, the <i>lands</i>, cover and uncover slots cut in the wall of the bore. The opening is such a slot: $A_o = w\,x$, with $w$ the circumferential width of the port (the <i>area gradient</i>) and $x$ the spool travel. Normalize the travel to $\hat{x} = x/x_{\max} \in [-1, 1]$ and collect the constants into one valve coefficient:</p>
 $$Q = K_v\,\hat{x}\,\sqrt{\Delta p}, \qquad K_v = C_d\,w\,x_{\max}\sqrt{2/\rho}. \tag{8.2}$$
 <p>Manufacturers quote a rated flow $Q_N$ at a rated drop $\Delta p_N$ across the whole valve, which is two metering edges in series, each taking $\Delta p_N/2$. Hence $K_v = Q_N/\sqrt{\Delta p_N/2}$.</p>
 <div class="press"><div class="ctag">In our press</div>$Q_N = 100\ \mathrm{L/min}$ at 7 MPa gives $K_v = 8.91\times10^{-7}\ \mathrm{m^3/(s\sqrt{Pa})}$. With $C_d = 0.62$ that is a full opening $w\,x_{\max} = 30\ \mathrm{mm^2}$: a 10 mm diameter port ring opened by about 1 mm.</div>
 
-<h3 id="orifice-root">8.1 Taming the square root</h3>
+<h3 id="orifice-cc">8.1 Why the jet is narrower than the hole</h3>
+<div class="picture">Watch a bath drain or a tap fill a glass: the stream narrows just after it leaves the opening. Oil arriving from the sides cannot turn the corner at the edge instantly; it keeps some sideways speed and squeezes the jet.</div>
+<p>One case can be solved exactly from momentum alone. Let a tank drain through a short tube that pokes <i>into</i> the tank, a “Borda mouthpiece”. Far from the tube’s mouth the oil is almost still, so the pressure on every part of the tank wall is the hydrostatic value, with one exception: the patch of wall opposite the mouth, of area $A_o$, has no wall facing it on the other side. Take the oil in the tank as a control volume and balance momentum along the tube axis. The only unbalanced force is the pressure excess $(p_u - p_d)$ on that missing patch, and it must supply the momentum carried out by the jet each second:</p>
+$$(p_u - p_d)\,A_o = \rho\,Q\,v_j = \rho\,(C_cA_o\,v_j)\,v_j.$$
+<p>Bernoulli along a streamline into the jet gives $p_u - p_d = \tfrac12\rho v_j^2$. Substitute:</p>
+$$\tfrac12\rho v_j^2\,A_o = \rho\,C_cA_o\,v_j^2 \qquad\Rightarrow\qquad C_c = \tfrac12.$$
+<p>The jet has half the area of the hole, exactly. Momentum demands it: Bernoulli turns the pressure difference into a speed, but the same pressure difference acting on the hole can only supply half the momentum that a full-bore jet at that speed would carry.</p>
+<p>For a sharp edge in a flat wall, the wall next to the edge does feel the moving oil, so the momentum balance no longer closes on its own. The free-streamline theory of Helmholtz and Kirchhoff solves that case with conformal mapping, and von Mises worked it out for many shapes in 1917. For a long two-dimensional slot, the case of a valve edge, it gives</p>
+$$C_c = \frac{\pi}{\pi + 2} = 0.611.$$
+<p>That is the 0.61 measured in practice. A valve edge, with oil arriving along the spool rather than head-on, behaves much the same, which is why $C_d \approx 0.6$ to $0.7$ is the working value.</p>
+
+<h3 id="orifice-root">8.2 Taming the square root</h3>
 <p>The square root has an infinite slope at $\Delta p = 0$, which a linear analysis and a numerical integrator both dislike. Real orifices also become laminar at tiny flows, where $Q \propto \Delta p$. The model uses</p>
 $$g(\Delta p) = \frac{\Delta p}{\left(\Delta p^2 + p_{\mathrm{tr}}^2\right)^{1/4}} \quad \approx \begin{cases} \Delta p/\sqrt{p_{\mathrm{tr}}}, & |\Delta p| \ll p_{\mathrm{tr}}\\[4pt] \operatorname{sign}(\Delta p)\sqrt{|\Delta p|}, & |\Delta p| \gg p_{\mathrm{tr}}\end{cases} \tag{8.3}$$
-<p>with $p_{\mathrm{tr}} = 0.1\ \mathrm{MPa}$. It is linear near zero, square-root far away, and smooth everywhere. It also handles flow in the reverse direction through the sign of $\Delta p$.</p>
+<p>with $p_{\mathrm{tr}} = 0.1\ \mathrm{MPa}$. Both limits follow from the denominator. When $|\Delta p| \ll p_{\mathrm{tr}}$, $(\Delta p^2 + p_{\mathrm{tr}}^2)^{1/4} \to p_{\mathrm{tr}}^{1/2}$, so $g \to \Delta p/\sqrt{p_{\mathrm{tr}}}$: a straight line, like laminar flow. When $|\Delta p| \gg p_{\mathrm{tr}}$, $(\Delta p^2)^{1/4} = |\Delta p|^{1/2}$, so $g \to \Delta p/\sqrt{|\Delta p|} = \operatorname{sign}(\Delta p)\sqrt{|\Delta p|}$. At $\Delta p = p_{\mathrm{tr}}$ the two meet, and $g$ is $2^{-1/4} = 0.84$ of the pure square root. The function is smooth everywhere and handles reverse flow through the sign of $\Delta p$. It is a modelling choice, not a law of nature: it buys a well-behaved equation at the price of a small error in a range of pressure differences the press passes through quickly.</p>
 
-<h3 id="leakage">8.2 Leakage</h3>
-<p>Between the lands and the bore there is a radial clearance of a few micrometres. Flow through such a gap is laminar, so it is proportional to the pressure difference (chapter 11 derives this for a pipe): $Q_L = K_L\,\Delta p$, with $K_L = 2\times10^{-13}\ \mathrm{m^3/(s\,Pa)}$.</p>
+<h3 id="leakage">8.3 Leakage</h3>
+<p>Even a closed edge leaks. Between each land and the bore there is a radial clearance $c$ of micrometres, and oil creeps through it along the land, a length $L$, from the high-pressure side to the low. The gap is so thin that the flow is laminar. Unroll the ring into a flat slit of width $w = \pi d$ for a spool of diameter $d$. Take a thin layer of oil between heights $z$ and $z + dz$ across the gap. The pressure difference pushes it along with $\Delta p\,w\,dz$; the shear stress $\tau = \eta\,du/dz$ of its neighbours acts on its top and bottom faces, of area $wL$. In steady flow the forces balance:</p>
+$$\Delta p\,w\,dz + \left[\tau(z + dz) - \tau(z)\right]wL = 0 \qquad\Rightarrow\qquad \eta\,\frac{d^2u}{dz^2} = -\frac{\Delta p}{L}.$$
+<p>Integrate twice with the oil at rest on both walls, $u(0) = u(c) = 0$, and add up the flow across the gap:</p>
+$$u(z) = \frac{\Delta p}{2\eta L}\,z\,(c - z), \qquad Q_L = w\int_0^c u\,dz = \frac{w\,c^3}{12\,\eta L}\,\Delta p = K_L\,\Delta p.$$
+<p>The flow is proportional to the pressure difference, and to the <i>cube</i> of the clearance. The model uses $K_L = 2\times10^{-13}\ \mathrm{m^3/(s\,Pa)}$ for each leakage path. On a 10 mm spool with 1 mm of land and $\eta = 27.8\ \mathrm{mPa\,s}$, that is a radial clearance of 13 µm; halve the clearance and the leakage falls eightfold, which is why servo spools are lapped into their bores.</p>
 </section>
 
 <section id="valve4" class="chapter">
@@ -89,6 +111,8 @@ $$g(\Delta p) = \frac{\Delta p}{\left(\Delta p^2 + p_{\mathrm{tr}}^2\right)^{1/4
 <path d="M 305 64 C 312 95, 318 110, 312 128" fill="none" stroke="var(--blue)" stroke-width="2.5" marker-end="url(#ahb)"/>
 <line x1="395" y1="40" x2="440" y2="40" stroke="var(--ink)" stroke-width="2" marker-end="url(#ahk)"/><text x="380" y="34" class="svgt">x<tspan dy="4" font-size="10">v</tspan><tspan dy="-4"> &gt; 0</tspan></text></svg>
 <figcaption>Figure 4. Spool shifted to positive $x_v$: the pump P feeds port A, port B drains to the tank T. Negative $x_v$ swaps the roles.</figcaption></figure>
+<p>Put four orifices of chapter 8 into one bore, all opened and closed by one spool, and you have the valve that steers the press. This chapter writes down the flow through each of its edges, adds them into the flows at its ports, and finds the two numbers, $K_q$ and $K_c$, that summarise how the valve answers small changes.</p>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>the spool position $x_v$; the pressures $p_s$, $p_T$ and the port pressures $p_a$, $p_B$</div><div class="bx">four-way valve<small>four orifices on one spool</small></div><div class="io out"><span class="lbl">answers with</span>the port flows $Q_A$, $Q_B$ and the pump flow $Q_S$</div></div>
 <p>From here on $x_v$ is the normalized spool travel $\hat{x}$ of (8.2), between −1 and 1. The pump holds the supply pressure $p_s$ at port P, and the tank pressure $p_T$ (zero here) sits at port T. Port A feeds the long hose, and its pressure is $p_a$; port B feeds the rod chamber through a short rigid line, so its pressure is the rod-chamber pressure $p_B$. A four-way valve has four metering edges. For $x_v > 0$ the edges P→A and B→T open; for $x_v < 0$ the edges P→B and A→T open. The valve is <i>critically lapped</i>: each land is exactly as wide as the slot it covers, with neither overlap nor gap, so at $x_v = 0$ all four edges are exactly closed and only leakage flows. Writing $x^+ = \max(\hat{x}, 0)$ and $x^- = \min(\hat{x}, 0)$, the flows out of the ports are</p>
 $$\begin{aligned}
 Q_A &= K_v\left[x^+\,g(p_s - p_a) + x^-\,g(p_a - p_T)\right]\\
@@ -98,7 +122,15 @@ Q_B &= -K_v\left[x^+\,g(p_B - p_T) + x^-\,g(p_s - p_B)\right]\\
 Q_S &= K_v\left[x^+\,g(p_s - p_a) - x^-\,g(p_s - p_B)\right]\\
 &\quad + K_L\left(2p_s - p_a - p_B\right).
 \end{aligned} \tag{9.1}$$
-<p>Each line follows from (8.2) and (8.3) applied to the open edges, plus leakage from the pump into each port and from each port to the tank.</p>
+<p>Each line is built edge by edge. A port gains oil through the edge that connects it to the pump and loses oil through the edge that connects it to the tank; each edge passes $K_v\,|\text{opening}|\,g(\text{pressure drop across it})$ from (8.2) and (8.3):</p>
+<div class="tblw"><table class="mt"><tr><th>edge</th><th>open when</th><th>opening</th><th>drop across it</th><th>its flow, as a term of (9.1)</th></tr>
+<tr><td>P → A</td><td>$x_v > 0$</td><td>$x^+$</td><td>$p_s - p_a$</td><td>into A: $+K_v x^+ g(p_s - p_a)$ in $Q_A$ and $Q_S$</td></tr>
+<tr><td>A → T</td><td>$x_v < 0$</td><td>$-x^-$</td><td>$p_a - p_T$</td><td>out of A: $+K_v x^- g(p_a - p_T)$ in $Q_A$, negative since $x^- < 0$</td></tr>
+<tr><td>P → B</td><td>$x_v < 0$</td><td>$-x^-$</td><td>$p_s - p_B$</td><td>into B: $-K_v x^- g(p_s - p_B)$ in $Q_B$ and $Q_S$</td></tr>
+<tr><td>B → T</td><td>$x_v > 0$</td><td>$x^+$</td><td>$p_B - p_T$</td><td>out of B: $-K_v x^+ g(p_B - p_T)$ in $Q_B$</td></tr></table></div>
+<p>Leakage adds a laminar path from the pump into each port and from each port to the tank, all with the conductance $K_L$ of section 8.3. For port A that is</p>
+$$K_L(p_s - p_a) - K_L(p_a - p_T) = K_L(p_s - 2p_a + p_T),$$
+<p>and likewise for B; the pump feeds both leaks into the ports, $K_L(p_s - p_a) + K_L(p_s - p_B)$.</p>
 
 <h3 id="valve-power">9.1 Where the power goes</h3>
 <p>The pump delivers hydraulic power $p_s Q_S$. The ports deliver $p_a Q_A + p_B Q_B$ to the actuator, and the tank receives $p_T(Q_S - Q_A - Q_B)$. The difference is lost in the jets as heat:</p>
@@ -111,22 +143,34 @@ P_{\mathrm{valve}} &= p_s Q_S - p_a Q_A - p_B Q_B\\
 <h3 id="valve-lin">9.2 The two valve coefficients</h3>
 <p>For small changes around a steady operating point, expand $Q_A(x_v, p_a)$ to first order:</p>
 $$\delta Q_A = K_q\,\delta x_v - K_c\,\delta p_a, \qquad K_q = \frac{\partial Q_A}{\partial x_v}, \qquad K_c = -\frac{\partial Q_A}{\partial p_a}. \tag{9.3}$$
-<p>$K_q$ is the <i>flow gain</i> and $K_c$ the <i>flow-pressure coefficient</i>. For $x_v > 0$ and $|\Delta p| \gg p_{\mathrm{tr}}$, (9.1) gives $K_q = K_v\sqrt{p_s - p_a}$ and $K_c = K_v x_v/(2\sqrt{p_s - p_a}) + 2K_L$. The term $K_c$ acts like a resistor that bleeds flow when the pressure rises; it supplies most of the damping of an open valve.</p>
+<p>$K_q$ is the <i>flow gain</i>: how much more oil the port delivers per unit of spool travel. $K_c$ is the <i>flow-pressure coefficient</i>: how much less it delivers per pascal of back-pressure. For $x_v > 0$ and $|\Delta p| \gg p_{\mathrm{tr}}$ only the P→A edge and the leaks matter, $Q_A = K_v x_v\sqrt{p_s - p_a} + K_L(p_s - 2p_a + p_T)$, and differentiating gives</p>
+$$K_q = K_v\sqrt{p_s - p_a}, \qquad K_c = K_v x_v\,\frac{1}{2\sqrt{p_s - p_a}} + 2K_L.$$
+<p> The term $K_c$ acts like a resistor that bleeds flow when the pressure rises; it supplies most of the damping of an open valve.</p>
 <div class="press"><div class="ctag">In our press</div>Cruising up at 0.1 m/s, the spool is 40.6 % open with $p_s - p_a = 9.76\ \mathrm{MPa}$: $K_q = 2.8\times10^{-3}\ \mathrm{m^3/s}$ per unit spool and $K_c = 5.8\times10^{-11}\ \mathrm{m^3/(s\,Pa)}$, about 290 times the leakage conductance $K_L$.</div>
 </section>
 
 <section id="spool" class="chapter">
 <h2><span class="chn">10</span> The spool and its torque motor</h2>
-<p>A current in the torque motor tilts an armature; in a two-stage valve the armature steers a small pilot flow that pushes the main spool. The details are a chapter of their own, but measured responses of good servo valves are described well by a second-order system from the command $u$ to the spool position:</p>
+<p>The controller’s command is a small electric current. Something has to turn it into a spool position, and that something has inertia and springs, so it cannot follow the command instantly. This chapter derives how it lags.</p>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>the command $u$, a coil current</div><div class="bx">torque motor and spool<small>a mass on a damped spring</small></div><div class="io out"><span class="lbl">answers with</span>the spool position $x_v$</div></div>
+<h3 id="spool-newton">10.1 Newton for the spool</h3>
+<div class="picture">Hang a weight from a spring in a jar of honey and tug the top of the spring: the weight follows, a moment late and without bouncing much. The spool is that weight.</div>
+<p>Take the simplest servo valve, a single-stage one, in which the torque motor pushes the spool directly. The coil current $i$ produces a force $K_i\,i$ on the spool. Centring springs of stiffness $k$ pull it back to the middle, oil films and the motor’s eddy currents damp it with a force $b\,\dot{x}$, and the spool has mass $m_s$. Newton:</p>
+$$m_s\,\ddot{x} = K_i\,i - k\,x - b\,\dot{x}.$$
+<p>Divide by $m_s$ and name the two combinations that appear: the undamped natural frequency $\omega_v = \sqrt{k/m_s}$ and the damping ratio $\zeta_v = b/(2\sqrt{k m_s})$, so that $k/m_s = \omega_v^2$ and $b/m_s = 2\zeta_v\omega_v$. Measure the travel as a fraction of full stroke, $x_v = x/x_{\max}$, and the command as a fraction of the current that holds the spool at full stroke, $u = K_i i/(k\,x_{\max})$. Then</p>
 $$\ddot{x}_v + 2\zeta_v\omega_v\,\dot{x}_v + \omega_v^2\,x_v = \omega_v^2\,u, \qquad \omega_v = 2\pi f_v. \tag{10.1}$$
-<p>Its frequency response, from $u = \hat{u}\,e^{j\omega t}$, is</p>
+<p>A steady command gives $x_v = u$: the spool goes where it is told, once it has had time. In a two-stage valve the torque motor moves a flapper that steers a small pilot flow, and the pilot flow pushes the main spool; there are more parts and more equations, but measured responses of good two-stage valves are close to (10.1) over the band where they are used, so manufacturers quote $f_v$ and $\zeta_v$ and the model uses the same form.</p>
+<h3 id="spool-freq">10.2 How the spool lags a sine</h3>
+<p>Command a sine, $u = \hat{u}\,e^{j\omega t}$. Once the start-up transient has died away the spool moves at the same frequency, $x_v = \hat{x}\,e^{j\omega t}$, so each time derivative brings down a factor $j\omega$. Substitute into (10.1): $(-\omega^2 + 2j\zeta_v\omega_v\omega + \omega_v^2)\,\hat{x} = \omega_v^2\,\hat{u}$. Divide by $\omega_v^2\hat{u}$ to get the ratio of output to input, a complex number whose size is the gain and whose angle is the phase:</p>
 $$\frac{x_v}{u}(j\omega) = \frac{1}{1 - (\omega/\omega_v)^2 + 2j\zeta_v\,\omega/\omega_v}, \qquad \varphi(\omega) = -\operatorname{atan2}\!\left(2\zeta_v\,\frac{\omega}{\omega_v},\ 1 - \frac{\omega^2}{\omega_v^2}\right). \tag{10.2}$$
-<p>Here $\operatorname{atan2}(b, a)$ is the angle of the complex number $a + jb$, so the phase runs smoothly from 0 through −90° at $\omega_v$ towards −180°. A plain $\arctan(b/a)$ would be wrong above resonance, where $a < 0$: at 100 Hz it gives +52.7° instead of −127.3°.</p>
+<p>At $\omega = \omega_v$ the real part of the denominator vanishes and the response is $1/(2j\zeta_v)$: the spool lags by exactly 90°, whatever the damping. That is how $f_v$ is measured. Here $\operatorname{atan2}(b, a)$ is the angle of the complex number $a + jb$, so the phase runs smoothly from 0 through −90° at $\omega_v$ towards −180°. A plain $\arctan(b/a)$ would be wrong above resonance, where $a < 0$: at 100 Hz it gives +52.7° instead of −127.3°.</p>
 <div class="press"><div class="ctag">In our press</div>$f_v = 60\ \mathrm{Hz}$, $\zeta_v = 0.7$. At 10 Hz the spool lags by 13°, at 38 Hz already by 56°: the valve alone eats a good part of the phase a feedback loop can afford.</div>
 </section>
 
 <section id="hose" class="chapter">
 <h2><span class="chn">11</span> The hose: a slug of oil</h2>
+<p>Two metres of hose join the valve to the cylinder. The oil in it weighs only 0.2 kg, but it has to be pushed back and forth every time the valve changes its mind, and through a 12 mm bore that takes a surprising pressure. This chapter finds that pressure, the friction on the way, and the limit beyond which a hose stops behaving like one lump of oil.</p>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>the pressures at its two ends, $p_a$ and $p_A$</div><div class="bx">the oil in the hose<small>an inductor and a resistor in series</small></div><div class="io out"><span class="lbl">answers with</span>the flow along it, $Q_h$</div></div>
 <h3 id="hose-inertance">11.1 Inertance</h3>
 <div class="picture">Swing the end of a garden hose full of water: the water lags behind, then pushes back. The column has mass, and a narrow bore makes it hard to get moving, because every litre per second must run fast.</div>
 <p>Treat the oil in a hose of length $L_h$ and cross-section $A_h$ as one rigid slug of mass $\rho A_h L_h$, moving at speed $Q_h/A_h$. The pressure at the inlet pushes it forward with $p_a A_h$, the pressure at the outlet pushes it back with $p_A A_h$, and friction costs a pressure drop $\Delta p_f$. Newton's second law:</p>
@@ -167,19 +211,24 @@ $$\Delta p = R_{\mathrm{lam}}\,Q, \qquad R_{\mathrm{lam}} = \frac{128\,\eta L}{\
 <div class="check"><div class="ctag">Check</div>The fourth power is brutal: halve the bore and the resistance rises sixteen times. Units: $\mathrm{Pa\,s\cdot m}/\mathrm{m^4} = \mathrm{Pa\,s/m^3}$, a pressure per flow.</div>
 
 <h3 id="turbulent">11.3 Turbulent friction</h3>
-<p>Whether the flow stays laminar depends on the Reynolds number $Re = \bar{u}\,d/\nu$, the ratio of inertial to viscous forces. Above about 2300 the flow becomes turbulent, and the pressure drop grows with the square of the speed, as in the Darcy–Weisbach law plus the losses in fittings and bends:</p>
+<p>Whether the flow stays laminar depends on the Reynolds number $Re = \bar{u}\,d/\nu$, the ratio of inertial to viscous forces. Above about 2300 the flow becomes turbulent. Eddies then carry momentum across the pipe far more effectively than viscosity does, and the wall stress no longer depends on the viscosity but on the density and the speed. Dimensional analysis then fixes the form: the only pressure that can be built from $\rho$ and $\bar{u}$ is $\tfrac12\rho\bar{u}^2$, and the drop must grow in proportion to the length per diameter, $L/d$. The dimensionless factor in front, the <i>friction factor</i> $f$, is measured. Adding the losses in fittings and bends, $K_m$, gives the Darcy–Weisbach law:</p>
 $$\Delta p = \left(f\,\frac{L}{d} + K_m\right)\frac12\rho\bar{u}^2 = K_t\,Q|Q|, \qquad K_t = \frac{\rho\left(fL/d + K_m\right)}{2A^2}. \tag{11.3}$$
 <p>The model adds the two, $\Delta p_f = R_{\mathrm{lam}}Q + K_t Q|Q|$: the laminar term dominates at small flow, the turbulent term at large flow. The form $Q|Q|$ keeps the sign of the loss opposite to the flow.</p>
-<div class="press"><div class="ctag">In our press</div>At 60 L/min in the 12 mm hose the mean speed is 8.8 m/s and $Re \approx 3300$: turbulent. $R_{\mathrm{lam}} = 1.09\times10^8\ \mathrm{Pa\,s/m^3}$, $K_t = 1.64\times10^{11}\ \mathrm{kg/m^7}$ with $f = 0.02$ and $K_m = 1.5$.</div>
+<div class="press"><div class="ctag">In our press</div>At 60 L/min in the 12 mm hose the mean speed is 8.8 m/s and $Re \approx 3300$: turbulent. $R_{\mathrm{lam}} = 1.09\times10^8\ \mathrm{Pa\,s/m^3}$, $K_t = 1.64\times10^{11}\ \mathrm{kg/m^7}$ with $f = 0.02$ and $K_m = 1.5$. Be warned that $f = 0.02$ is on the low side: Blasius’s correlation for smooth pipes, $f = 0.316\,Re^{-1/4}$, gives 0.042 at this Reynolds number, so the model underestimates the turbulent loss in the hose by about half. The fittings term $K_m$ dominates anyway, and the comparison with the valve losses of chapter 9 is not changed.</div>
 
 <h3 id="lumped">11.4 When is one slug enough?</h3>
-<p>Pressure waves run along the hose at $c = \sqrt{\beta/\rho} \approx 1300\ \mathrm{m/s}$. A 2 m hose rings like an organ pipe at about $c/2L \approx 330\ \mathrm{Hz}$ and above. One rigid slug is a good model only well below that. The servo loop crosses over near 10 Hz (its loop gain falls through 1 there; chapter 18), so the lumped model is good where the controller works. The 174 Hz mode it predicts, however, is already halfway to the first wave mode, so treat its exact frequency with care.</p>
+<p>The slug model assumes that a push at one end of the hose moves all of its oil at once. It does not: a push travels as a pressure wave. Follow a short piece of the oil column, $dx$ long, as a small pressure disturbance $p(x,t)$ and speed $u(x,t)$ pass through. Mass conservation for the piece, with (7.1), says that oil piling up raises the pressure: $\partial p/\partial t = -\beta\,\partial u/\partial x$. Newton for the piece says that a pressure gradient accelerates it: $\rho\,\partial u/\partial t = -\partial p/\partial x$. Differentiate the first in time, the second in space, and eliminate $u$:</p>
+$$\frac{\partial^2 p}{\partial t^2} = \frac{\beta}{\rho}\,\frac{\partial^2 p}{\partial x^2}, \qquad c = \sqrt{\beta/\rho} \approx 1300\ \mathrm{m/s}.$$
+<p>That is the wave equation, and $c$ is the speed of sound in oil. (A rubber hose bulges as a wave passes and slows it somewhat, the Korteweg correction; the model ignores that.) A 2 m hose rings like an organ pipe at about $c/2L \approx 330\ \mathrm{Hz}$ and above. One rigid slug is a good model only well below that. The servo loop crosses over near 10 Hz (its loop gain falls through 1 there; chapter 18), so the lumped model is good where the controller works. The 174 Hz mode it predicts, however, is already halfway to the first wave mode, so treat its exact frequency with care.</p>
 </section>
 
 <section id="ram" class="chapter">
 <h2><span class="chn">12</span> Chambers, ram, friction, contact</h2>
+<p>Now the cylinder. Its two chambers are volumes of oil, so chapter 7 gives their laws at once. The ram between them is a mass, so Newton gives its law. What remains is to say honestly what pushes on the ram besides the oil: its own weight, the drag of its seals, and the specimen once it touches.</p>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>flows $Q_h$ into the cap side and $Q_B$ into the rod side; the ram speed $\dot y$</div><div class="bx">cap and rod chambers<small>two capacitors</small></div><div class="io out"><span class="lbl">answers with</span>the pressures $p_A$ and $p_B$</div></div>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>the chamber pressures, the specimen force, friction and gravity</div><div class="bx">the ram<small>a mass</small></div><div class="io out"><span class="lbl">answers with</span>its position $y$ and speed $\dot y$</div></div>
 <h3 id="chambers">12.1 The three pressure equations</h3>
-<p>Apply the build-up equation (7.2) three times. The small volume at the valve port, $V_a$, which includes half the hose, receives $Q_A$ and sends $Q_h$ down the hose. The cap chamber receives $Q_h$ and grows as the ram rises. The rod chamber receives $Q_B$ and shrinks as the ram rises. The hose holds the volume $V_h = A_hL_h$; half of it is counted with each end. Mind the case of the subscripts: $p_a$ is the pressure at the valve end of the hose, $p_A$ the pressure in the cap chamber at its far end.</p>
+<p>Apply the build-up equation (7.2) three times. The small volume at the valve port, $V_a$, which includes half the hose, receives $Q_A$ and sends $Q_h$ down the hose. The cap chamber receives $Q_h$ and grows as the ram rises. The rod chamber receives $Q_B$ and shrinks as the ram rises. The hose holds the volume $V_h = A_hL_h$; half of it is counted with each end. That split is the usual way to lump a line: the slug of chapter 11 carries the hose’s mass, and its compressibility, spread along its length, is shared between the two volumes it joins. Mind the case of the subscripts: $p_a$ is the pressure at the valve end of the hose, $p_A$ the pressure in the cap chamber at its far end.</p>
 $$\begin{aligned}
 \frac{V_a}{\beta(p_a)}\,\dot{p}_a &= Q_A - Q_h\\
 \frac{V_A(y)}{\beta(p_A)}\,\dot{p}_A &= Q_h - A_A\dot{y}, & V_A &= V_{A0} + \tfrac12 V_h + A_A\,y\\
@@ -196,7 +245,8 @@ m\,\ddot{y} &= p_A A_A - p_B A_B - m g\\
 
 <h3 id="friction">12.3 Seal friction</h3>
 <div class="picture">Push a heavy box across a floor: it refuses to move until you push hard enough, jerks loose, then slides with less effort. Piston seals do the same.</div>
-<p>The model combines three effects. A Coulomb force $F_c$ opposes sliding; at low speeds a higher break-away force $k_{\mathrm{st}}F_c$ (the Stribeck effect) has to be overcome; and a viscous term $b_v\dot{y}$ grows with speed. The jump of the Coulomb force at $\dot{y} = 0$ is smoothed with a hyperbolic tangent over a speed $v_s = 1\ \mathrm{mm/s}$, and the Stribeck bump dies away over $v_{\mathrm{str}} = 5\ \mathrm{mm/s}$:</p>
+<p>Seal friction is not derived from first principles here, because nobody can: it depends on the rubber, the oil film and the surface finish. What can be explained is its shape. In 1902 Richard Stribeck measured the friction in lubricated bearings as a function of speed and found that it falls as speed rises from zero, reaches a minimum, and then grows again (Stribeck, <i>Zeitschrift des Vereines deutscher Ingenieure</i> 46, 1902). At rest and at crawling speed the seal touches the rod through a broken oil film, and solid friction dominates. As speed rises, the oil is dragged into the contact and lifts the seal off, so friction falls. At higher speed the film is complete and its viscous shear grows with speed.</p>
+<p>The model captures that curve with three terms. A Coulomb force $F_c$ opposes sliding; at low speeds a higher break-away force $k_{\mathrm{st}}F_c$ (the Stribeck effect) has to be overcome; and a viscous term $b_v\dot{y}$ grows with speed. The jump of the Coulomb force at $\dot{y} = 0$ is smoothed with a hyperbolic tangent over a speed $v_s = 1\ \mathrm{mm/s}$, and the Stribeck bump dies away over $v_{\mathrm{str}} = 5\ \mathrm{mm/s}$:</p>
 $$\begin{aligned}
 F_f(\dot{y}) &= F_c\tanh\!\left(\frac{\dot{y}}{v_s}\right)\left[1 + (k_{\mathrm{st}} - 1)\,e^{-(\dot{y}/v_{\mathrm{str}})^2}\right]\\
 &\quad + b_v\,\dot{y}.
@@ -204,16 +254,17 @@ F_f(\dot{y}) &= F_c\tanh\!\left(\frac{\dot{y}}{v_s}\right)\left[1 + (k_{\mathrm{
 <p>The smoothing makes the equations integrable with a fixed step. Its price is that at rest the friction behaves like an enormous damper of slope $F_c k_{\mathrm{st}}/v_s \approx 10^6\ \mathrm{N\,s/m}$; problem 4 on the press page shows how that misleads a linear analysis.</p>
 
 <h3 id="contact">12.4 The specimen and the stop</h3>
-<p>The specimen is a spring $k_w$ with a damper $c_w$ in parallel (a Kelvin–Voigt solid); the damper is set to 5 % of critical, $c_w = 2\cdot0.05\sqrt{k_w m}$. It is only touched when the platen has climbed past $y_c$, and it can push but not pull:</p>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>the ram position $y$ and speed $\dot y$, once in contact</div><div class="bx">the specimen<small>a spring and a damper</small></div><div class="io out"><span class="lbl">answers with</span>the force $F$ it pushes back with</div></div>
+<p>The specimen is a spring $k_w$ with a damper $c_w$ in parallel (a Kelvin–Voigt solid); the damper is set to 5 % of critical. <i>Critical</i> damping is the value that separates bouncing from creeping: for a mass $m$ on a spring $k$ with damper $c$, the motion $m\ddot{\delta} + c\dot{\delta} + k\delta = 0$ goes as $e^{\lambda t}$ with $m\lambda^2 + c\lambda + k = 0$, whose roots are real, so the motion does not oscillate, once $c^2 \ge 4mk$. The boundary is $c_{\mathrm{crit}} = 2\sqrt{km}$, and here $c_w = 0.05\cdot 2\sqrt{k_w m}$: a lightly damped specimen, as a steel part is. It is only touched when the platen has climbed past $y_c$, and it can push but not pull:</p>
 $$F_w = \begin{cases}\max\left(0,\ k_w\,\delta + c_w\,\dot{\delta}\right), & \delta = y - y_c > 0\\ 0, & \text{otherwise}\end{cases} \tag{12.4}$$
 <p>The bottom stop is the same law with a very stiff spring, $k_s = 2\times10^8\ \mathrm{N/m}$, acting when $y < 0$.</p>
 </section>
 
 <section id="model" class="chapter">
 <h2><span class="chn">13</span> The complete model</h2>
-<p>Collect the state: spool position and speed, the three pressures, the hose flow, ram position and speed,</p>
+<p>Put the blocks of the map together. What does the model have to remember from one instant to the next? Exactly one number for each place where energy can be stored, because energy cannot jump: the spool stores kinetic energy in its speed and spring energy in its position; each of the three volumes of oil stores compression energy in its pressure; the hose slug stores kinetic energy in its flow; the ram stores kinetic energy in its speed, and potential energy, in gravity and in the specimen, in its position. That makes eight, and they are the <i>state</i>:</p>
 $$\mathbf{x} = \left(x_v,\ \dot{x}_v,\ p_a,\ Q_h,\ p_A,\ p_B,\ y,\ \dot{y}\right). \tag{13.1}$$
-<p>Equations (10.1), (12.1), (11.1) and (12.2), with the valve flows (9.1), friction (12.3) and contact (12.4), form a system $\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x}, u)$ of eight first-order nonlinear differential equations driven by one input, the command $u$. That is all the servo press is. The page integrates it with fourth-order Runge–Kutta at 100 steps per controller sample, and integrates seven more quantities alongside to keep the energy books (chapter 19).</p>
+<p>Equations (10.1), (12.1), (11.1) and (12.2), with the valve flows (9.1), friction (12.3) and contact (12.4), form a system $\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x}, u)$ of eight first-order nonlinear differential equations driven by one input, the command $u$. Every other quantity, the valve flows, the friction, the specimen force, is computed from the state at each instant: these are the dissipating blocks, the resistors, which store nothing. That is all the servo press is. The page integrates it with fourth-order Runge–Kutta at 100 steps per controller sample, and integrates seven more quantities alongside to keep the energy books (chapter 19).</p>
 <div class="callout"><div class="ctag">After Part II you can</div><ul>
 <li>derive the pressure build-up equation (7.2) for any chamber and the effective bulk modulus of oil with air (7.3);</li>
 <li>derive the orifice law (8.1) from Bernoulli and turn a valve data sheet into a flow coefficient;</li>

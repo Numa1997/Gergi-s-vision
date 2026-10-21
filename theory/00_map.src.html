@@ -95,7 +95,10 @@ $$P = p\,Q, \qquad \mathrm{Pa}\cdot\frac{\mathrm{m^3}}{\mathrm{s}} = \frac{\math
 <li><b>Approach, 1 s.</b> The controller asks for a smooth climb to 2 mm short of the specimen, 118 mm up. To lift the ram it opens the spool positively: P→A and B→T open. Oil runs from the pump down the hose into the cap chamber, the cap pressure rises just enough to carry the ram’s weight and the seal friction, and the oil above the piston is pushed out to the tank.</li>
 <li><b>Creep, about 0.2 s.</b> The ram rises slowly, at 10 mm/s, until the load cell reads 1 kN: it has touched the specimen.</li>
 <li><b>Press, 0.75 s.</b> The controller switches from position to force. It ramps the force to 60 kN in 0.25 s and holds it for 0.5 s. The ram hardly moves now, about 3 mm into a specimen that is a stiff spring. Holding 60 kN needs $p_A = 7.8\ \mathrm{MPa}$ under the piston against $p_B = 4.2\ \mathrm{MPa}$ above it:
-$$7.8\ \mathrm{MPa} \times 113\ \mathrm{cm^2} - 4.2\ \mathrm{MPa} \times 63\ \mathrm{cm^2} \approx 61.6\ \mathrm{kN},$$
+$$\begin{aligned}
+&7.8\ \mathrm{MPa} \times 113\ \mathrm{cm^2} - 4.2\ \mathrm{MPa} \times 63\ \mathrm{cm^2}\\
+&\qquad \approx 88.1\ \mathrm{kN} - 26.5\ \mathrm{kN} = 61.6\ \mathrm{kN},
+\end{aligned}$$
 which is the 60 kN on the specimen plus the 1.6 kN weight of the ram.</li>
 <li><b>Release.</b> The force ramps back down to 1 kN.</li>
 <li><b>Retract, 1.8 s.</b> Back to position control, and a smooth descent to $y = 0$: the spool opens negatively, P→B and A→T, and oil drains from the cap chamber back up the hose.</li>
