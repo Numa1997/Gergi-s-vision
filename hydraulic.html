@@ -737,8 +737,8 @@ function layout() {
   const m = run.model, Pm = m.P, R1 = Pm.d1 / 2, R2 = Pm.d2 / 2, H0 = CONST.H0;
   const loadW = Math.max(1.5 * Pm.d2, 0.1);
   const topL = H0 + TP + 0.06, topR = H0 + m.r * CONST.stroke + TP + 0.03;
-  const xmin = -R1 - WALL - 0.05, xmax = Pm.Lp + Math.max(R2 + WALL, loadW / 2) + 0.05;
-  const ymin = -Pm.dp - WALL - 0.045;
+  const xmin = -R1 - WALL - 0.07, xmax = Pm.Lp + Math.max(R2 + WALL, loadW / 2) + 0.05;
+  const ymin = -Pm.dp - WALL - 0.06;
   const ymax = Math.max(H0 + TP + ROD + ARROW_MAX + 0.05, H0 + m.r * CONST.stroke + TP + LOAD_H + 0.06, topR + 0.03);
   const dpr = window.devicePixelRatio || 1, cssW = scene.clientWidth || 600, phone = cssW < 640;
   const sceneH = Math.max(260, Math.min(620, cssW * (ymax - ymin) / (xmax - xmin)));
@@ -987,6 +987,120 @@ function drawDialStrip(c, R, i) {
 }
 
 /** Draw frame i: back to front. */
+/** Engineering dimension lines: the bores d₁ and d₂ under the cylinders, and the strokes so far,
+ *  x₁ down the input piston and x₂ = r·x₁ up the output piston, so the lever shows as geometry. */
+function drawDimensions(c, X, Y, Pm, x, r) {
+  const R1 = Pm.d1 / 2, R2 = Pm.d2 / 2, H0 = CONST.H0, yTop = Y(-Pm.dp - WALL) + 4, yLine = Y(-Pm.dp - WALL - 0.02);
+  c.save();
+  c.strokeStyle = COL.muted; c.fillStyle = COL.muted; c.lineWidth = 1;
+  c.font = '11px "IBM Plex Mono", ui-monospace, monospace';
+  const head = (x0, y0, ang) => {
+    c.beginPath(); c.moveTo(x0, y0);
+    c.lineTo(x0 - 6 * Math.cos(ang - 0.35), y0 - 6 * Math.sin(ang - 0.35)); c.lineTo(x0 - 6 * Math.cos(ang + 0.35), y0 - 6 * Math.sin(ang + 0.35));
+    c.closePath(); c.fill();
+  };
+  // horizontal: extension lines down to the dimension line, arrows pointing at them, label below
+  const hDim = (xa, xb, label) => {
+    c.beginPath(); c.moveTo(xa, yTop); c.lineTo(xa, yLine + 4); c.moveTo(xb, yTop); c.lineTo(xb, yLine + 4);
+    c.moveTo(xa, yLine); c.lineTo(xb, yLine); c.stroke();
+    head(xa, yLine, Math.PI); head(xb, yLine, 0);
+    c.textAlign = 'center'; c.textBaseline = 'top'; fillRich(c, label, (xa + xb) / 2, yLine + 5);
+  };
+  // on a phone the bores (also in Settings) give way: there is no room under the pipe for them
+  if (!G.phone) {
+    hDim(X(-R1), X(R1), `d_1 = ${fmt(Pm.d1 * 100, 1)} cm`);
+    hDim(X(Pm.Lp - R2), X(Pm.Lp + R2), `d_2 = ${fmt(Pm.d2 * 100, 1)} cm`);
+  }
+  // vertical: from the piston's starting height to where it is now, label turned along the line
+  const vDim = (xl, xWall, ya, yb, label, side) => {
+    c.beginPath(); c.moveTo(xWall, ya); c.lineTo(xl + side * 4, ya); c.moveTo(xWall, yb); c.lineTo(xl + side * 4, yb); c.stroke();
+    if (Math.abs(yb - ya) > 8) {
+      c.beginPath(); c.moveTo(xl, ya); c.lineTo(xl, yb); c.stroke();
+      head(xl, ya, yb > ya ? -Math.PI / 2 : Math.PI / 2); head(xl, yb, yb > ya ? Math.PI / 2 : -Math.PI / 2);
+    }
+    if (G.phone) {
+      // labels turned along the line need more margin than a phone has: set them flat, between the cylinders
+      const xIn = side < 0 ? X(R1 + WALL) + 6 : X(Pm.Lp - R2 - WALL) - 6;
+      c.textAlign = side < 0 ? 'left' : 'right'; c.textBaseline = 'middle'; fillRich(c, label, xIn, (ya + yb) / 2);
+    } else {
+      c.save(); c.translate(xl + side * 9, (ya + yb) / 2); c.rotate(-Math.PI / 2);
+      c.textAlign = 'center'; c.textBaseline = side < 0 ? 'bottom' : 'top'; fillRich(c, label, 0, 0); c.restore();
+    }
+  };
+  if (x > 1e-4) {
+    vDim(X(-R1 - WALL) - 16, X(-R1 - WALL) - 2, Y(H0), Y(H0 - x), `x_1 = ${fmt(x * 100, 1)} cm`, -1);
+    vDim(X(Pm.Lp + R2 + WALL) + 16, X(Pm.Lp + R2 + WALL) + 2, Y(H0), Y(H0 + r * x), `x_2 = ${fmt(r * x * 100, 2)} cm`, 1);
+  }
+  c.restore();
+}
+/** Pressure probe: the pointer over the oil reads the local gauge pressure. Inside each uniform
+ *  section the acceleration is uniform, so pressure is linear in depth or distance:
+ *  left column p = p₁ + ρ(g − a)d, pipe p = p_in − ρ(A₁/A_p)a·s, right column p = p₂ + ρ(g + ra)D. */
+let probe = null;
+function probeReading(i, wx, wy) {
+  const m = run.model, Pm = m.P, R = run.rec, rho = CONST.rho, g = CONST.g, H0 = CONST.H0;
+  const R1 = Pm.d1 / 2, R2 = Pm.d2 / 2, x = R.x[i], a = R.a[i], h1 = H0 - x, h2 = H0 + m.r * x;
+  const tol = 3 / G.s;
+  if (Math.abs(wx) <= R1 && wy >= 0 && wy <= h1) {
+    const d = h1 - wy;
+    return { head: `left column, ${fmt(d * 100, 1)} cm below the input piston`, rows: [
+      ['p_1 under the piston', R.p1[i]], ['+ ρg·d, weight', rho * g * d], ['− ρa·d, inertia', -rho * a * d]] };
+  }
+  if (Math.abs(wx - Pm.Lp) <= R2 && wy >= 0 && wy <= h2) {
+    const D = h2 - wy;
+    return { head: `right column, ${fmt(D * 100, 1)} cm below the output piston`, rows: [
+      ['p_2 under the piston', R.p2[i]], ['+ ρg·D, weight', rho * g * D], ['+ ρra·D, inertia', rho * m.r * a * D]] };
+  }
+  if (wx >= 0 && wx <= Pm.Lp && wy >= -Pm.dp - tol && wy <= tol) {
+    const sp = wx, k = (Pm.d1 / Pm.dp) ** 2;
+    return { head: `pipe, ${fmt(sp * 100, 0)} cm from the inlet`, rows: [
+      ['p_in at the inlet', R.pin[i]], ['− ρ(A_1/A_p)a·s, inertia', -rho * k * a * sp]] };
+  }
+  return null;
+}
+function drawProbe(c, i) {
+  const rd = probeReading(i, probe.wx, probe.wy);
+  if (!rd) return;
+  const px = G.ox + G.s * probe.wx, py = G.oy - G.s * probe.wy;
+  c.save();
+  c.strokeStyle = COL.paper; c.lineWidth = 3; c.beginPath(); c.arc(px, py, 6, 0, 2 * Math.PI); c.stroke();
+  c.strokeStyle = COL.ink; c.lineWidth = 1.2; c.beginPath(); c.arc(px, py, 6, 0, 2 * Math.PI); c.stroke();
+  c.beginPath(); c.moveTo(px - 10, py); c.lineTo(px - 3, py); c.moveTo(px + 3, py); c.lineTo(px + 10, py);
+  c.moveTo(px, py - 10); c.lineTo(px, py - 3); c.moveTo(px, py + 3); c.lineTo(px, py + 10); c.stroke();
+  const total = rd.rows.reduce((acc, r) => acc + r[1], 0);
+  const rows = rd.rows.map(([l, v]) => [l, `${v >= 0 && l !== rd.rows[0][0] ? '+' : ''}${fmt(v / 1000, 3)} kPa`]);
+  rows.push(['= p here (gauge)', `${fmt(total / 1000, 3)} kPa`]);
+  c.font = '11px "IBM Plex Mono", ui-monospace, monospace'; c.textBaseline = 'middle';
+  const lh = 16, labW = Math.max(...rows.map(r => richWidth(c, r[0]))), valW = Math.max(...rows.map(r => c.measureText(r[1]).width));
+  c.font = '600 11.5px "IBM Plex Sans", Arial, sans-serif';
+  const w = Math.max(c.measureText(rd.head).width, labW + 14 + valW) + 18, h = lh * (rows.length + 1) + 12;
+  let bx = px + 16, by = py - h / 2;
+  if (bx + w > G.cssW - 6) bx = px - 16 - w;
+  bx = Math.max(6, bx); by = Math.max(6, Math.min(G.sceneH - h - 6, by));
+  c.shadowColor = 'rgba(35, 22, 15, 0.2)'; c.shadowBlur = 10; c.shadowOffsetY = 2;
+  c.fillStyle = 'rgba(252, 248, 240, 0.97)'; roundRect(c, bx, by, w, h, 7); c.fill();
+  c.shadowColor = 'transparent'; c.strokeStyle = COL.grid; c.lineWidth = 1; roundRect(c, bx, by, w, h, 7); c.stroke();
+  c.fillStyle = COL.wineDeep; c.textAlign = 'left'; c.fillText(rd.head, bx + 9, by + 6 + lh / 2);
+  c.font = '11px "IBM Plex Mono", ui-monospace, monospace';
+  rows.forEach(([l, v], j) => {
+    const yy = by + 6 + lh * (j + 1.5), last = j === rows.length - 1;
+    if (last) { c.strokeStyle = COL.grid; c.beginPath(); c.moveTo(bx + 9, yy - lh / 2); c.lineTo(bx + w - 9, yy - lh / 2); c.stroke(); }
+    c.fillStyle = last ? COL.wine : COL.ink; c.textAlign = 'left'; fillRich(c, l, bx + 9, yy);
+    c.textAlign = 'right'; c.fillText(v, bx + w - 9, yy);
+  });
+  c.restore();
+}
+function setProbe(e) {
+  if (!run) return;
+  const r = scene.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+  probe = my < G.sceneH ? { wx: (mx - G.ox) / G.s, wy: (G.oy - my) / G.s } : null;
+  dirty = true;
+}
+scene.addEventListener('pointermove', setProbe);
+scene.addEventListener('pointerdown', setProbe);   // a tap places the probe on a touch screen
+// a mouse leaving clears it; a finger lifting leaves it until the next tap
+scene.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { probe = null; dirty = true; } });
+
 function drawScene(i) {
   const c = sctx, m = run.model, Pm = m.P, R = run.rec, H0 = CONST.H0;
   c.setTransform(G.dpr, 0, 0, G.dpr, 0, 0);
@@ -1006,7 +1120,9 @@ function drawScene(i) {
   drawLoad(c, X, Y, Pm, h2);
   drawForceArrow(c, X, Y, Pm, h1, R.F[i]);
   drawScaleBar(c, X, Y, Pm);
+  drawDimensions(c, X, Y, Pm, x, m.r);
   drawDialStrip(c, R, i);
+  if (probe) drawProbe(c, i);
 }
 
 // ---------------------------------------------------------------- pressure walk
