@@ -76,6 +76,14 @@ async def main():
     async with async_playwright() as p:
         kw = {'executable_path': CHROMIUM} if os.path.exists(CHROMIUM) else {}
         browser = await p.chromium.launch(**kw)
+        # A site without /favicon.ico answers the browser's automatic request with 404; that is not the page's error.
+        _new_page = browser.new_page
+
+        async def new_page(**k):
+            pg = await _new_page(**k)
+            await pg.route('**/favicon.ico', lambda route: route.fulfill(status=204))
+            return pg
+        browser.new_page = new_page
 
         # ---- reference: the standalone pages
         ref = {}

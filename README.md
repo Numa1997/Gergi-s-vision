@@ -37,6 +37,11 @@ python3 tools/render_page_math.py    # typesets the equation blocks inside the t
 python3 tools/build_combined.py      # the three pages -> hydraulics.html (run this last)
 ```
 
+For the website, phyeinusul.com, `python3 tools/build_combined.py --site <path to a SiteTest clone>` writes
+`public/portfolios/hydraulics/index.html` there. It is the same page, with the site's security policy (plus
+`'unsafe-eval'` and `blob:` workers, which the servo page needs), the site's own fonts instead of Google
+Fonts, and a link back to the Portfolios page.
+
 From a clean clone these reproduce the committed files byte for byte.
 
 ## Checks

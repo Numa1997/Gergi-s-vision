@@ -10,6 +10,9 @@ Usage: python3 tools/build_combined.py            -> hydraulics.html (a complete
        python3 tools/build_combined.py --artifact out.html
                                                     -> the same without doctype/html/head/body, for hosts
                                                        that add their own skeleton
+       python3 tools/build_combined.py --site PATH-TO-WEBSITE-REPO
+                                                    -> the copy for Phyein Usul (phyeinusul.com):
+                                                       public/portfolios/hydraulics/index.html, see site_copy()
 """
 import json
 import pathlib
@@ -60,11 +63,9 @@ SHELL = r'''<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Hydraulic Press Study</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=Instrument+Serif&display=swap">
+%(head)s<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>%(title)s</title>
+%(fonts)s
 <style>
 /* The three pages share one warm paper look and have no dark variant, so the shell commits to it too. */
 :root {
@@ -85,6 +86,8 @@ header {
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   background: var(--panel); border-bottom: 1.5px solid var(--line);
 }
+.back { font-size: 13px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.back:hover { color: var(--oil); text-decoration: underline; }
 .brand { display: flex; flex-direction: column; min-width: 0; }
 .brand b { font: 400 24px/1 'Instrument Serif', Georgia, serif; letter-spacing: .01em; }
 .brand span { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
@@ -117,7 +120,7 @@ main iframe.on { visibility: visible; }
 </head>
 <body>
 <header>
-  <div class="brand"><b>Hydraulic Press Study</b><span>from Pascal to a servo loop</span></div>
+%(back)s  <div class="brand"><b>Hydraulic Press Study</b><span>from Pascal to a servo loop</span></div>
   <nav role="tablist" aria-label="Pages">
 %(buttons)s
   </nav>
@@ -202,12 +205,17 @@ def embed(tab, file):
     return f'<script type="application/json" id="page-{tab}">{text}</script>'
 
 
-def build():
+GOOGLE_FONTS = '''<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=Instrument+Serif&display=swap">'''
+
+
+def build(head='', title='Hydraulic Press Study', fonts=GOOGLE_FONTS, back=''):
     buttons = '\n'.join(
         f'    <button role="tab" id="tab-{t}" aria-selected="false">'
         f'<span class="long">{label}</span><span class="short">{short}</span></button>'
         for t, _, label, short in PAGES)
-    return SHELL % {'buttons': buttons, 'data': '\n'.join(embed(t, f) for t, f, _, _ in PAGES),
+    return SHELL % {'head': head, 'title': title, 'fonts': fonts, 'back': back, 'buttons': buttons, 'data': '\n'.join(embed(t, f) for t, f, _, _ in PAGES),
                     'tabs': json.dumps([t for t, _, _, _ in PAGES])}
 
 
@@ -218,9 +226,40 @@ def strip_skeleton(src):
     return src
 
 
+def site_copy(site):
+    """The copy for Phyein Usul, following the site's rules (its docs/build-and-deploy.md, "Security"):
+
+    - the site's security policy and referrer rule right after the charset line, taken from its index.html, with the two
+      additions this study needs: 'unsafe-eval' in script-src (the servo page builds its Web Worker with new Function) and
+      blob: in worker-src (that worker is started from a blob: URL);
+    - the site's self-hosted fonts (../../fonts/instrument-plex.css) instead of Google Fonts;
+    - the title suffix and the back link the other project copies use.
+    The embedded pages are unchanged. Writes public/portfolios/hydraulics/index.html and LICENSE-fonts.txt beside it.
+    """
+    site = pathlib.Path(site)
+    index = (site / 'index.html').read_text()
+    csp = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)"', index).group(1)
+    csp = re.sub(r"script-src ([^;]*)", lambda m: "script-src " + m.group(1).replace("'unsafe-inline'", "'unsafe-inline' 'unsafe-eval'", 1), csp)
+    csp = re.sub(r"worker-src ([^;]*)", lambda m: "worker-src " + m.group(1) + " blob:", csp)
+    assert "'unsafe-eval'" in csp and 'blob:' in csp.split('worker-src')[1].split(';')[0], csp
+    head = (f'<meta http-equiv="Content-Security-Policy" content="{csp}">\n'
+            '<meta name="referrer" content="strict-origin-when-cross-origin">\n')
+    assert (site / 'public/fonts/instrument-plex.css').exists(), 'the site has no public/fonts/instrument-plex.css'
+    out = build(head=head, title='Hydraulic Press Study · Numa Koudsie',
+                fonts='<link rel="stylesheet" href="../../fonts/instrument-plex.css">',
+                back='  <a class="back" href="../../portfolios.html">← Numa Koudsie · Portfolios</a>\n')
+    folder = site / 'public/portfolios/hydraulics'
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / 'index.html').write_text(out)
+    (folder / 'LICENSE-fonts.txt').write_text((ROOT / 'fonts/LICENSE-fonts.txt').read_text())
+    return folder / 'index.html', out
+
+
 if __name__ == '__main__':
     out = build()
-    if len(sys.argv) == 3 and sys.argv[1] == '--artifact':
+    if len(sys.argv) == 3 and sys.argv[1] == '--site':
+        path, out = site_copy(sys.argv[2])
+    elif len(sys.argv) == 3 and sys.argv[1] == '--artifact':
         out, path = strip_skeleton(out), pathlib.Path(sys.argv[2])
     else:
         path = ROOT / 'hydraulics.html'
