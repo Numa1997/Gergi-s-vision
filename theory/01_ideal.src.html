@@ -1,5 +1,6 @@
 
 <div class="part"><span class="part-n">Part I</span><span class="part-t">The ideal press: Pascal, Bernoulli, Lagrange</span></div>
+<p class="partintro">Part I is Pascal’s machine with nothing left out except what makes it hard: the oil cannot be squeezed, nothing leaks, nothing rubs. Chapters 1 to 3 explain why it multiplies force. Chapter 4 makes it move and finds its single equation of motion. Chapter 5 follows the pressure through the moving oil and shows that it agrees with that equation, term by term. Chapter 6 lists what this ideal picture leaves out, which is the programme of Part II.</p>
 
 <section id="pressure" class="chapter">
 <h2><span class="chn">1</span> Pressure, and why it spreads</h2>
@@ -13,7 +14,7 @@
 </ul></div>
 <h3 id="pressure-isotropic">1.1 Pressure has no direction</h3>
 <div class="picture">Press your palm flat into a bathtub and then turn it sideways: the push of the water on your palm does not change with its orientation, only with how deep it is.</div>
-<p>Take a tiny wedge of fluid at rest: a right-angled prism with a vertical face of height $dy$, a horizontal face of width $dx$, and a sloping face of length $ds$ at angle $\theta$, all of depth $dz$ into the page. The geometry gives $dx = ds\cos\theta$ and $dy = ds\sin\theta$. Call the pressures on the three faces $p_x$, $p_y$ and $p_n$. In a fluid at rest there is no shear, so every force is normal to its face.</p>
+<p>Take a tiny wedge of fluid at rest: a right-angled prism with a vertical face of height $dy$, a horizontal face of width $dx$, and a sloping face of length $ds$ at angle $\theta$, all of depth $dz$ into the page. The geometry gives $dx = ds\cos\theta$ and $dy = ds\sin\theta$. Call the pressures on the three faces $p_x$, $p_y$ and $p_n$. A fluid is, by definition, a material that keeps deforming for as long as a shear stress acts on it, however small; a solid settles at a new shape. So a fluid at rest can carry no shear at all, and every force on a face of the wedge is normal to it.</p>
 <p>Balance the horizontal forces. The vertical face pushes with $p_x\,dy\,dz$; the sloping face pushes back with the horizontal part of $p_n\,ds\,dz$:</p>
 $$p_x\,dy\,dz - p_n\,ds\,dz\,\sin\theta = 0 \quad\Rightarrow\quad p_x\,ds\sin\theta\,dz = p_n\,ds\sin\theta\,dz \quad\Rightarrow\quad p_x = p_n. \tag{1.1}$$
 <p>Balance the vertical forces. Now the weight of the wedge, $\tfrac12\rho g\,dx\,dy\,dz$, also appears:</p>
@@ -38,7 +39,7 @@ $$\frac{dp}{dz} = -\rho g \qquad\Rightarrow\qquad p(z) = p(z_0) - \rho g\,(z - z
 <div class="press"><div class="ctag">In our press</div>For oil of $\rho = 870\ \mathrm{kg/m^3}$, $\rho g = 8.53\ \mathrm{kPa}$ per metre of depth. The 0.40 m columns of the ideal press add only 3.4 kPa at their base, against about 150 kPa under the input piston: at rest $(F_1 + m_1 g)/A_1$, that is 189.6 N spread over $12.57\ \mathrm{cm^2}$, or 151 kPa.</div>
 
 <h3 id="pascal">1.3 Pascal's principle and the force multiplier</h3>
-<p>Equation (1.3) says that pressure differences in a fluid at rest depend only on height differences. Raise the pressure at one point by $\Delta p$, wait for the fluid to settle, and the pressure everywhere rises by the same $\Delta p$. That is Pascal's principle. Put a piston of area $A_1$ on one side and a piston of area $A_2$ on the other, at the same height:</p>
+<p>Equation (1.3) says that pressure differences in a fluid at rest depend only on height differences. Raise the pressure at one point by $\Delta p$, wait for the fluid to settle, and the pressure everywhere rises by the same $\Delta p$, because every difference in (1.3) is fixed by heights alone. That is Pascal's principle, the “machine for multiplying forces” of section 0.1. Put a piston of area $A_1$ on one side and a piston of area $A_2$ on the other, at the same height:</p>
 $$p = \frac{F_1}{A_1} = \frac{F_2}{A_2} \qquad\Rightarrow\qquad F_2 = F_1\,\frac{A_2}{A_1}. \tag{1.4}$$
 <div class="press"><div class="ctag">In our press</div>$d_1 = 4\ \mathrm{cm}$ and $d_2 = 12\ \mathrm{cm}$ give $A_2/A_1 = 9$. A push of 170 N becomes 1530 N. The load and its piston weigh $160\times 9.81 = 1569.6\ \mathrm{N}$, so the push alone would not lift them; the 19.6 N weight of the input piston tips the balance, see (4.6).</div>
 </section>
@@ -55,7 +56,7 @@ $$\underbrace{A_1 v}_{\text{left column}} = \underbrace{A_p v_p}_{\text{pipe}} =
 
 <section id="energy-lever" class="chapter">
 <h2><span class="chn">3</span> Energy: the hydraulic lever</h2>
-<p>The work done by the input piston on the oil, as it moves by $dx_1$ against pressure $p$, is $dW_1 = F_1\,dx_1 = p\,A_1\,dx_1 = p\,dV$. The work the oil does on the output piston is $dW_2 = p\,A_2\,dx_2 = p\,dV$, with the same $dV$ by (2.1). So</p>
+<p>Push slowly, so that the oil is always nearly at rest and the pressure is the same everywhere. The work done by the input piston on the oil, as it moves by $dx_1$ against pressure $p$, is $dW_1 = F_1\,dx_1 = p\,A_1\,dx_1 = p\,dV$. The work the oil does on the output piston is $dW_2 = p\,A_2\,dx_2 = p\,dV$, with the same $dV$ by (2.1). So</p>
 $$F_1\,x_1 = F_2\,x_2. \tag{3.1}$$
 <p>Force is multiplied by 9 and distance divided by 9. An ideal hydraulic press is a lever made of oil: it trades distance for force and never creates energy. In the moving press the input work goes three places: kinetic energy, potential energy, and the losses at the stops. The page checks that bookkeeping at every frame.</p>
 </section>
@@ -63,6 +64,7 @@ $$F_1\,x_1 = F_2\,x_2. \tag{3.1}$$
 <section id="lagrangian" class="chapter">
 <h2><span class="chn">4</span> The moving press: one coordinate, one Lagrangian</h2>
 <h3 id="lag-coord">4.1 One degree of freedom</h3>
+<div class="blockcard"><div class="io in"><span class="lbl">given</span>the push $F_1(t)$ on the input piston</div><div class="bx">the ideal press<small>one coordinate $x$, mass $\mu(x)$, potential $V(x)$</small></div><div class="io out"><span class="lbl">answers with</span>the motion $x(t)$, and from it every pressure (chapter 5)</div></div>
 <p>Continuity ties every moving part to the input piston. Choose $x$, the downward displacement of the input piston, as the single generalized coordinate. Everything else follows from (2.1) and (2.2): the output piston rises by $r x$; the left column height is $h_1 = H_0 - x$; the right column height is $h_2 = H_0 + r x$.</p>
 
 <h3 id="lag-T">4.2 Kinetic energy, part by part</h3>
@@ -103,7 +105,7 @@ V(x) &= -m_1 g\,x + (m_2+M)\,g\,r\,x\\
 <div class="picture">The last term has a simple picture: a slab of oil of volume $A_1 x$ is taken from the top of the left column, where its centre was at $H_0 - x/2$, and laid on top of the right column, where its centre is at $H_0 + rx/2$. It rises by $(1+r)x/2$. The oil acts as a soft spring of stiffness $k = \rho g A_1(1+r) = 11.9\ \mathrm{N/m}$.</div>
 
 <h3 id="lag-EL">4.4 The equation of motion</h3>
-<p>The applied force $F_1(t)$ is not derived from a potential, so it enters as a generalized force: in a virtual displacement $\delta x$ it does work $F_1\,\delta x$. Lagrange's equation with $L = T - V$ reads</p>
+<p>Why Lagrange and not Newton? Newton would need every force between every part: the pressure of the oil on each piston, of each column on the pipe, of the walls on the oil. These are constraint forces. In a virtual displacement $\delta x$ that respects the constraints, with the oil moving as continuity demands, they do no net work: the oil passes force from one piston to the other without storing or losing any energy. So they drop out, and only the forces that do work remain: gravity, through $V$, and the applied push. That is d’Alembert’s principle, and Lagrange’s equations are its consequence. The push $F_1(t)$ is not derived from a potential, so it enters as a generalized force: in a virtual displacement $\delta x$ it does work $F_1\,\delta x$. Lagrange's equation with $L = T - V$ reads</p>
 $$\frac{d}{dt}\frac{\partial T}{\partial \dot{x}} - \frac{\partial T}{\partial x} + \frac{\partial V}{\partial x} = F_1(t). \tag{4.4}$$
 <p>Work out each piece. From (4.2), $\partial T/\partial\dot{x} = \mu\dot{x}$. Its time derivative needs the chain rule, because $\mu$ depends on $x$ and $x$ on $t$:</p>
 $$\frac{d}{dt}\left(\mu\dot{x}\right) = \mu\ddot{x} + \frac{d\mu}{dx}\frac{dx}{dt}\dot{x} = \mu\ddot{x} + \mu'\dot{x}^2, \qquad \frac{\partial T}{\partial x} = \tfrac12\mu'\dot{x}^2.$$
@@ -148,7 +150,7 @@ p_2 - p_1 &= -\rho\int_1^2 \frac{\partial v}{\partial t}\,ds\\
 <h3 id="field-chain">5.2 Walking through the press</h3>
 <p>Apply (5.2) to each stretch of oil, with $v = \dot{x}$, $a = \ddot{x}$ and $v_p = (A_1/A_p)\,v$.</p>
 <ol>
-<li><b>Down the left column</b>, from the piston face to the bottom. The oil moves down at speed $v$ and accelerates at $a$; going down, $z$ falls by $h_1$. With no speed change along the column, (5.2) gives
+<li><b>Down the left column</b>, from the piston face to the bottom. Measure $s$ downward along the column. The oil moves down at speed $v$ and accelerates at $a$ everywhere in it, so $\int\partial v/\partial t\,ds = a h_1$; the speed is the same at both ends, so the Bernoulli term vanishes; and going down, $z_2 - z_1 = -h_1$. Then (5.2) gives $p_{b1} - p_1 = -\rho a h_1 + \rho g h_1$:
 $$p_{b1} = p_1 + \rho\,(g - a)\,h_1. \tag{5.3}$$</li>
 <li><b>Into the pipe.</b> Over a very short contraction the speed rises from $v$ to $v_p$; the time-derivative and height terms vanish as the length goes to zero:
 $$p_{\mathrm{in}} = p_{b1} + \tfrac12\rho\left(v^2 - v_p^2\right). \tag{5.4}$$</li>
