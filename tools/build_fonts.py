@@ -9,7 +9,8 @@ Standard library only. Steps:
      group. A group whose blocks cover several weights gets a range font-weight
      ("MIN MAX") and one file named <family>-<MIN>-<MAX>-<style>-<subset>.woff2.
      Each distinct woff2 file is downloaded and written once.
-  4. Remove stale *.woff2 files in fonts/ that this run did not produce.
+  4. Remove stale ibm-plex-* and instrument-serif-* *.woff2 files in fonts/ that this run
+     did not produce. Other files in fonts/ are not touched.
   5. Write fonts/fonts-embedded.css (base64 data: URIs) and
      fonts/fonts-linked.css (relative file URLs), one rule per group.
   6. Print a summary table.
@@ -52,6 +53,9 @@ LINKED_CSS = FONTS_DIR / "fonts-linked.css"
 # A subset comment such as "/* latin */" immediately followed by an @font-face block.
 BLOCK_RE = re.compile(r"/\*\s*(?P<subset>[^*/]+?)\s*\*/\s*@font-face\s*\{(?P<body>[^}]*)\}")
 WOFF2_MAGIC = b"wOF2"
+# Output names are slugs of the Google family names (see Group.filename). Only files with these
+# prefixes belong to this script; other files in fonts/ (for example math-subset.woff2) are left alone.
+OWNED_PREFIXES = ("ibm-plex-", "instrument-serif-")
 
 
 @dataclass
@@ -220,7 +224,7 @@ def main() -> None:
         items.append((g, data))
 
     for stale in sorted(FONTS_DIR.glob("*.woff2")):
-        if stale.name not in set(names):
+        if stale.name.startswith(OWNED_PREFIXES) and stale.name not in set(names):
             stale.unlink()
             print(f"Removed stale {stale.name}")
 

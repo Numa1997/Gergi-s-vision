@@ -264,6 +264,9 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 .sol canvas { height: 220px; border: 1px solid var(--rule); border-radius: 8px; background: #fffdf8; }
 .try { background: var(--blue); border-color: #234559; color: #f4f8fa; font-size: 13.5px; padding: 6px 13px; }
 .try:hover { background: #234559; }
+.crosslinks { display: flex; flex-wrap: wrap; gap: 10px; }
+.crosslinks a { font: 500 14px var(--f-text); color: var(--wine); text-decoration: none; border: 1.5px solid var(--wine); border-radius: 999px; padding: 6px 14px; background: var(--paper); }
+.crosslinks a:hover { background: var(--wine); color: #fbf3e8; }
 .tag { font: 600 10.5px/1 var(--f-text); letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 7px; border-radius: 4px; background: var(--wine-soft); color: var(--wine-deep); }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
@@ -275,6 +278,10 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
     <h1>Servo-Hydraulic <em>Press</em></h1>
     <p class="lede">A pump, a four-way servo valve, two metres of hose and a differential cylinder pressing a specimen. A digital controller drives the ram to the specimen in position control, switches to force control, holds, releases and retracts. Every curve comes from the nonlinear model; the analysis panel linearizes it and asks whether the loop survives.</p>
     <div class="chips" id="chips"></div>
+    <nav class="crosslinks" aria-label="Related pages">
+      <a href="hydraulic_theory.html">Read the derivations →</a>
+      <a href="hydraulic.html">The ideal press →</a>
+    </nav>
   </header>
 
   <div class="grid">
@@ -405,6 +412,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 
   <section class="box theory" aria-label="Theory">
     <div class="eyebrow">Theory</div><h2>The model, equation by equation</h2>
+    <p class="note" style="margin-bottom: 8px">The compact version. Every equation here is derived step by step in <a href="hydraulic_theory.html">Hydraulics from First Principles</a>, Parts II and III.</p>
 
     <h3>1 · What you are looking at</h3>
     <p>Pick up a garden hose full of water and swing one end: the water lags, then pushes back. Two metres of oil in a 12 mm hose weigh about 0.2 kg, but squeezed through that narrow bore they behave like a heavy slug. Inertance I = ρL<sub>h</sub>/A<sub>h</sub> ≈ 1.5·10⁷ kg/m⁴ sits between two springs made of oil: the small volume at the valve port and the cap chamber of the cylinder. Oil is stiff (β ≈ 1.5 GPa) only when it is free of air. Half a percent of entrained air at atmospheric pressure turns it into something closer to a stiff rubber: β<sub>eff</sub> drops to about 28 MPa at zero gauge pressure. The ram, 160 kg, rides on these springs. The controller sees all of it through a position sensor, a load cell and a 1 ms clock.</p>
@@ -1286,9 +1294,9 @@ function applySettings(changes, loop, targetId) {
   P = { ...DEFAULTS, ...changes };
   syncControls();
   if (loop) { loopSel = loop; $('loopSel').value = loop; }
-  recompute();
   const keys = Object.keys(changes);
-  $('busy').textContent = keys.length ? `Applied from the solutions: ${keys.join(', ')} changed; everything else at defaults.` : 'All settings back to defaults.';
+  noteAfter = keys.length ? `Applied from the solutions: ${keys.join(', ')} changed; everything else at defaults.` : 'All settings back to defaults.';
+  recompute();
   if (targetId) $(targetId).scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
 }
 
@@ -1304,21 +1312,67 @@ function pColor(p) {
   return `rgb(${CMAP[2][1].join(',')})`;
 }
 
-function recompute() {
-  const t0 = performance.now();
+// ---------------------------------------------------------------- background computation
+// One cycle is about 3.5·10⁵ RK4 steps; with both loop analyses it takes about a second, longer on a phone.
+// It runs in a Web Worker built from this page's own physics block, so sliders and playback stay responsive.
+// If workers are unavailable the same functions run on the main thread.
+const WORKER_TAIL = `
+function stripRun(r) {
+  return { outcome: r.outcome, tEnd: r.tEnd, rec: r.rec, events: r.events, eq0: r.eq0, closureMax: r.closureMax,
+    pMin: r.pMin, pMinWhere: r.pMinWhere, pMinT: r.pMinT, substeps: r.substeps };
+}
+function computeHere(kind, P) {
+  const run = stripRun(simulate(P));
+  return kind === 'sim' ? { run } : { run, anPos: analyse(P, 'position'), anForce: analyse(P, 'force') };
+}`;
+let worker = null, nextJob = 0, latestCycle = 0;
+const pending = new Map();
+new Function(`${WORKER_TAIL}; self.__stripRun = stripRun; self.__computeHere = computeHere;`).call(window);
+function startWorker() {
   try {
-    run = simulate(P);
-    anPos = analyse(P, 'position');
-    anForce = analyse(P, 'force');
-    an = loopSel === 'position' ? anPos : anForce;
-    $('busy').textContent = `Computed in ${fmt((performance.now() - t0) / 1000, 2)} s.`;
-  } catch (err) {
-    $('busy').textContent = `The computation failed: ${err.message}. Move a setting back towards its default.`;
-    return;
-  }
+    const src = [...document.scripts].find(el => el.textContent.includes('/*PHYSICS-BEGIN*/')).textContent;
+    const physics = src.slice(src.indexOf('/*PHYSICS-BEGIN*/'), src.indexOf('/*PHYSICS-END*/'));
+    const code = `${physics}\n${WORKER_TAIL}\nonmessage = e => { const { id, kind, P } = e.data;
+      try { postMessage({ id, result: computeHere(kind, P) }); } catch (err) { postMessage({ id, error: err.message }); } };`;
+    worker = new Worker(URL.createObjectURL(new Blob([code], { type: 'text/javascript' })));
+    worker.onmessage = e => {
+      const job = pending.get(e.data.id);
+      if (!job) return;
+      pending.delete(e.data.id);
+      if (e.data.error) job.reject(new Error(e.data.error)); else job.resolve(e.data.result);
+    };
+    worker.onerror = () => {          // fall back to the main thread for everything still waiting
+      worker = null;
+      for (const [id, job] of pending) { pending.delete(id); try { job.resolve(window.__computeHere(job.kind, job.P)); } catch (err) { job.reject(err); } }
+    };
+  } catch (err) { worker = null; }
+}
+/** Run a cycle ('cycle': simulation and both analyses, or 'sim': simulation only) off the main thread. */
+function compute(kind, Pjob) {
+  return new Promise((resolve, reject) => {
+    if (!worker) { setTimeout(() => { try { resolve(window.__computeHere(kind, Pjob)); } catch (err) { reject(err); } }, 0); return; }
+    const id = ++nextJob;
+    pending.set(id, { resolve, reject, kind, P: Pjob });
+    worker.postMessage({ id, kind, P: Pjob });
+  });
+}
+
+let noteAfter = null;
+async function recompute() {
+  const job = ++latestCycle, Pjob = { ...P }, t0 = performance.now();
+  $('busy').textContent = 'Computing…';
+  let res;
+  try { res = await compute('cycle', Pjob); }
+  catch (err) { if (job === latestCycle) $('busy').textContent = `The computation failed: ${err.message}. Move a setting back towards its default.`; return; }
+  if (job !== latestCycle) return;             // a newer setting superseded this result
+  run = { ...res.run, P: Pjob, plant: makePlant(Pjob) };
+  anPos = res.anPos; anForce = res.anForce;
+  an = loopSel === 'position' ? anPos : anForce;
+  $('busy').textContent = noteAfter || `Computed in ${fmt((performance.now() - t0) / 1000, 2)} s${worker ? ' in the background' : ''}.`;
+  noteAfter = null;
   tView = 0; playing = false; $('play').textContent = '▶ Play';
   $('scrub').max = run.tEnd.toFixed(3); $('scrub').value = 0; setFill($('scrub'));
-  $('psLbl').textContent = `${fmt(P.ps / 1e6, 1)} MPa (p_s)`;
+  $('psLbl').textContent = `${fmt(Pjob.ps / 1e6, 1)} MPa (p_s)`;
   updateStatus(); updateChips(); buildStepper();
   layout();
   drawAnalysis();
@@ -2248,11 +2302,12 @@ function drawSolutionFigures() {
     pillLabel(c, 'Press “Run both cycles” to simulate', c8.clientWidth / 2, c8.clientHeight / 2, 'center', '13px "IBM Plex Sans", Arial, sans-serif', COL.muted);
   }
 }
-function runSolution8() {
+async function runSolution8() {
   const btn = $('run8');
   btn.textContent = 'Running…'; btn.disabled = true;
-  setTimeout(() => {
-    const a = simulate({ ...DEFAULTS }), b = simulate({ ...DEFAULTS, noBumpless: true });
+  {
+    const [ra, rb] = await Promise.all([compute('sim', { ...DEFAULTS }), compute('sim', { ...DEFAULTS, noBumpless: true })]);
+    const a = ra.run, b = rb.run;
     const pick = r => { const x = [], y = [], yr = []; r.rec.t.forEach((t, j) => { if (t >= 1.3 && t <= 1.7) { x.push(t); y.push(r.rec.F[j] / 1000); yr.push(r.rec.force[j] ? r.rec.Fr[j] / 1000 : NaN); } }); return { x, y, yr }; };
     const A = pick(a), B = pick(b);
     const c8 = $('mini8'); c8.dataset.done = '1';
@@ -2263,7 +2318,7 @@ function runSolution8() {
         { x: B.x, y: B.y, color: COL.wine, width: 2.2, name: 'cold integrator' }]
     });
     btn.textContent = 'Run both cycles again'; btn.disabled = false;
-  }, 30);
+  }
 }
 
 // ---------------------------------------------------------------- readouts and loop
@@ -2320,13 +2375,24 @@ document.querySelectorAll('[data-apply]').forEach(b => b.addEventListener('click
 }));
 $('run8').addEventListener('click', runSolution8);
 let resizeTimer = null;
-window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { layout(); drawAnalysis(); drawSolutionFigures(); }, 150); });
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (!run) return; layout(); drawAnalysis(); drawSolutionFigures(); }, 150); });
+
+/** Before the first result arrives: a calm placeholder in the scene. */
+function drawPlaceholder() {
+  const dpr = window.devicePixelRatio || 1, w = scene.clientWidth || 700, h = Math.round(w * 0.6);
+  scene.style.height = h + 'px'; scene.width = Math.round(w * dpr); scene.height = Math.round(h * dpr);
+  sctx.setTransform(dpr, 0, 0, dpr, 0, 0); sctx.fillStyle = COL.paper; sctx.fillRect(0, 0, w, h);
+  sctx.fillStyle = COL.muted; sctx.font = '15px "IBM Plex Sans", Arial, sans-serif'; sctx.textAlign = 'center'; sctx.textBaseline = 'middle';
+  sctx.fillText('Integrating the first cycle…', w / 2, h / 2);
+}
 
 buildControls();
+drawPlaceholder();
+startWorker();
 recompute();
 drawSolutionFigures();
 requestAnimationFrame(loop);
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (run) { buildPlots(); drawAnalysis(); drawSolutionFigures(); dirty = true; } });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { drawSolutionFigures(); if (run) { buildPlots(); drawAnalysis(); dirty = true; } });
 </script>
 </body>
 </html>

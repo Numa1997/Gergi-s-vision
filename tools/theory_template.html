@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hydraulics from First Principles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/*FONTS-BEGIN*/
+{{FONTS}}
+/*FONTS-END*/
+</style>
+<style>
+/* Layout: a reading room. A sticky contents rail on the left, a single measured text column on the right,
+   numbered equations set as real MathML, bordered callouts for pictures, checks and the press's own numbers.
+   On a phone the contents fold into a disclosure at the top. */
+:root {
+  --bg: #ece3d2;
+  --panel: #f8f2e6;
+  --panel2: #efe5d2;
+  --paper: #fcf8f0;
+  --ink: #23160f;
+  --muted: #6f5b4c;
+  --line: #3f2c23;
+  --rule: #dccdb4;
+  --wine: #7d1d2f;
+  --wine-deep: #5a0f21;
+  --wine-soft: #f3dfdb;
+  --blue: #33627f;
+  --blue-soft: #e1ebf0;
+  --green: #3c6a46;
+  --green-soft: #e3ece2;
+  --oil: #ecc596;
+  --oil-hi: #c9783f;
+  --steel: #6f665e;
+  --steel-l: #b6aca1;
+  --f-display: "Instrument Serif", "Times New Roman", Georgia, serif;
+  --f-text: "IBM Plex Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --f-math: "Hydraulics Math", "Noto Sans Math", "STIX Two Math", "Cambria Math", math;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); scroll-padding-top: 20px; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--f-text); font-size: 16.5px; line-height: 1.68;
+  background: radial-gradient(1100px 520px at 88% -8%, #f4ecdd 0%, rgba(244, 236, 221, 0) 62%), var(--bg);
+}
+.progress { position: fixed; inset: 0 0 auto; height: calc(3px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px); z-index: 10; background: transparent; }
+.progress span { display: block; height: 3px; width: 0; background: var(--wine); }
+.wrap {
+  max-width: 1240px; margin: 0 auto; padding-block: 30px 70px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.eyebrow { font: 600 11.5px/1.2 var(--f-text); letter-spacing: 0.14em; text-transform: uppercase; color: var(--wine); }
+header.hero { display: grid; gap: 10px; margin-bottom: 26px; max-width: 900px; }
+h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(42px, 7.6vw, 80px); line-height: 0.95; margin: 0; color: var(--wine-deep); letter-spacing: -0.01em; text-wrap: balance; }
+h1 em { color: var(--wine); }
+.lede { margin: 0; color: var(--muted); font-size: 17.5px; max-width: 68ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12.5px/1.2 var(--f-mono); border: 1px solid var(--rule); background: var(--paper); border-radius: 999px; padding: 5px 11px; }
+.chip b { color: var(--wine); font-weight: 500; }
+.links { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); margin-top: 6px; }
+.links a { display: grid; gap: 2px; text-decoration: none; color: var(--ink); background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: 0 10px 24px -20px rgba(63,44,35,0.6); }
+.links a:hover { border-color: var(--wine); }
+.links a b { font: 400 22px/1.1 var(--f-display); color: var(--wine-deep); }
+.links a span { font-size: 13.5px; color: var(--muted); }
+.layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 34px; align-items: start; }
+@media (max-width: 980px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+nav.toc { position: sticky; top: 18px; max-height: calc(100vh - 36px); overflow: auto; background: var(--panel); border: 1.5px solid var(--line); border-radius: 10px; padding: 14px 10px 14px 14px; font-size: 13.5px; }
+nav.toc .eyebrow { margin-bottom: 8px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+nav.toc li.part-li { margin-top: 10px; font: 600 10.5px var(--f-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+nav.toc a { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 4px; padding: 3px 6px; border-radius: 6px; color: var(--ink); text-decoration: none; line-height: 1.35; }
+nav.toc a .n { font-family: var(--f-mono); color: var(--muted); font-size: 12px; }
+nav.toc a:hover { background: #f1e6d2; }
+nav.toc a.active { background: var(--wine); color: #fbf3e8; }
+nav.toc a.active .n { color: #f3dfdb; }
+details.toc-m { display: none; }
+@media (max-width: 980px) {
+  nav.toc { display: none; }
+  details.toc-m { display: block; background: var(--panel); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; }
+  details.toc-m summary { cursor: pointer; font-weight: 600; }
+  details.toc-m ol { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 2px; font-size: 14px; }
+  details.toc-m a { color: var(--ink); }
+}
+main { min-width: 0; }
+.chapter { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: clamp(16px, 3vw, 34px); margin-bottom: 20px; box-shadow: 0 12px 28px -22px rgba(63,44,35,0.55); }
+.chapter > * { max-width: 74ch; }
+.chapter > .eqn, .chapter > figure, .chapter > .tblw, .chapter > .press, .chapter > .callout { max-width: 86ch; }
+h2 { font-family: var(--f-display); font-weight: 400; font-size: clamp(30px, 4vw, 40px); line-height: 1.05; margin: 0 0 14px; color: var(--wine-deep); display: flex; gap: 14px; align-items: baseline; text-wrap: balance; }
+.chn { font: 500 15px/1 var(--f-mono); color: #fbf3e8; background: var(--wine); border-radius: 999px; padding: 6px 11px; transform: translateY(-6px); }
+h3 { font-family: var(--f-display); font-weight: 400; font-size: 25px; line-height: 1.15; margin: 28px 0 8px; color: var(--wine-deep); }
+p { margin: 0 0 12px; }
+ol, ul { padding-left: 22px; }
+li { margin-bottom: 6px; }
+a { color: var(--wine); }
+.mono { font-family: var(--f-mono); font-size: 0.92em; }
+.part { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin: 34px 0 16px; padding: 18px 4px 8px; border-top: 2px solid var(--line); }
+.part-n { font: 600 12px var(--f-text); letter-spacing: 0.16em; text-transform: uppercase; color: var(--wine); }
+.part-t { font: 400 clamp(26px, 3.4vw, 34px)/1.1 var(--f-display); color: var(--ink); }
+math { font-family: var(--f-math); font-size: 1.08em; }
+math mtext { font-family: var(--f-text); font-size: 0.92em; }
+.nobr { white-space: nowrap; }
+.eqn { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; margin: 14px 0 16px; padding: 12px 14px; background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; overflow-x: auto; }
+.eqn math { display: block; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+.eqn.boxed { border: 2px solid var(--wine); background: #fffaf3; }
+mtable.aligned mtd { padding: 3px 0; }
+mtable.aligned mtd.ar { text-align: right; }
+mtable.aligned mtd.al { text-align: left; padding-right: 1.6em; }
+mtable.aligned mtd.al:last-child { padding-right: 0; }
+.eqno { font: 500 13px var(--f-mono); color: var(--muted); white-space: nowrap; }
+@media (max-width: 640px) { .eqn { grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 10px; } .eqno { justify-self: end; } math { font-size: 1em; } }
+.picture, .check, .press, .callout { border-radius: 10px; padding: 12px 15px; margin: 14px 0; border: 1px solid var(--rule); }
+.picture { background: #f6ecdc; font-size: 16px; }
+.picture::before { content: "Picture"; display: block; font: 600 11px var(--f-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--wine); margin-bottom: 2px; }
+.check { background: var(--green-soft); border-color: #c4d6c2; }
+.press { background: var(--wine-soft); border-color: #e6c3bd; }
+.callout { background: var(--blue-soft); border-color: #c7d8e1; }
+.ctag { font: 600 11px var(--f-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--wine); margin-bottom: 2px; }
+.check .ctag { color: var(--green); }
+.callout .ctag { color: var(--blue); }
+.callout ul { margin: 4px 0 0; }
+figure.fig { margin: 18px 0; background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; padding: 12px; }
+figure.fig svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; }
+figure.fig figcaption { font-size: 13.5px; color: var(--muted); margin-top: 8px; text-align: center; }
+.svgt { font: 13px var(--f-mono); fill: var(--ink); }
+.tblw { overflow-x: auto; margin: 12px 0; }
+table.mt { border-collapse: collapse; font-size: 14px; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; width: 100%; }
+.press table.mt { margin: 6px 0 8px; display: block; overflow-x: auto; }
+table.mt th, table.mt td { padding: 5px 9px; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; }
+table.mt th { background: #f3eadb; color: var(--muted); font-weight: 600; }
+footer { color: var(--muted); font-size: 13.5px; margin-top: 30px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><span id="bar"></span></div>
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7d1d2f"/></marker>
+    <marker id="ahb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#33627f"/></marker>
+    <marker id="ahk" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#23160f"/></marker>
+    <marker id="ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7d1d2f"/></marker>
+  </defs>
+</svg>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Companion text to the two presses</div>
+    <h1>Hydraulics from <em>First Principles</em></h1>
+    <p class="lede">Every equation the two animations integrate, derived line by line from Newton's laws, conservation of mass and conservation of energy, with a picture to hold in your head for each one and the numbers of the real model beside it. Written for a second- or third-year physics or engineering student.</p>
+    <div class="chips">{{STATS}}</div>
+    <div class="links">
+      <a href="hydraulic.html"><b>The ideal press</b><span>Part I in motion: Pascal, Bernoulli and Lagrange, drawn to scale.</span></a>
+      <a href="hydraulic_control.html"><b>The servo-hydraulic press</b><span>Parts II and III in motion: valve, hose, oil springs and a digital controller.</span></a>
+    </div>
+  </header>
+  <details class="toc-m"><summary>Contents</summary><ol>{{TOC_MOBILE}}</ol></details>
+  <div class="layout">
+    <nav class="toc" aria-label="Contents"><div class="eyebrow">Contents</div><ol>{{TOC}}</ol></nav>
+    <main>
+{{BODY}}
+      <footer>Built from LaTeX to MathML at build time with <span class="mono">tools/build_theory.py</span>; no script libraries load at run time. Equations are set in a subset of Noto Sans Math (SIL Open Font License), embedded in the page.</footer>
+    </main>
+  </div>
+</div>
+<script>
+// Reading progress bar and the highlighted chapter in the contents rail.
+const bar = document.getElementById('bar');
+const links = [...document.querySelectorAll('nav.toc a')];
+const targets = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+function onScroll() {
+  const h = document.documentElement;
+  const frac = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
+  bar.style.width = `${(100 * frac).toFixed(2)}%`;
+  let current = targets[0];
+  for (const t of targets) if (t.getBoundingClientRect().top < 140) current = t;
+  links.forEach(a => a.classList.toggle('active', current && a.getAttribute('href') === `#${current.id}`));
+}
+document.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+</script>
+</body>
+</html>

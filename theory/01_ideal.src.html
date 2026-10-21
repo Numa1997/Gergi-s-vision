@@ -1,0 +1,170 @@
+<section id="conventions" class="chapter">
+<h2><span class="chn">0</span> How to read this</h2>
+<p>This text derives, line by line, every equation that the two animations integrate. Nothing is quoted without being derived from Newton's laws, conservation of mass, or conservation of energy. You need single-variable calculus, a little vector calculus, and, for Part III, the Laplace transform and some linear algebra.</p>
+<p>Each derivation is built the same way. A <b>picture</b> tells you what to imagine with your hands and eyes. The <b>working</b> is the mathematics, one step per line. A <b>check</b> tests the result against units and limiting cases. <b>In our press</b> puts in the numbers the animation uses, so you can compare with what you see on screen.</p>
+<div class="callout"><div class="ctag">Conventions</div>
+<ul>
+<li>SI units throughout. A pressure written $p$ is a <i>gauge</i> pressure, measured above the atmosphere; the absolute pressure is $p_{\mathrm{abs}} = p + p_0$ with $p_0 = 101.325\ \mathrm{kPa}$.</li>
+<li>A dot is a time derivative, $\dot{x} = dx/dt$. A prime is a derivative with respect to a position coordinate, $\mu' = d\mu/dx$.</li>
+<li>Flows $Q$ are volume flows in $\mathrm{m^3/s}$; one litre per minute is $1.667\times10^{-5}\ \mathrm{m^3/s}$.</li>
+<li>Numbers quoted “in our press” are for the default settings of the pages.</li>
+</ul></div>
+</section>
+
+<div class="part"><span class="part-n">Part I</span><span class="part-t">The ideal press: Pascal, Bernoulli, Lagrange</span></div>
+
+<section id="pressure" class="chapter">
+<h2><span class="chn">1</span> Pressure, and why it spreads</h2>
+<h3 id="pressure-isotropic">1.1 Pressure has no direction</h3>
+<div class="picture">Press your palm flat into a bathtub and then turn it sideways: the push of the water on your palm does not change with its orientation, only with how deep it is.</div>
+<p>Take a tiny wedge of fluid at rest: a right-angled prism with a vertical face of height $dy$, a horizontal face of width $dx$, and a sloping face of length $ds$ at angle $\theta$, all of depth $dz$ into the page. The geometry gives $dx = ds\cos\theta$ and $dy = ds\sin\theta$. Call the pressures on the three faces $p_x$, $p_y$ and $p_n$. In a fluid at rest there is no shear, so every force is normal to its face.</p>
+<p>Balance the horizontal forces. The vertical face pushes with $p_x\,dy\,dz$; the sloping face pushes back with the horizontal part of $p_n\,ds\,dz$:</p>
+$$p_x\,dy\,dz - p_n\,ds\,dz\,\sin\theta = 0 \quad\Rightarrow\quad p_x\,ds\sin\theta\,dz = p_n\,ds\sin\theta\,dz \quad\Rightarrow\quad p_x = p_n. \tag{1.1}$$
+<p>Balance the vertical forces. Now the weight of the wedge, $\tfrac12\rho g\,dx\,dy\,dz$, also appears:</p>
+$$p_y\,dx\,dz - p_n\,ds\,dz\cos\theta - \tfrac{1}{2}\rho g\,dx\,dy\,dz = 0 \quad\Rightarrow\quad p_y - p_n = \tfrac{1}{2}\rho g\,dy. \tag{1.2}$$
+<p>Shrink the wedge to a point: $dy \to 0$, so $p_y = p_n$. The weight is a volume force (third order in size) and loses to the surface forces (second order). Since the angle $\theta$ was arbitrary, the pressure at a point is the same in every direction: it is a scalar.</p>
+
+<h3 id="hydrostatics">1.2 Hydrostatics: pressure grows with depth</h3>
+<figure class="fig"><svg viewBox="0 0 420 170" role="img" aria-label="A horizontal slab of fluid of area A between heights z and z plus dz, pushed up by p(z) A, down by p(z+dz) A and by its weight">
+<rect x="120" y="55" width="180" height="60" fill="var(--oil)" stroke="var(--ink)" stroke-width="1.5"/>
+<line x1="210" y1="10" x2="210" y2="52" stroke="var(--wine)" stroke-width="2.5" marker-end="url(#ah)"/>
+<line x1="210" y1="160" x2="210" y2="118" stroke="var(--wine)" stroke-width="2.5" marker-end="url(#ah)"/>
+<line x1="250" y1="85" x2="250" y2="112" stroke="var(--blue)" stroke-width="2.5" marker-end="url(#ahb)"/>
+<text x="220" y="26" class="svgt">p(z + dz)·A</text><text x="220" y="152" class="svgt">p(z)·A</text><text x="258" y="102" class="svgt" fill="var(--blue)">ρ g A dz</text>
+<line x1="100" y1="55" x2="100" y2="115" stroke="var(--muted)" stroke-width="1"/><text x="60" y="90" class="svgt">dz</text>
+<text x="310" y="70" class="svgt">area A</text></svg>
+<figcaption>Figure 1. Forces on a horizontal slab of fluid at rest.</figcaption></figure>
+<p>Cut a horizontal slab of area $A$ and thickness $dz$ out of the fluid, as in Figure 1. It does not move, so the three vertical forces cancel:</p>
+$$p(z)\,A - p(z+dz)\,A - \rho g A\,dz = 0.$$
+<p>Divide by $A\,dz$ and let $dz \to 0$:</p>
+$$\frac{dp}{dz} = -\rho g \qquad\Rightarrow\qquad p(z) = p(z_0) - \rho g\,(z - z_0). \tag{1.3}$$
+<div class="check"><div class="ctag">Check</div>Units: $\mathrm{kg/m^3}\cdot\mathrm{m/s^2} = \mathrm{N/m^3} = \mathrm{Pa/m}$, a pressure per metre. Sign: going up ($z$ increasing) the pressure falls, as it should.</div>
+<div class="press"><div class="ctag">In our press</div>For oil of $\rho = 870\ \mathrm{kg/m^3}$, $\rho g = 8.53\ \mathrm{kPa}$ per metre of depth. The 0.40 m columns of the ideal press add only 3.4 kPa at their base, against 150 kPa under the input piston.</div>
+
+<h3 id="pascal">1.3 Pascal's principle and the force multiplier</h3>
+<p>Equation (1.3) says that pressure differences in a fluid at rest depend only on height differences. Raise the pressure at one point by $\Delta p$, wait for the fluid to settle, and the pressure everywhere rises by the same $\Delta p$. That is Pascal's principle. Put a piston of area $A_1$ on one side and a piston of area $A_2$ on the other, at the same height:</p>
+$$p = \frac{F_1}{A_1} = \frac{F_2}{A_2} \qquad\Rightarrow\qquad F_2 = F_1\,\frac{A_2}{A_1}. \tag{1.4}$$
+<div class="press"><div class="ctag">In our press</div>$d_1 = 4\ \mathrm{cm}$ and $d_2 = 12\ \mathrm{cm}$ give $A_2/A_1 = 9$. A push of 170 N becomes 1530 N. The load and its piston weigh $160\times 9.81 = 1569.6\ \mathrm{N}$, so the push alone would not lift them; the 19.6 N weight of the input piston tips the balance (section 4.7).</div>
+</section>
+
+<section id="continuity" class="chapter">
+<h2><span class="chn">2</span> Continuity: oil cannot be lost</h2>
+<div class="picture">Put your thumb over the nozzle of a syringe full of water and push: the plunger hardly moves. Water, and nearly so oil, refuses to change volume. Whatever volume you push in somewhere must come out somewhere else.</div>
+<p>Treat the oil as incompressible: its density $\rho$ is a constant. Mass conservation then becomes volume conservation. When the input piston moves down by $dx_1$ it sweeps the volume $A_1\,dx_1$; the only place for it is under the output piston, which must rise by $dx_2$:</p>
+$$A_1\,dx_1 = A_2\,dx_2 \quad\Rightarrow\quad x_2 = r\,x_1,\qquad r = \frac{A_1}{A_2} = \left(\frac{d_1}{d_2}\right)^2. \tag{2.1}$$
+<p>Divide by $dt$ to get the speeds. The same rule fixes the speed everywhere in the oil if we assume <i>plug flow</i>, one speed across each cross-section. With $v = \dot{x}_1$:</p>
+$$\underbrace{A_1 v}_{\text{left column}} = \underbrace{A_p v_p}_{\text{pipe}} = \underbrace{A_2\,(r v)}_{\text{right column}} \qquad\Rightarrow\qquad v_p = \frac{A_1}{A_p}\,v. \tag{2.2}$$
+<div class="press"><div class="ctag">In our press</div>$r = 1/9$: the full 30 cm stroke lifts the load by 3.33 cm. The 1 cm pipe has $A_1/A_p = 16$, so the oil in the pipe runs 16 times faster than the piston. That is why the tracer dots race through it.</div>
+</section>
+
+<section id="energy-lever" class="chapter">
+<h2><span class="chn">3</span> Energy: the hydraulic lever</h2>
+<p>The work done by the input piston on the oil, as it moves by $dx_1$ against pressure $p$, is $dW_1 = F_1\,dx_1 = p\,A_1\,dx_1 = p\,dV$. The work the oil does on the output piston is $dW_2 = p\,A_2\,dx_2 = p\,dV$, with the same $dV$ by (2.1). So</p>
+$$F_1\,x_1 = F_2\,x_2. \tag{3.1}$$
+<p>Force is multiplied by 9 and distance divided by 9. An ideal hydraulic press is a lever made of oil: it trades distance for force and never creates energy. In the moving press the input work goes three places: kinetic energy, potential energy, and the losses at the stops. The page checks that bookkeeping at every frame.</p>
+</section>
+
+<section id="lagrangian" class="chapter">
+<h2><span class="chn">4</span> The moving press: one coordinate, one Lagrangian</h2>
+<h3 id="lag-coord">4.1 One degree of freedom</h3>
+<p>Continuity ties every moving part to the input piston. Choose $x$, the downward displacement of the input piston, as the single generalized coordinate. Everything else follows from (2.1) and (2.2): the output piston rises by $r x$; the left column height is $h_1 = H_0 - x$; the right column height is $h_2 = H_0 + r x$.</p>
+
+<h3 id="lag-T">4.2 Kinetic energy, part by part</h3>
+<p>Add up $\tfrac12 m v^2$ for every moving mass, using the speeds of (2.2). Each oil column of height $h$ and area $A$ has mass $\rho A h$:</p>
+$$\begin{aligned}
+T &= \tfrac12 m_1 \dot{x}^2 &&\text{input piston}\\
+&+ \tfrac12 (m_2+M)\,(r\dot{x})^2 &&\text{output piston and load}\\
+&+ \tfrac12 \rho A_1 h_1\,\dot{x}^2 &&\text{left column}\\
+&+ \tfrac12 \rho A_p L_p \left(\tfrac{A_1}{A_p}\dot{x}\right)^2 &&\text{oil in the pipe}\\
+&+ \tfrac12 \rho A_2 h_2\,(r\dot{x})^2 &&\text{right column}
+\end{aligned} \tag{4.1}$$
+<p>Every term is proportional to $\dot{x}^2$, so we can factor it out. Use $A_2 r^2 = A_1 r$ in the last term and $A_p (A_1/A_p)^2 = A_1 (A_1/A_p)$ in the pipe term:</p>
+$$T = \tfrac12\,\mu(x)\,\dot{x}^2, \qquad \mu(x) = m_1 + (m_2+M)\,r^2 + \rho A_1\left[(H_0 - x) + r\,(H_0 + r x) + L_p\,\frac{A_1}{A_p}\right]. \tag{4.2}$$
+<p>$\mu$ is the <i>effective mass</i>: the mass you would feel in your hand if you pushed the input piston.</p>
+<div class="press"><div class="ctag">In our press</div>The pipe holds only $\rho A_p L_p = 55\ \mathrm{g}$ of oil, but it moves 16 times faster than the piston, and kinetic energy goes with the square of speed. It counts $16^2 = 256$ times: 14.0 kg of the total $\mu = 18.5\ \mathrm{kg}$. Narrow pipes make heavy machines.</div>
+
+<h3 id="lag-V">4.3 Potential energy</h3>
+<p>Measure heights from the pipe. The input piston face sits at $h_1$ and the output piston face at $h_2$. An oil column of height $h$ has its centre of mass at $h/2$, so its potential energy is $\rho A h\,g\,h/2$. The oil in the horizontal pipe does not change height. Collect everything and subtract the value at $x = 0$:</p>
+$$V(x) = m_1 g h_1 + (m_2+M) g h_2 + \tfrac12\rho g\left(A_1 h_1^2 + A_2 h_2^2\right) - V_0.$$
+<p>Expand with $h_1 = H_0 - x$ and $h_2 = H_0 + r x$. The pistons give $-m_1 g x + (m_2+M) g r x$. The columns give</p>
+$$\tfrac12\rho g\left[A_1\left(x^2 - 2H_0 x\right) + A_2\left(r^2x^2 + 2H_0 r x\right)\right] = \tfrac12\rho g\left[A_1 x^2 + A_1 r x^2\right] = \tfrac12 \rho g A_1 (1+r)\,x^2,$$
+<p>because $A_2 r = A_1$ makes the linear terms cancel. Therefore</p>
+$$V(x) = -m_1 g\,x + (m_2+M)\,g\,r\,x + \tfrac12\rho g A_1 (1+r)\,x^2. \tag{4.3}$$
+<div class="picture">The last term has a simple picture: a slab of oil of volume $A_1 x$ is taken from the top of the left column, where its centre was at $H_0 - x/2$, and laid on top of the right column, where its centre is at $H_0 + rx/2$. It rises by $(1+r)x/2$. The oil acts as a soft spring of stiffness $k = \rho g A_1(1+r) = 11.9\ \mathrm{N/m}$.</div>
+
+<h3 id="lag-EL">4.4 The equation of motion</h3>
+<p>The applied force $F_1(t)$ is not derived from a potential, so it enters as a generalized force: in a virtual displacement $\delta x$ it does work $F_1\,\delta x$. Lagrange's equation with $L = T - V$ reads</p>
+$$\frac{d}{dt}\frac{\partial T}{\partial \dot{x}} - \frac{\partial T}{\partial x} + \frac{\partial V}{\partial x} = F_1(t). \tag{4.4}$$
+<p>Work out each piece. From (4.2), $\partial T/\partial\dot{x} = \mu\dot{x}$. Its time derivative needs the chain rule, because $\mu$ depends on $x$ and $x$ on $t$:</p>
+$$\frac{d}{dt}\left(\mu\dot{x}\right) = \mu\ddot{x} + \frac{d\mu}{dx}\frac{dx}{dt}\dot{x} = \mu\ddot{x} + \mu'\dot{x}^2, \qquad \frac{\partial T}{\partial x} = \tfrac12\mu'\dot{x}^2.$$
+<p>Insert into (4.4):</p>
+$$\boxed{\;\mu(x)\,\ddot{x} + \tfrac12\,\mu'\,\dot{x}^2 = F_1(t) - V'(x)\;}\qquad \mu' = \rho A_1\left(r^2 - 1\right). \tag{4.5}$$
+<p>This is the equation the first animation integrates, with fourth-order Runge–Kutta and a step of $10^{-4}$ s.</p>
+
+<h3 id="lag-mu">4.5 What the strange term means</h3>
+<p>The term $\tfrac12\mu'\dot{x}^2$ appears because the effective mass changes as the press moves. As $x$ grows, oil leaves the left column, where it moved at speed $v$, and joins the right column, where it moves at only $rv$. With $r < 1$ the moving mass shrinks: $\mu' < 0$. Each bit of oil that changes columns gives up momentum, and the term accounts for that exchange. A chain sliding off the edge of a table obeys an equation of the same form.</p>
+
+<h3 id="lag-threshold">4.6 When does the load start to move?</h3>
+<p>At rest, $x = 0$ and $\dot{x} = 0$, (4.5) gives $\mu\ddot{x} = F_1 - V'(0)$. The load leaves its stop only if this is positive:</p>
+$$F_1 > F_{1,\min} = V'(0) = (m_2+M)\,g\,r - m_1 g. \tag{4.6}$$
+<div class="press"><div class="ctag">In our press</div>$$F_{1,\min} = \frac{160\times 9.81}{9} - 2\times 9.81 = 174.40 - 19.62 = 154.78\ \mathrm{N}.$$</div>
+
+<h3 id="lag-energy">4.7 An energy function, and why the load never falls back</h3>
+<p>For a Lagrangian with a time-dependent force, define $h = T + V - F_1(t)\,x$. Differentiate along a solution and use (4.5):</p>
+$$\begin{aligned}
+\frac{dh}{dt} &= \mu\dot{x}\ddot{x} + \tfrac12\mu'\dot{x}^3 + V'\dot{x} - \dot{F}_1 x - F_1\dot{x}\\
+&= \dot{x}\left(\mu\ddot{x} + \tfrac12\mu'\dot{x}^2 + V' - F_1\right) - \dot{F}_1 x = -\dot{F}_1\,x.
+\end{aligned} \tag{4.7}$$
+<p>The ramp only increases ($\dot{F}_1 \ge 0$) and $x \ge 0$, so $h$ can only decrease. It starts at 0 when the load lifts off. At $x = 0$ we have $h = T \ge 0$, which is only possible with $T = 0$. The load can come back to its stop, at best, with zero speed: it never falls back onto it. If the force is too small to reach the stroke stop, the load swings forever between two turning points. That is why the page needs a time limit.</p>
+</section>
+
+<section id="pressure-field" class="chapter">
+<h2><span class="chn">5</span> The pressure field inside a moving fluid</h2>
+<h3 id="euler">5.1 Newton's law for a fluid particle</h3>
+<p>Follow a small cylinder of fluid of cross-section $dA$ and length $ds$ along a streamline, with $s$ measured along the flow. Its mass is $\rho\,dA\,ds$. Its acceleration is the rate of change of its speed $v(s,t)$ as it moves, which has two parts: the speed changes in time at a fixed place, and the particle moves to a place where the speed is different:</p>
+$$\frac{Dv}{Dt} = \frac{\partial v}{\partial t} + v\,\frac{\partial v}{\partial s}.$$
+<p>The forces along $s$ are the pressure difference across its two ends, $-\frac{\partial p}{\partial s}\,ds\,dA$, and the component of its weight, $-\rho g\,dA\,ds\,\frac{\partial z}{\partial s}$. Newton's second law, divided by $dA\,ds$:</p>
+$$\rho\left(\frac{\partial v}{\partial t} + v\frac{\partial v}{\partial s}\right) = -\frac{\partial p}{\partial s} - \rho g\frac{\partial z}{\partial s}. \tag{5.1}$$
+<p>This is Euler's equation along a streamline. Note $v\,\partial v/\partial s = \partial(\tfrac12 v^2)/\partial s$. Integrate from point 1 to point 2:</p>
+$$p_2 - p_1 = -\rho\int_1^2 \frac{\partial v}{\partial t}\,ds - \tfrac12\rho\left(v_2^2 - v_1^2\right) - \rho g\,(z_2 - z_1). \tag{5.2}$$
+<p>This is the unsteady Bernoulli equation. The first term is the push needed to accelerate the fluid between the two points, the second the push needed to speed it up, the third the weight.</p>
+
+<h3 id="field-chain">5.2 Walking through the press</h3>
+<p>Apply (5.2) to each stretch of oil, with $v = \dot{x}$, $a = \ddot{x}$ and $v_p = (A_1/A_p)\,v$.</p>
+<ol>
+<li><b>Down the left column</b>, from the piston face to the bottom. The oil moves down at speed $v$ and accelerates at $a$; going down, $z$ falls by $h_1$. With no speed change along the column, (5.2) gives
+$$p_{b1} = p_1 + \rho\,(g - a)\,h_1. \tag{5.3}$$</li>
+<li><b>Into the pipe.</b> Over a very short contraction the speed rises from $v$ to $v_p$; the time-derivative and height terms vanish as the length goes to zero:
+$$p_{\mathrm{in}} = p_{b1} + \tfrac12\rho\left(v^2 - v_p^2\right). \tag{5.4}$$</li>
+<li><b>Along the pipe.</b> The speed is the same everywhere, $\partial v_p/\partial t = (A_1/A_p)\,a$, and the pipe is level:
+$$p_{\mathrm{out}} = p_{\mathrm{in}} - \rho\,\frac{A_1}{A_p}\,a\,L_p. \tag{5.5}$$</li>
+<li><b>Out of the pipe</b>, slowing from $v_p$ to $rv$ without loss:
+$$p_{b2} = p_{\mathrm{out}} + \tfrac12\rho\left(v_p^2 - r^2 v^2\right). \tag{5.6}$$</li>
+<li><b>Up the right column</b>, speed $rv$, acceleration $ra$, rising by $h_2$:
+$$p_{\mathrm{top}} = p_{b2} - \rho\,(g + r a)\,h_2. \tag{5.7}$$</li>
+</ol>
+
+<h3 id="field-closure">5.3 The field closes on both pistons</h3>
+<p>The pistons give two more equations. Newton for the input piston, pushed down by $F_1$ and its weight, pushed up by $p_1 A_1$: $m_1 a = F_1 + m_1 g - p_1 A_1$. Newton for the output piston and load, rising with acceleration $ra$: $(m_2+M)\,r a = p_2 A_2 - (m_2+M)g$. So</p>
+$$p_1 = \frac{F_1 + m_1 g - m_1 a}{A_1}, \qquad p_2 = \frac{(m_2+M)(g + r a)}{A_2}. \tag{5.8}$$
+<p>Add (5.3) to (5.7). The Bernoulli terms combine to $\tfrac12\rho(v^2 - r^2v^2)$ and the heights to $-\rho g (h_2 - h_1) = -\rho g(1+r)x$:</p>
+$$p_1 - p_{\mathrm{top}} = \rho a\left(h_1 + r h_2 + L_p\frac{A_1}{A_p}\right) + \tfrac12\rho\left(r^2 - 1\right)v^2 + \rho g\,(1+r)\,x. \tag{5.9}$$
+<p>Is this the same as what the pistons demand? Subtract the two equations (5.8), using $p_2 A_1 = p_2 A_2 r$:</p>
+$$\left(p_1 - p_2\right)A_1 = F_1 + m_1 g - m_1 a - (m_2+M)\,(g + r a)\,r.$$
+<p>Replace $F_1$ with the equation of motion (4.5), $F_1 = \mu a + \tfrac12\mu' v^2 + V'$, where</p>
+$$V' = -m_1 g + (m_2+M)\,g\,r + \rho g A_1(1+r)\,x.$$
+<p>The piston weights cancel, and so do the piston masses inside $\mu$:</p>
+$$\begin{aligned}
+\left(p_1 - p_2\right)A_1 &= \left[\mu - m_1 - (m_2+M)r^2\right]a + \tfrac12\mu' v^2 + \rho g A_1 (1+r)\,x\\
+&= \rho A_1\left(h_1 + r h_2 + L_p\frac{A_1}{A_p}\right)a + \tfrac12\rho A_1\left(r^2-1\right)v^2 + \rho g A_1(1+r)\,x.
+\end{aligned}$$
+<p>Divide by $A_1$: this is exactly (5.9) with $p_{\mathrm{top}} = p_2$. The pressure walk and the Lagrangian agree, term by term. The page uses $p_{\mathrm{top}} = p_2$ as a live self-test; the error stays below $10^{-10}$ Pa.</p>
+<div class="press"><div class="ctag">In our press</div>With a 5 mm pipe, $A_1/A_p = 64$ and the oil in the pipe reaches 23.5 m/s just before the stop. The Bernoulli drop $\tfrac12\rho v_p^2 \approx 240\ \mathrm{kPa}$ is larger than the 150 kPa in the oil, and the gauge pressure at the pipe outlet falls to −96 kPa: the oil there is under suction, which is why the page warns about cavitation.</div>
+</section>
+
+<section id="ideal-limits" class="chapter">
+<h2><span class="chn">6</span> What “ideal” leaves out</h2>
+<p>The stops in the first animation are perfectly rigid and perfectly inelastic: the speed drops to zero in zero time and the kinetic energy $\tfrac12\mu v^2$ disappears. That needs an infinite force. With real oil of bulk modulus $\beta$ the stop is a stiff spring; Part II builds exactly that. A rough estimate of the pressure spike: the moving mass $\mu$ hitting an oil spring of stiffness $k_o = \beta A_1^2/V$ carries $\tfrac12\mu v^2 = \tfrac12 k_o \delta^2$ into it, so the peak force is $v\sqrt{k_o\mu}$ and</p>
+$$\Delta p_{\mathrm{peak}} \approx \frac{v\sqrt{k_o\,\mu}}{A_1}. \tag{6.1}$$
+<p>Take all 5.1 L of oil as the spring volume $V$, $\beta = 1.5\ \mathrm{GPa}$ and the impact speed $v = 0.67\ \mathrm{m/s}$: this is about 1.5 MPa, ten times the working pressure, ringing at $\sqrt{k_o/\mu}/2\pi \approx 25\ \mathrm{Hz}$. Two more losses are missing. Where the jet leaves the pipe into the wide column it does not slow down gently: it mixes, and the Borda–Carnot loss $\tfrac12\rho(v_p - rv)^2$ is burnt as heat. And viscosity resists every flow; chapter 11 derives how much.</p>
+</section>
