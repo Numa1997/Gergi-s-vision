@@ -391,7 +391,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
       <canvas id="pl_E" aria-label="Energy"></canvas>
       <canvas id="pl_e" aria-label="Tracking error"></canvas>
     </div>
-    <p class="note">Shaded bands mark the controller mode: settle, approach, creep, press, release, retract, done.</p>
+    <p class="note">Shaded bands mark the controller mode: settle, approach, creep, press, release, retract, done. Hover a plot to read every curve at one instant; press or drag in it to move the animation there.</p>
   </section>
 
   <section class="box" aria-label="Loop analysis" id="analysis">
@@ -2144,7 +2144,7 @@ function renderPlot(p) {
     c.beginPath(); c.moveTo(px(t), mt); c.lineTo(px(t), mt + ph); c.stroke();
     fillRich(c, fmt(t, td), px(t), mt + ph + 11);
   }
-  c.textAlign = 'right'; fillRich(c, 't [s]', ml - 5, mt + ph + 11);
+  c.textAlign = 'right'; fillRich(c, 't [s]', ml - 11, mt + ph + 11);
   c.strokeStyle = COL.ink; c.strokeRect(ml, mt, pw, ph);
   c.save(); c.beginPath(); c.rect(ml, mt, pw, ph); c.clip();
   const stride = Math.max(1, Math.floor(T.length / (pw * 2)));
@@ -2168,8 +2168,84 @@ function renderPlot(p) {
     c.fillStyle = COL.ink; fillRich(c, s.name, lx + 15, 12);
     lx += 15 + richWidth(c, s.name) + 10;
   }
-  return { off, px };
+  return { off, px, py, ml, pw, mt, ph, lo, hi };
 }
+// ---- reading the plots: hover shows a crosshair in every plot and the values under it;
+// press or drag in a plot moves the animation to that instant
+let hover = null, seeking = false;
+/** Index of the last record at or before t (binary search; records are in time order). */
+function recIndex(t) {
+  const T = run.rec.t;
+  let a = 0, b = T.length - 1;
+  while (b - a > 1) { const m = (a + b) >> 1; if (T[m] <= t) a = m; else b = m; }
+  return t - T[a] > T[b] - t ? b : a;
+}
+function plotTime(p, e) {
+  const r = p.cv.getBoundingClientRect(), g = p.cache;
+  return Math.max(0, Math.min(run.tEnd, (e.clientX - r.left - g.ml) / g.pw * run.tEnd));
+}
+function seekTo(t) { tView = t; $('scrub').value = t; setFill($('scrub')); dirty = true; }
+function wirePlot(p) {
+  const cv = p.cv;
+  cv.style.cursor = 'crosshair'; cv.style.touchAction = 'pan-y';
+  cv.addEventListener('pointermove', e => {
+    if (!run || !p.cache) return;
+    hover = { p, t: plotTime(p, e) };
+    if (seeking) seekTo(hover.t);
+    dirty = true;
+  });
+  cv.addEventListener('pointerdown', e => {
+    if (!run || !p.cache) return;
+    seeking = true; cv.setPointerCapture(e.pointerId);
+    hover = { p, t: plotTime(p, e) }; seekTo(hover.t);
+  });
+  const stop = () => { seeking = false; };
+  cv.addEventListener('pointerup', stop); cv.addEventListener('pointercancel', stop);
+  cv.addEventListener('pointerleave', () => { if (!seeking) { hover = null; dirty = true; } });
+}
+/** Crosshair, a dot on each curve, and (in the plot under the pointer) a card with the values. */
+function drawHover(c, p) {
+  const g = p.cache, t = Math.min(hover.t, run.tEnd), x = g.px(t), k = recIndex(t);
+  c.save();
+  c.strokeStyle = COL.ink; c.globalAlpha = 0.5; c.lineWidth = 1; c.setLineDash([3, 3]);
+  c.beginPath(); c.moveTo(x, g.mt); c.lineTo(x, g.mt + g.ph); c.stroke();
+  c.setLineDash([]); c.globalAlpha = 1;
+  const rows = [];
+  for (const s of p.series) {
+    const v = s.y[k];
+    if (!Number.isFinite(v)) continue;
+    const y = Math.max(g.mt, Math.min(g.mt + g.ph, g.py(v)));
+    c.fillStyle = COL.paper; c.strokeStyle = s.color; c.lineWidth = 2;
+    c.beginPath(); c.arc(x, y, 3.5, 0, 2 * Math.PI); c.fill(); c.stroke();
+    rows.push([s, v]);
+  }
+  if (hover.p === p && rows.length) {
+    const unit = (/\[([^\]]+)\]/.exec(p.title) || [])[1] || '';
+    const dec = Math.max(0, Math.min(4, 2 - Math.floor(Math.log10(g.hi - g.lo))));
+    c.font = '11px "IBM Plex Mono", ui-monospace, monospace'; c.textBaseline = 'middle'; c.textAlign = 'left';
+    const lines = rows.map(([s, v]) => [s, `${fmt(v, dec)}${unit && !s.name.includes('[') ? ' ' + unit : ''}`]);
+    const head = `t = ${fmt(run.rec.t[k], 3)} s`;
+    const nameW = Math.max(...lines.map(([s]) => richWidth(c, s.name)));
+    const valW = Math.max(...lines.map(([, v]) => c.measureText(v).width));
+    const w = Math.max(c.measureText(head).width, 14 + nameW + 10 + valW) + 16, lh = 16, h = lh * (lines.length + 1) + 10;
+    let bx = x + 12;
+    if (bx + w > g.ml + g.pw) bx = x - 12 - w;
+    const by = g.mt + 6;
+    c.shadowColor = 'rgba(35, 22, 15, 0.18)'; c.shadowBlur = 8; c.shadowOffsetY = 2;
+    c.fillStyle = 'rgba(252, 248, 240, 0.96)'; roundRect(c, bx, by, w, h, 6); c.fill();
+    c.shadowColor = 'transparent';
+    c.strokeStyle = COL.rule; c.lineWidth = 1; roundRect(c, bx, by, w, h, 6); c.stroke();
+    c.fillStyle = COL.muted; c.fillText(head, bx + 8, by + 5 + lh / 2);
+    lines.forEach(([s, v], j) => {
+      const yy = by + 5 + lh * (j + 1.5);
+      c.fillStyle = s.color; c.fillRect(bx + 8, yy - 1.5, 10, 3);
+      c.fillStyle = COL.ink; c.textAlign = 'left'; fillRich(c, s.name, bx + 22, yy);
+      c.textAlign = 'right'; c.fillText(v, bx + w - 8, yy);
+    });
+  }
+  c.restore();
+}
+
 function drawPlots() {
   for (const p of PLOTS) {
     const c = p.cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
@@ -2178,6 +2254,7 @@ function drawPlots() {
     const xx = p.cache.px(Math.min(tView, run.tEnd));
     c.strokeStyle = COL.wine; c.lineWidth = 1.5;
     c.beginPath(); c.moveTo(xx, 26); c.lineTo(xx, p.cv.clientHeight - 24); c.stroke();
+    if (hover) drawHover(c, p);
   }
 }
 
@@ -2515,6 +2592,7 @@ new MutationObserver(list => {
   for (const rec of list) for (const n of rec.addedNodes) typesetSubs(n.nodeType === 3 ? n.parentElement : n);
 }).observe(document.body, { childList: true, subtree: true });
 
+PLOTS.forEach(wirePlot);
 buildControls();
 drawPlaceholder();
 startWorker();
