@@ -330,7 +330,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
           <div class="tile"><span class="tl">rod chamber p_B</span><span class="tv" id="r_pB">–</span></div>
           <div class="tile"><span class="tl">oil stiffness β_eff(p_A)</span><span class="tv" id="r_beta">–</span></div>
           <div class="tile"><span class="tl">hose flow Q_h</span><span class="tv" id="r_Q">–</span></div>
-          <div class="tile"><span class="tl">spool x_v / command u</span><span class="tv" id="r_xv">–</span></div>
+          <div class="tile wide"><span class="tl">spool x_v / command u</span><span class="tv" id="r_xv">–</span></div>
           <div class="group-label">Energy since t = 0</div>
           <div class="tile"><span class="tl">pump work</span><span class="tv" id="r_W">–</span></div>
           <div class="tile"><span class="tl">burnt in the valve</span><span class="tv" id="r_Lv">–</span></div>
@@ -1440,11 +1440,11 @@ function sceneLayout(portrait) {
     ? { portrait, W: 520, H: 1262, k: 700, axis: 260, base: 757, fs: 1.55,
         valve: { x: 160, y: 860, w: 200, h: 56 }, ctrl: { x: 10, y: 10, w: 500, h: 160 },
         tank: { x: 20, y: 1015, w: 200, h: 60 }, pump: [90, 975],
-        cluster: { top: 1100, cy: 1150, r: 38, xs: [52, 156, 260, 364, 468] } }
+        cluster: { top: 1100, cy: 1150, r: 33, xs: [44, 130, 216, 302, 388, 474] } }
     : { portrait, W: 1000, H: 868, k: 750, axis: 760, base: 660, fs: 1,
         valve: { x: 260, y: 380, w: 200, h: 56 }, ctrl: { x: 30, y: 30, w: 330, h: 150 },
         tank: { x: 40, y: 610, w: 220, h: 60 }, pump: [110, 560],
-        cluster: { top: 722, cy: 778, r: 36, xs: [150, 325, 500, 675, 850] } };
+        cluster: { top: 722, cy: 778, r: 36, xs: [100, 260, 420, 580, 740, 900] } };
 }
 /** Press geometry in metres: z up from the base plate, for the ram position y. */
 function pressGeometry(y) {
@@ -1822,6 +1822,32 @@ function drawGaugePanel(c, L, R, i) {
     { label: 'x_v (u blue)', value: 100 * R.xv[i], second: 100 * R.uApp[i], min: -100, max: 100, text: `${fmt(100 * R.xv[i], 1)} %` }
   ];
   dials.forEach((d, j) => drawDial(c, cl.xs[j], cl.cy, cl.r, d, fs));
+  drawContactWindow(c, cl.xs[5], cl.cy, cl.r, R.y[i], R.F[i], fs);
+}
+/** Contact window: an 8 mm tall view of the platen and the specimen's lower face, magnified against the main
+ *  drawing so the closing gap and the compression (a few millimetres at true scale) can be seen. */
+function drawContactWindow(c, cx, cy, r, y, F, fs) {
+  const half = r * 1.08, pxPerMm = (2 * half) / 8, zoom = pxPerMm / (G.L.k / 1000);
+  const gapMm = (C0.yc - y) * 1000;                       // > 0: open gap; < 0: compression δ
+  const specY = cy + pxPerMm;                              // specimen's undeformed lower face, just below centre
+  const platenY = specY + Math.max(-3.5, Math.min(4, gapMm)) * pxPerMm;
+  c.save();
+  roundRect(c, cx - half, cy - half, 2 * half, 2 * half, 8); c.fillStyle = '#fffdf8'; c.fill();
+  c.lineWidth = 2; c.strokeStyle = '#4b423c'; c.stroke();
+  c.clip();
+  const s = Math.min(1, F / 1.2e5);
+  c.fillStyle = F > 0 ? `rgb(${Math.round(160 + 70 * s)},${Math.round(150 - 85 * s)},${Math.round(120 - 30 * s)})` : '#a7a08a';
+  c.fillRect(cx - half, cy - half, 2 * half, Math.min(specY, platenY) - (cy - half));
+  c.fillStyle = metalGradient(c, platenY, cy + half, 'dark', true);
+  c.fillRect(cx - half, platenY, 2 * half, cy + half - platenY);
+  c.strokeStyle = 'rgba(35,22,15,0.4)'; c.lineWidth = 1; c.setLineDash([3, 3]);
+  c.beginPath(); c.moveTo(cx - half, specY); c.lineTo(cx + half, specY); c.stroke();
+  c.restore();
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillStyle = COL.ink; c.font = `500 ${12 * fs}px "IBM Plex Mono", ui-monospace, monospace`;
+  c.fillText(gapMm >= 0 ? `gap ${fmt(gapMm, 2)} mm` : `δ ${fmt(-gapMm, 2)} mm`, cx, cy + r * 1.08 + 13 * fs);
+  c.fillStyle = COL.muted; c.font = `500 ${10.5 * fs}px "IBM Plex Sans", Arial, sans-serif`;
+  c.fillText(`contact ×${fmt(zoom, 0)}`, cx, cy + r * 1.08 + 28 * fs);
 }
 /** 10 cm scale bar for the true-scale press. */
 function drawScaleBar(c, X, x0, y, mono) {
@@ -1834,7 +1860,9 @@ let G = null;
 function layout() {
   const dpr = window.devicePixelRatio || 1;
   const cssW = scene.clientWidth || 700;
-  const L = sceneLayout(cssW < 640);
+  const L = sceneLayout(cssW < 480);
+  // Scale drawing text to land near 13 CSS px whatever the canvas width.
+  L.fs = Math.max(1, Math.min(L.portrait ? 1.6 : 1.5, 13 / (12 * cssW / L.W)));
   const cssH = cssW * L.H / L.W;
   scene.style.height = cssH + 'px';
   scene.width = Math.round(cssW * dpr); scene.height = Math.round(cssH * dpr);

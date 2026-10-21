@@ -94,7 +94,7 @@ n_ch = len(re.findall(r'class="chapter"', body))
 n_eq = len(eq_ids)
 n_fig = len(re.findall(r'<figure class="fig">', body))
 stats = (f'<span class="chip"><b>{n_ch}</b> chapters</span><span class="chip"><b>{n_eq}</b> numbered equations</span>'
-         f'<span class="chip"><b>{n_fig}</b> figures</span><span class="chip">every number checked against the model</span>')
+         f'<span class="chip"><b>{n_fig}</b> figures</span><span class="chip">every number computed from the model</span>')
 
 out = (TEMPLATE.replace('{{FONTS}}', FONTS).replace('{{TOC}}', '\n'.join(toc)).replace('{{TOC_MOBILE}}', '\n'.join(toc_m))
        .replace('{{STATS}}', stats).replace('{{BODY}}', body))

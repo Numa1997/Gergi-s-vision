@@ -269,6 +269,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 .crosslinks { display: flex; flex-wrap: wrap; gap: 10px; }
 .crosslinks a { font: 500 14px var(--f-text); color: var(--wine); text-decoration: none; border: 1.5px solid var(--wine); border-radius: 999px; padding: 6px 14px; background: var(--paper); }
 .crosslinks a:hover { background: var(--wine); color: #fbf3e8; }
+#walk { height: 190px; margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
 .physics p, .physics li { max-width: 78ch; }
 .physics ul { padding-left: 22px; }
 </style>
@@ -291,12 +292,13 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
       <section class="box" aria-label="Scene">
         <ol class="stepper" id="stepper" aria-label="Phases of the run; select one to jump to it"></ol>
         <canvas id="scene" aria-label="Animated hydraulic press"></canvas>
+        <canvas id="walk" aria-label="Pressure along the oil path"></canvas>
         <div class="legend">
           <span>Oil gauge pressure</span>
           <span class="num">0</span><span class="cbar" aria-hidden="true"></span><span class="num" id="pmaxLbl">–</span>
           <span><span class="swatch" aria-hidden="true"></span> below 0</span>
         </div>
-        <p class="note">Cylinders, pipe, pistons and stops are drawn to true scale; the load block's size is symbolic. The white dots are material points of oil: each keeps the oil volume between itself and the input piston, so in the pipe they run A₁/A_p times faster.</p>
+        <p class="note">Cylinders, pipe, pistons and stops are drawn to true scale; the load block's size is symbolic. The white dots are material points of oil: each keeps the oil volume between itself and the input piston, so in the pipe they run A₁/A_p times faster. The chart under the drawing walks the same pressure field from piston to piston against true path length: the vertical steps are Bernoulli, the slopes are weight and inertia (theory, chapter 5).</p>
         <div class="status" id="status"></div>
       </section>
 
@@ -943,6 +945,53 @@ function drawScene(i) {
   drawDialStrip(c, R, i);
 }
 
+// ---------------------------------------------------------------- pressure walk
+/** Pressure along the oil path at frame i, from the input piston face (s = 0) down the left column, through the
+ *  pipe and up the right column to the output piston, against true path length. The vertical steps are the
+ *  lossless Bernoulli changes at the contraction and the expansion; the slopes are weight and inertia. */
+function drawWalk(i) {
+  const cv = $('walk'), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const R = run.rec, m = run.model, Pm = m.P, H0 = CONST.H0;
+  const h1 = H0 - R.x[i], h2 = H0 + m.r * R.x[i], Ltot = h1 + Pm.Lp + h2;
+  const ml = 54, mr = 14, mt = 30, mb = 30, pw = W - ml - mr, ph = H - mt - mb;
+  const lo = Math.min(0, run.pmin) / 1000, hi = run.pmax / 1000 * 1.05;
+  const px = s => ml + pw * s / Ltot, py = v => mt + ph * (1 - (v - lo) / (hi - lo));
+  c.fillStyle = COL.paper; c.fillRect(0, 0, W, H);
+  // segment bands: left column, pipe, right column
+  const bands = [[0, h1, 'left column'], [h1, h1 + Pm.Lp, 'pipe'], [h1 + Pm.Lp, Ltot, 'right column']];
+  bands.forEach(([a, b, name], j) => {
+    c.fillStyle = j === 1 ? 'rgba(51, 98, 127, 0.07)' : 'rgba(181, 104, 28, 0.06)';
+    c.fillRect(px(a), mt, px(b) - px(a), ph);
+    c.fillStyle = COL.muted; c.font = '11px "IBM Plex Sans", Arial, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(name, (px(a) + px(b)) / 2, mt + ph + 13);
+  });
+  const ys = niceStep(hi - lo, 4);
+  c.strokeStyle = COL.grid; c.lineWidth = 1; c.fillStyle = COL.muted; c.textAlign = 'right'; c.font = '11px "IBM Plex Mono", ui-monospace, monospace';
+  for (let v = Math.ceil(lo / ys) * ys; v <= hi + 1e-9; v += ys) { c.beginPath(); c.moveTo(ml, py(v)); c.lineTo(ml + pw, py(v)); c.stroke(); c.fillText(fmt(v, ys < 1 ? 1 : 0), ml - 6, py(v)); }
+  if (lo < 0) { c.strokeStyle = COL.blue; c.setLineDash([4, 3]); c.beginPath(); c.moveTo(ml, py(0)); c.lineTo(ml + pw, py(0)); c.stroke(); c.setLineDash([]); }
+  c.strokeStyle = COL.ink; c.strokeRect(ml, mt, pw, ph);
+  const pts = [[0, R.p1[i]], [h1, R.pb1[i]], [h1, R.pin[i]], [h1 + Pm.Lp, R.pout[i]], [h1 + Pm.Lp, R.pb2[i]], [Ltot, R.ptop[i]]].map(([s, p]) => [px(s), py(p / 1000)]);
+  c.beginPath(); c.moveTo(pts[0][0], py(Math.max(lo, 0)));
+  pts.forEach(([x, y]) => c.lineTo(x, y)); c.lineTo(pts[5][0], py(Math.max(lo, 0))); c.closePath();
+  c.fillStyle = 'rgba(125, 29, 47, 0.10)'; c.fill();
+  c.beginPath(); pts.forEach(([x, y], j) => (j ? c.lineTo(x, y) : c.moveTo(x, y)));
+  c.strokeStyle = COL.wine; c.lineWidth = 2.4; c.lineJoin = 'round'; c.stroke();
+  const names = ['p₁', 'p_b1', 'p_in', 'p_out', 'p_b2', 'p₂'];
+  pts.forEach(([x, y], j) => {
+    c.fillStyle = COL.wine; c.beginPath(); c.arc(x, y, 3.2, 0, 2 * Math.PI); c.fill();
+    const right = j === 0 || j === 2 || j === 4;
+    pillLabel(c, names[j], x + (right ? 8 : -8), y + (j % 2 ? 12 : -12), right ? 'left' : 'right', '11px "IBM Plex Mono", ui-monospace, monospace', COL.wineDeep);
+  });
+  c.fillStyle = COL.ink; c.font = '600 12px "IBM Plex Sans", Arial, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+  c.fillText('Pressure walk along the oil [kPa]', 8, 14);
+  if (W > 620) {
+    c.fillStyle = COL.muted; c.font = '11px "IBM Plex Sans", Arial, sans-serif'; c.textAlign = 'right';
+    c.fillText(`path length ${fmt(Ltot, 2)} m · steps are Bernoulli, slopes are weight and inertia`, W - 10, 14);
+  }
+}
+
 // ---------------------------------------------------------------- plots
 function niceStep(range, n) {
   const raw = range / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
@@ -1056,7 +1105,7 @@ function updateReadouts(i) {
   set('r_L', fmt(R.L[i], 4), 'J');
   $('tLbl').textContent = `${fmt(R.t[i], 3)} s`;
 }
-function render() { const i = frameIndex(tView); drawScene(i); drawPlots(); updateReadouts(i); updateStepper(i); }
+function render() { const i = frameIndex(tView); drawScene(i); drawWalk(i); drawPlots(); updateReadouts(i); updateStepper(i); }
 function loop(ts) {
   if (playing) {
     if (lastTs !== null) tView += (ts - lastTs) / 1000 * speed;
