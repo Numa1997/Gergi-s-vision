@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ideal Hydraulic Press</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+/* Layout: a bench sheet — scene and transport on the left, gauges and knobs on the right, plots and theory below; one column on a phone. */
+:root {
+  --bg: #ebe0cc;          /* beige bench */
+  --panel: #f7f0e2;       /* box fill */
+  --ink: #2b1a14;         /* text */
+  --muted: #6c5849;       /* secondary text */
+  --line: #4a352c;        /* box borders */
+  --wine: #7b1e2f;        /* accent */
+  --wine-deep: #57101f;
+  --warn-bg: #f6d7cf;
+  --ok: #2f5d3a;
+  --f-display: "Instrument Serif", "Times New Roman", Georgia, serif;
+  --f-text: "IBM Plex Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--f-text); font-size: 15px; line-height: 1.5;
+}
+.wrap {
+  max-width: 1280px; margin: 0 auto;
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 16px;
+}
+header h1 {
+  font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw, 54px);
+  line-height: 1.02; margin: 0; color: var(--wine-deep); text-wrap: balance;
+}
+header p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+h2 {
+  font-family: var(--f-display); font-weight: 400; font-size: 26px; line-height: 1.1;
+  margin: 0 0 10px; color: var(--wine-deep); text-wrap: balance;
+}
+h3 { font-family: var(--f-display); font-weight: 400; font-size: 22px; margin: 22px 0 6px; color: var(--wine-deep); }
+.box {
+  background: var(--panel); border: 1.5px solid var(--line); border-radius: 3px;
+  padding: 14px; min-width: 0;
+}
+.grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); align-items: start; }
+.col { display: grid; gap: 16px; min-width: 0; }
+@media (max-width: 920px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+#scene { display: block; width: 100%; border: 1px solid var(--line); background: var(--panel); }
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+.cbar { width: 160px; height: 12px; border: 1px solid var(--line);
+  background: linear-gradient(90deg, rgb(246,232,196), rgb(222,146,70) 45%, rgb(92,14,34)); }
+.swatch-neg { display: inline-block; width: 14px; height: 12px; border: 1px solid var(--line); background: rgb(62,104,135); vertical-align: -2px; }
+.mono, .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+
+.status { margin-top: 10px; display: grid; gap: 6px; }
+.status > div { border: 1.5px solid var(--line); padding: 7px 10px; font-size: 13.5px; background: #fbf6ec; }
+.status .warn { border-color: var(--wine); background: var(--warn-bg); color: var(--wine-deep); font-weight: 500; }
+
+.transport { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+button {
+  font: 500 14px var(--f-text); color: var(--ink); background: #fbf6ec;
+  border: 1.5px solid var(--line); border-radius: 3px; padding: 6px 12px; cursor: pointer;
+}
+button:hover { background: #f1e6d2; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
+button.primary { background: var(--wine); color: #fbf3e8; border-color: var(--wine-deep); min-width: 76px; }
+button.primary:hover { background: var(--wine-deep); }
+.seg { display: inline-flex; }
+.seg button { border-radius: 0; margin-left: -1.5px; font-family: var(--f-mono); }
+.seg button:first-child { border-radius: 3px 0 0 3px; margin-left: 0; }
+.seg button:last-child { border-radius: 0 3px 3px 0; }
+.seg button[aria-pressed="true"] { background: var(--wine); color: #fbf3e8; }
+.scrub { display: flex; align-items: center; gap: 10px; flex: 1 1 260px; min-width: 0; }
+.scrub input { flex: 1; min-width: 0; }
+input[type=range] { accent-color: var(--wine); }
+
+.readouts { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0; margin: 0; }
+.readouts dt, .readouts dd { margin: 0; padding: 4px 0; border-bottom: 1px solid #d9cbb4; }
+.readouts dt { color: var(--muted); font-size: 13.5px; }
+.readouts dd { font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; font-size: 14px; white-space: nowrap; }
+.readouts .sep { grid-column: 1 / -1; height: 8px; border: 0; }
+
+.controls { display: grid; gap: 10px; }
+.ctl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; }
+.ctl label { font-size: 13.5px; }
+.ctl output { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; text-align: right; }
+.ctl input { grid-column: 1 / -1; width: 100%; }
+
+.plots { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 920px) { .plots { grid-template-columns: minmax(0, 1fr); } }
+.plots canvas { display: block; width: 100%; height: 190px; border: 1px solid var(--line); background: #fbf6ec; }
+
+.physics { max-width: 100%; }
+.physics p, .physics li { max-width: 72ch; }
+.eq {
+  font-family: var(--f-mono); font-size: 14px; background: #fbf6ec; border: 1px solid #cdbca3;
+  padding: 8px 10px; margin: 8px 0; overflow-x: auto; white-space: pre; max-width: 100%;
+}
+.physics ul { padding-left: 20px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Ideal Hydraulic Press</h1>
+    <p>Two oil-filled cylinders joined by a pipe. Push the small piston and watch the oil carry the push to the large one. Everything is computed from one Lagrangian and drawn to true scale.</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="box" aria-label="Scene">
+        <canvas id="scene" height="420" aria-label="Animated hydraulic press"></canvas>
+        <div class="legend">
+          <span>Oil gauge pressure</span>
+          <span class="num">0</span><span class="cbar" aria-hidden="true"></span><span class="num" id="pmaxLbl">–</span>
+          <span><span class="swatch-neg" aria-hidden="true"></span> below 0</span>
+        </div>
+        <p class="note">Cylinders, pipe, pistons and stops are drawn to true scale. The size of the load block is symbolic. The dots are material points of oil.</p>
+        <div class="status" id="status"></div>
+      </section>
+
+      <section class="box" aria-label="Playback">
+        <div class="transport">
+          <button class="primary" id="play" type="button">Play</button>
+          <button id="reset" type="button">Reset</button>
+          <div class="scrub">
+            <input type="range" id="scrub" min="0" max="1" step="0.001" value="0" aria-label="Time">
+            <span class="num" id="tLbl">0.000 s</span>
+          </div>
+          <div class="seg" role="group" aria-label="Playback speed">
+            <button type="button" id="sp025" data-speed="0.25" aria-pressed="false">×0.25</button>
+            <button type="button" id="sp05" data-speed="0.5" aria-pressed="false">×0.5</button>
+            <button type="button" id="sp1" data-speed="1" aria-pressed="true">×1</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="box" aria-label="Readouts">
+        <h2>Gauges</h2>
+        <dl class="readouts" id="readouts">
+          <dt>phase</dt><dd id="r_phase">–</dd>
+          <dt>t [s]</dt><dd id="r_t">–</dd>
+          <dt>x₁ input down [cm]</dt><dd id="r_x1">–</dd>
+          <dt>x₂ output up [mm]</dt><dd id="r_x2">–</dd>
+          <dt>v = ẋ [m/s]</dt><dd id="r_v">–</dd>
+          <dt>p₁ under input piston [kPa]</dt><dd id="r_p1">–</dd>
+          <dt>p₂ under output piston [kPa]</dt><dd id="r_p2">–</dd>
+          <dd class="sep" aria-hidden="true"></dd>
+          <dt>F₁ applied now [N]</dt><dd id="r_F">–</dd>
+          <dt>p₂·A₂ on output piston [N]</dt><dd id="r_F2">–</dd>
+          <dt>Pascal, static: F₁·A₂/A₁ [N]</dt><dd id="r_pascal">–</dd>
+          <dt>F₁,min to start [N]</dt><dd id="r_Fmin">–</dd>
+          <dt>μ effective mass [kg]</dt><dd id="r_mu">–</dd>
+          <dd class="sep" aria-hidden="true"></dd>
+          <dt>W work in, ∫F₁dx [J]</dt><dd id="r_W">–</dd>
+          <dt>K kinetic, ½μẋ² [J]</dt><dd id="r_K">–</dd>
+          <dt>V potential [J]</dt><dd id="r_V">–</dd>
+          <dt>lost at stops [J]</dt><dd id="r_L">–</dd>
+        </dl>
+      </section>
+
+      <section class="box" aria-label="Controls">
+        <h2>Settings</h2>
+        <div class="controls" id="controls"></div>
+        <p class="note">Any change recomputes the whole run from t = 0.</p>
+      </section>
+    </div>
+  </div>
+
+  <section class="box" aria-label="Plots">
+    <h2>Time traces</h2>
+    <div class="plots">
+      <canvas id="plotX" aria-label="Displacements"></canvas>
+      <canvas id="plotP" aria-label="Pressures"></canvas>
+      <canvas id="plotE" aria-label="Energies"></canvas>
+    </div>
+  </section>
+
+  <section class="box physics" aria-label="Physics">
+    <h2>Physics</h2>
+
+    <h3>1 · The syringe picture</h3>
+    <p>Put your thumb over the nozzle of a syringe full of water and press: the plunger hardly moves. In this model oil behaves the same way, because its density is fixed. Every cubic centimetre the input piston pushes out of the left cylinder has to reappear in the right one. If the input piston moves down by x₁ it sweeps out the volume A₁x₁, so the output piston rises by x₂ with</p>
+    <div class="eq">A₁·x₁ = A₂·x₂   ⇒   x₂ = r·x₁,   r = A₁/A₂ = (d₁/d₂)²</div>
+    <p>With d₁ = 4 cm and d₂ = 12 cm, r = 1/9: the full 30 cm input stroke lifts the load by only 3.33 cm. The same rule fixes every speed in the oil. The left column moves at ẋ, the right column at r·ẋ, and the pipe at (A₁/A<sub>p</sub>)·ẋ = 16·ẋ, because the pipe's cross-section is 16 times smaller than the input bore. That is why the dots race through the pipe.</p>
+
+    <h3>2 · Pascal's principle</h3>
+    <p>In oil at rest, the pressure is the same at all points at the same height. A pressure p pushes on a piston of area A with a force p·A. Push the small piston with F₁ and the oil carries p = F₁/A₁ to the large piston, which feels</p>
+    <div class="eq">F₂ = p·A₂ = F₁·A₂/A₁</div>
+    <p>With the defaults this gives 170 N × 9 = 1530 N. The load and its piston weigh (m₂+M)·g = 160 kg × 9.81 m/s² = 1569.6 N, so 170 N on its own would not lift them. The 2 kg input piston tips the balance: its weight of 19.6 N also presses on the oil, and the threshold is F₁,min = (m₂+M)·g·r − m₁·g = 154.78 N. Height matters too. In still oil, pressure rises by ρg = 8.53 kPa per metre of depth, and once the press moves the two columns are no longer equally tall.</p>
+
+    <h3>3 · Energy: what you gain in force you pay in distance</h3>
+    <p>The press multiplies force by 9 and divides distance by 9, so the product does not change, just as with a lever:</p>
+    <div class="eq">F₁·x₁ = p·A₁·x₁ = p·A₂·x₂ = F₂·x₂</div>
+    <p>In the moving press, the work you put in, W = ∫F₁ dx, goes to three places:</p>
+    <ul>
+      <li>the kinetic energy K = ½μẋ² of everything that moves;</li>
+      <li>the potential energy V(x): the load is lifted, the input piston is lowered, and oil is moved from the top of the left column to the top of the right one;</li>
+      <li>the energy lost when a stop halts a moving piston instantly.</li>
+    </ul>
+    <p>The page checks W = K + V + E<sub>lost</sub> at every recorded instant.</p>
+
+    <h3>4 · One coordinate, one Lagrangian</h3>
+    <p>Volume conservation leaves a single degree of freedom: x, the downward displacement of the input piston. The column heights are h₁ = H₀ − x and h₂ = H₀ + r·x. Adding the kinetic energies of the parts, with plug flow:</p>
+    <div class="eq">T = ½m₁ẋ² + ½(m₂+M)(rẋ)² + ½ρA₁h₁ẋ² + ½ρA<sub>p</sub>L<sub>p</sub>(A₁ẋ/A<sub>p</sub>)² + ½ρA₂h₂(rẋ)²  =  ½·μ(x)·ẋ²
+μ(x) = m₁ + (m₂+M)r² + ρA₁[(H₀ − x) + r(H₀ + r·x) + L<sub>p</sub>A₁/A<sub>p</sub>]</div>
+    <p>The pipe term dominates. The pipe holds only 55 g of oil, but that oil moves 16 times faster than the piston, so its kinetic energy counts 16² = 256 times over. It contributes 14.0 kg of the 18.5 kg you feel through the piston.</p>
+    <div class="eq">V(x) = −m₁g·x + (m₂+M)g·r·x + ½ρgA₁(1+r)·x²</div>
+    <p>The last term has a simple picture. A slab of oil of volume A₁x leaves the top of the left column, where its centre was at H₀ − x/2, and is laid on top of the right column, where its centre is at H₀ + r·x/2. It rises by (1+r)·x/2, so it acts as a spring of stiffness k = ρgA₁(1+r) = 11.9 N/m. Lagrange's equation with the generalized force F₁(t):</p>
+    <div class="eq">d/dt(∂T/∂ẋ) − ∂T/∂x + ∂V/∂x = F₁(t)
+⇒  μ(x)·ẍ + ½μ′·ẋ² = F₁(t) − V′(x),     μ′ = dμ/dx = ρA₁(r² − 1)</div>
+    <p>As x grows, oil leaves the fast left column and joins the slow right column, so the moving mass shrinks (μ′ &lt; 0 when r &lt; 1). The ½μ′ẋ² term accounts for that exchange, like a chain sliding off the edge of a table. The page integrates this equation with fourth-order Runge–Kutta (RK4), a step of 10⁻⁴ s, and a recorded frame every 1 ms. The force ramps linearly from 0 to F₁ over τ.</p>
+
+    <h3>5 · The pressure field inside the oil</h3>
+    <p>Newton's law for each piston gives the pressure under it (a = ẍ):</p>
+    <div class="eq">m₁·a = F₁ + m₁g − p₁A₁                ⇒  p₁ = (F₁ + m₁g − m₁a)/A₁
+(m₂+M)·r·a = p₂A₂ − (m₂+M)g            ⇒  p₂ = (m₂+M)(g + r·a)/A₂</div>
+    <p>Now follow the oil from the input piston to the output piston, with v = ẋ and v<sub>p</sub> = (A₁/A<sub>p</sub>)·v:</p>
+    <div class="eq">bottom of left column    p<sub>b1</sub>  = p₁ + ρ(g − a)·h₁            weight of the column, less what its downward acceleration needs
+pipe inlet               p<sub>in</sub>  = p<sub>b1</sub> + ½ρ(v² − v<sub>p</sub>²)          Bernoulli: speeding the oil up costs pressure
+pipe outlet              p<sub>out</sub> = p<sub>in</sub> − ρ(A₁/A<sub>p</sub>)·a·L<sub>p</sub>        force that accelerates the oil plug in the pipe
+bottom of right column   p<sub>b2</sub>  = p<sub>out</sub> + ½ρ(v<sub>p</sub>² − r²v²)       slowing down gives the pressure back (lossless here)
+top of right column      p<sub>b2</sub> − ρ(g + r·a)·h₂  =  p₂            must agree with the output piston</div>
+    <p>The last line is a self-test. The value at the end of the chain has to equal the p₂ that the output piston needs, and check_physics.py proves it symbolically. The oil is coloured by this pressure, pale amber at 0 and deep wine at the maximum of the run. Gauge pressure is pressure above the atmosphere. Below zero the oil is under suction, and a real press would draw in air or release dissolved gas there; near −100 kPa gauge the oil would boil (cavitate). The page warns as soon as any gauge pressure drops below 0.</p>
+
+    <h3>6 · What a run does</h3>
+    <ul>
+      <li><b>rest</b>: the load sits on its lower stop until F₁(t) &gt; F₁,min. The oil is static: p₁ = (F₁+m₁g)/A₁ and p₂ = p₁ + ρg(h₁−h₂). The stop carries the rest of the load.</li>
+      <li><b>moving</b>: the equation of motion is integrated.</li>
+      <li><b>end</b>: the input piston hits its stop after a 30 cm stroke. Its velocity drops to 0 at once, the kinetic energy is recorded as lost, and the static pressures p₂ = (m₂+M)g/A₂ and p₁ = p₂ + ρg(h₂−h₁) are shown for 0.6 s.</li>
+      <li>If the load falls back to x = 0 with v &lt; 0, the same inelastic stop applies and the press returns to rest.</li>
+      <li><b>stalled</b>: if F₁ never exceeds F₁,min, the run ends 1 s after the ramp.</li>
+      <li><b>time limit</b>: any other run ends at t = τ + 10 s. With a force that only ramps up, the energy function h = K + V − F₁(t)·x can only decrease, because dh/dt = −Ḟ₁·x ≤ 0. So the load can never come back to x = 0 with v &lt; 0. If the force is too small to reach the stroke stop, the load swings between two turning points forever, and the run needs a limit.</li>
+    </ul>
+
+    <h3>7 · What “ideal” leaves out</h3>
+    <ul>
+      <li>The oil is incompressible (infinite bulk modulus), and the walls and pistons are rigid.</li>
+      <li>There is no viscosity: no friction loss along the pipe (Hagen–Poiseuille) and no damping.</li>
+      <li>Plug flow: one speed across each cross-section.</li>
+      <li>Area changes are lossless: Bernoulli holds at the contraction and at the expansion, with no Borda–Carnot loss where the jet leaves the pipe.</li>
+      <li>There is no friction at the piston seals and there are no leaks.</li>
+      <li>The turns from the columns into the pipe are ignored, and the pipe lies horizontal at the base of the columns.</li>
+      <li>The stops are perfectly rigid and perfectly inelastic: the velocity jumps to zero in zero time.</li>
+      <li>The oil carries no air, and all pressures are gauge pressures (atmosphere = 0). g = 9.81 m/s² everywhere.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+/*PHYSICS-BEGIN*/
+// Ideal hydraulic press. One generalized coordinate x = input piston displacement, downward [m].
+const CONST = {
+  g: 9.81, rho: 870, H0: 0.40, stroke: 0.30, m1: 2, m2: 10,
+  dt: 1e-4, recEvery: 10, endHold: 0.6, stallWait: 1.0, timeLimit: 10.0
+};
+const DEFAULTS = { F1: 170, M: 150, d1: 0.04, d2: 0.12, tau: 0.3, Lp: 0.8, dp: 0.010 };
+const REST = 0, MOVING = 1, END = 2;
+
+function makeModel(P) {
+  const { g, rho, H0, m1, m2 } = CONST;
+  const A1 = Math.PI * P.d1 * P.d1 / 4;
+  const A2 = Math.PI * P.d2 * P.d2 / 4;
+  const Ap = Math.PI * P.dp * P.dp / 4;
+  const r = A1 / A2, q = A1 / Ap, mL = m2 + P.M;
+  const F1min = mL * g * r - m1 * g;
+  const k = rho * g * A1 * (1 + r);
+  const force = t => (P.tau > 0 ? P.F1 * Math.min(Math.max(t, 0) / P.tau, 1) : P.F1);
+  const mu = x => m1 + mL * r * r + rho * A1 * ((H0 - x) + r * (H0 + r * x) + P.Lp * q);
+  const dmu = rho * A1 * (r * r - 1);
+  const V = x => -m1 * g * x + mL * g * r * x + 0.5 * k * x * x;
+  const dV = x => -m1 * g + mL * g * r + k * x;
+  const acc = (t, x, v) => (force(t) - dV(x) - 0.5 * dmu * v * v) / mu(x);
+
+  // Gauge pressures [Pa]: p1, p2 under the pistons and the field along the oil path.
+  function pressures(phase, t, x, v, a) {
+    const F = force(t), h1 = H0 - x, h2 = H0 + r * x;
+    if (phase === MOVING) {
+      const p1 = (F + m1 * g - m1 * a) / A1;
+      const p2 = mL * (g + r * a) / A2;
+      const vp = q * v;
+      const pb1 = p1 + rho * (g - a) * h1;
+      const pin = pb1 + 0.5 * rho * (v * v - vp * vp);
+      const pout = pin - rho * q * a * P.Lp;
+      const pb2 = pout + 0.5 * rho * (vp * vp - r * r * v * v);
+      const ptop = pb2 - rho * (g + r * a) * h2;
+      return { p1, p2, pb1, pin, pout, pb2, ptop };
+    }
+    let p1, p2;
+    if (phase === REST) { p1 = (F + m1 * g) / A1; p2 = p1 + rho * g * (h1 - h2); }
+    else { p2 = mL * g / A2; p1 = p2 + rho * g * (h2 - h1); }
+    const pb1 = p1 + rho * g * h1;
+    return { p1, p2, pb1, pin: pb1, pout: pb1, pb2: pb1, ptop: pb1 - rho * g * h2 };
+  }
+  return { P, A1, A2, Ap, r, q, mL, F1min, k, force, mu, dmu, V, dV, acc, pressures };
+}
+
+// One RK4 step of length h for y = [x, v, W], with dW/dt = F1(t)·v.
+function rk4(m, t, y, h) {
+  const f = (tt, x, v) => [v, m.acc(tt, x, v), m.force(tt) * v];
+  const k1 = f(t, y[0], y[1]);
+  const k2 = f(t + h / 2, y[0] + h / 2 * k1[0], y[1] + h / 2 * k1[1]);
+  const k3 = f(t + h / 2, y[0] + h / 2 * k2[0], y[1] + h / 2 * k2[1]);
+  const k4 = f(t + h, y[0] + h * k3[0], y[1] + h * k3[1]);
+  return [0, 1, 2].map(i => y[i] + h / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
+}
+
+const FIELD = [
+  ['p1', 'under the input piston'], ['pb1', 'bottom of the left column'], ['pin', 'pipe inlet'],
+  ['pout', 'pipe outlet'], ['pb2', 'bottom of the right column'], ['ptop', 'under the output piston']
+];
+
+function simulate(P) {
+  const m = makeModel(P);
+  const { dt, recEvery, stroke, endHold, stallWait, timeLimit } = CONST;
+  const stalls = !(P.F1 > m.F1min);
+  let tStop = P.tau + (stalls ? stallWait : timeLimit);
+  let outcome = stalls ? 'stalled' : 'time limit';
+  const S = { t: 0, x: 0, v: 0, W: 0, lost: 0, phase: REST };
+  const events = [];
+  const keys = ['t', 'x', 'v', 'a', 'phase', 'F', 'mu', 'p1', 'p2', 'pb1', 'pin', 'pout', 'pb2', 'ptop', 'W', 'K', 'V', 'L'];
+  const rec = {};
+  keys.forEach(key => { rec[key] = []; });
+  let selfTest = 0, closure = 0, pmax = 0, pmin = Infinity, pminWhere = '', pminT = 0;
+
+  function record() {
+    const { t, x, v, phase } = S;
+    const a = phase === MOVING ? m.acc(t, x, v) : 0;
+    const p = m.pressures(phase, t, x, v, a);
+    const K = 0.5 * m.mu(x) * v * v, Vx = m.V(x);
+    const row = { t, x, v, a, phase, F: m.force(t), mu: m.mu(x), ...p, W: S.W, K, V: Vx, L: S.lost };
+    keys.forEach(key => rec[key].push(row[key]));
+    closure = Math.max(closure, Math.abs(S.W - K - Vx - S.lost));
+    selfTest = Math.max(selfTest, Math.abs(p.ptop - p.p2));
+    for (const [key, where] of FIELD) {
+      if (p[key] > pmax) pmax = p[key];
+      if (p[key] < pmin) { pmin = p[key]; pminWhere = where; pminT = t; }
+    }
+  }
+  function departure(t) {
+    if (stalls) return Infinity;
+    if (m.F1min < 0 || P.tau === 0) return t;
+    return Math.max(t, P.tau * m.F1min / P.F1);
+  }
+  // Locate the instant inside a step where x reaches xe (bisection on the RK4 sub-step), then stop dead.
+  function hitStop(h, xe, phase, kind) {
+    let lo = 0, hi = h;
+    for (let i = 0; i < 60; i++) {
+      const mid = 0.5 * (lo + hi);
+      const y = rk4(m, S.t, [S.x, S.v, S.W], mid);
+      if ((y[0] - xe) * (S.x - xe) > 0) lo = mid; else hi = mid;
+    }
+    const y = rk4(m, S.t, [S.x, S.v, S.W], hi);
+    const dK = 0.5 * m.mu(xe) * y[1] * y[1];
+    S.t += hi; S.x = xe; S.v = 0; S.W = y[2]; S.lost += dK; S.phase = phase;
+    events.push({ t: S.t, kind, vImpact: y[1], dK });
+  }
+  function advance(t1) {
+    while (S.t < t1) {
+      if (S.phase === REST) {
+        const td = departure(S.t);
+        if (td < t1) { S.t = td; S.phase = MOVING; events.push({ t: td, kind: 'departure' }); }
+        else S.t = t1;
+      } else if (S.phase === MOVING) {
+        const tb = (P.tau > S.t && P.tau < t1) ? P.tau : t1;   // split the step at the ramp's kink
+        const y = rk4(m, S.t, [S.x, S.v, S.W], tb - S.t);
+        if (y[0] >= stroke) {
+          hitStop(tb - S.t, stroke, END, 'stroke stop');
+          tStop = S.t + endHold; outcome = 'stroke stop';
+        } else if (y[0] <= 0 && y[1] < 0) {
+          hitStop(tb - S.t, 0, REST, 'fell back');
+        } else {
+          S.t = tb; S.x = y[0]; S.v = y[1]; S.W = y[2];
+        }
+      } else {
+        S.t = t1;
+      }
+    }
+  }
+
+  record();
+  for (let n = 1; S.t < tStop; n++) {
+    advance(Math.min(n * dt, tStop));
+    if (n % recEvery === 0 || S.t >= tStop) record();
+  }
+  return { P, model: m, rec, events, outcome, tEnd: S.t, stalls, selfTest, closure, pmax, pmin, pminWhere, pminT };
+}
+/*PHYSICS-END*/
+
+// ---------------------------------------------------------------- user interface
+const $ = id => document.getElementById(id);
+const PHASE_NAME = ['rest', 'moving', 'end'];
+const COL = {
+  panel: '#f7f0e2', air: '#fdf9f1', steel: '#5d534c', steelLite: '#8d8279', edge: '#2f2622',
+  ink: '#2b1a14', muted: '#6c5849', wine: '#7b1e2f', neg: 'rgb(62,104,135)', tracer: '#fffaf0', grid: '#e4d8c4'
+};
+const CMAP = [[0, [246, 232, 196]], [0.45, [222, 146, 70]], [1, [92, 14, 34]]];
+const WALL = 0.006, TP = 0.02, ROD = 0.14, ARROW_MAX = 0.16, LOAD_H = 0.07, TAB_W = 0.005, TAB_H = 0.006;
+
+const SLIDERS = [
+  { key: 'F1', label: 'F₁ input force', unit: 'N', min: 0, max: 400, step: 1, k: 1, dec: 0 },
+  { key: 'M', label: 'M load', unit: 'kg', min: 0, max: 400, step: 1, k: 1, dec: 0 },
+  { key: 'd1', label: 'd₁ input bore', unit: 'cm', min: 2, max: 8, step: 0.1, k: 100, dec: 1 },
+  { key: 'd2', label: 'd₂ output bore', unit: 'cm', min: 6, max: 20, step: 0.1, k: 100, dec: 1 },
+  { key: 'tau', label: 'τ force ramp time', unit: 's', min: 0, max: 2, step: 0.01, k: 1, dec: 2 },
+  { key: 'Lp', label: 'L_p pipe length', unit: 'm', min: 0.2, max: 1.5, step: 0.01, k: 1, dec: 2 },
+  { key: 'dp', label: 'd_p pipe bore', unit: 'cm', min: 0.4, max: 3, step: 0.05, k: 100, dec: 2 }
+];
+
+let P = { ...DEFAULTS }, run = null, tracers = [], tView = 0, playing = false, speed = 1, lastTs = null;
+let G = null, dirty = true;
+const scene = $('scene'), sctx = scene.getContext('2d');
+const plots = [
+  { cv: $('plotX'), title: 'Displacement', series: [] },
+  { cv: $('plotP'), title: 'Pressure [kPa]', series: [] },
+  { cv: $('plotE'), title: 'Energy [J]', series: [] }
+];
+
+const fmt = (v, d) => (Object.is(v, -0) ? 0 : v).toFixed(d).replace('-', '−');
+
+function buildControls() {
+  const box = $('controls');
+  for (const s of SLIDERS) {
+    const div = document.createElement('div');
+    div.className = 'ctl';
+    div.innerHTML = `<label for="in_${s.key}">${s.label}</label><output id="out_${s.key}" for="in_${s.key}"></output>` +
+      `<input type="range" id="in_${s.key}" min="${s.min}" max="${s.max}" step="${s.step}" value="${(P[s.key] * s.k).toFixed(s.dec)}">`;
+    box.appendChild(div);
+    const input = div.querySelector('input'), out = div.querySelector('output');
+    const show = () => { out.textContent = `${Number(input.value).toFixed(s.dec)} ${s.unit}`; };
+    show();
+    input.addEventListener('input', () => { P[s.key] = Number(input.value) / s.k; show(); recompute(); });
+  }
+}
+
+function makeTracers(m) {
+  const H0 = CONST.H0, VL = m.A1 * H0, VP = m.Ap * m.P.Lp, VR = m.A2 * H0, out = [];
+  const add = (n, v0, dv) => {
+    for (let i = 0; i < n; i++) out.push({ q: v0 + dv * (i + 0.5) / n, f: ((out.length * 0.6180339887) % 1) * 2 - 1 });
+  };
+  add(60, 0, VL); add(16, VL, VP); add(40, VL + VP, VR);
+  return out;
+}
+// A material point keeps the oil volume between itself and the input piston face.
+function tracerXY(tr, x, m) {
+  const P = m.P, h1 = CONST.H0 - x, VLx = m.A1 * h1, VP = m.Ap * P.Lp;
+  if (tr.q < VLx) return [tr.f * 0.8 * P.d1 / 2, h1 - tr.q / m.A1];
+  let s = tr.q - VLx;
+  if (s < VP) return [s / m.Ap, -P.dp / 2 + tr.f * 0.35 * P.dp];
+  s -= VP;
+  return [P.Lp + tr.f * 0.85 * P.d2 / 2, s / m.A2];
+}
+
+function pColor(p) {
+  if (p < 0) return COL.neg;
+  const s = run.pmax > 0 ? Math.min(1, p / run.pmax) : 0;
+  for (let i = 1; i < CMAP.length; i++) {
+    if (s <= CMAP[i][0]) {
+      const [s0, c0] = CMAP[i - 1], [s1, c1] = CMAP[i], u = (s - s0) / (s1 - s0);
+      return `rgb(${c0.map((c, j) => Math.round(c + (c1[j] - c) * u)).join(',')})`;
+    }
+  }
+  return `rgb(${CMAP[CMAP.length - 1][1].join(',')})`;
+}
+
+function recompute() {
+  run = simulate(P);
+  tracers = makeTracers(run.model);
+  tView = 0; playing = false; $('play').textContent = 'Play';
+  $('scrub').max = run.tEnd.toFixed(3);
+  $('scrub').value = 0;
+  $('pmaxLbl').textContent = `${fmt(run.pmax / 1000, 1)} kPa`;
+  updateStatus();
+  layout();
+}
+
+function updateStatus() {
+  const m = run.model, box = $('status');
+  const parts = [];
+  const hit = run.events.find(e => e.kind === 'stroke stop');
+  if (run.outcome === 'stroke stop') {
+    parts.push(`<div>Outcome: the input piston reaches its stroke stop at t = <span class="num">${fmt(hit.t, 3)} s</span> at <span class="num">${fmt(hit.vImpact, 3)} m/s</span>; <span class="num">${fmt(hit.dK, 3)} J</span> is lost there.</div>`);
+  } else if (run.outcome === 'stalled') {
+    parts.push(`<div>Outcome: stalled. F₁ = <span class="num">${fmt(P.F1, 0)} N</span> never exceeds F₁,min = <span class="num">${fmt(m.F1min, 2)} N</span>, so the load stays on its stop.</div>`);
+  } else {
+    parts.push(`<div>Outcome: time limit. The input piston never reaches its stroke stop, so the run ends at t = τ + 10 s. With no friction the load keeps swinging.</div>`);
+  }
+  if (run.pmin < 0) {
+    parts.push(`<div class="warn">Warning: gauge pressure drops below 0 (lowest <span class="num">${fmt(run.pmin / 1000, 1)} kPa</span>, ${run.pminWhere}, t = <span class="num">${fmt(run.pminT, 3)} s</span>). A real press would draw in air or cavitate here.</div>`);
+  }
+  const okP = run.selfTest < 1e-6, okE = run.closure < 1e-6;
+  parts.push(`<div>Self-tests: pressure chain vs p₂, max |Δp| = <span class="num">${run.selfTest.toExponential(1)} Pa</span> ${okP ? '✓' : '✗'} · energy closure, max |W − K − V − lost| = <span class="num">${run.closure.toExponential(1)} J</span> ${okE ? '✓' : '✗'}</div>`);
+  box.innerHTML = parts.join('');
+}
+
+// ---- scene geometry (world: metres, origin at the left cylinder's axis on its floor)
+function layout() {
+  const m = run.model, Pm = m.P, R1 = Pm.d1 / 2, R2 = Pm.d2 / 2, H0 = CONST.H0;
+  const loadW = Math.max(1.5 * Pm.d2, 0.1);
+  const topL = H0 + TP + 0.06;
+  const topR = H0 + m.r * CONST.stroke + TP + 0.03;
+  const xmin = -R1 - WALL - 0.04;
+  const xmax = Pm.Lp + Math.max(R2 + WALL, loadW / 2) + 0.03;
+  const ymin = -Pm.dp - WALL - 0.03;
+  const ymax = Math.max(H0 + TP + ROD + ARROW_MAX + 0.04, H0 + m.r * CONST.stroke + TP + LOAD_H + 0.05, topR + 0.02);
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = scene.clientWidth || 600;
+  const cssH = Math.max(240, Math.min(640, cssW * (ymax - ymin) / (xmax - xmin)));
+  scene.style.height = cssH + 'px';
+  scene.width = Math.round(cssW * dpr); scene.height = Math.round(cssH * dpr);
+  sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const s = Math.min(cssW / (xmax - xmin), cssH / (ymax - ymin));
+  const ox = (cssW - s * (xmax - xmin)) / 2 - s * xmin;
+  const oy = cssH - (cssH - s * (ymax - ymin)) / 2 + s * ymin;
+  G = { s, ox, oy, cssW, cssH, loadW, topL, topR, ymax };
+  for (const p of plots) {
+    p.cv.width = Math.round(p.cv.clientWidth * dpr); p.cv.height = Math.round(p.cv.clientHeight * dpr);
+  }
+  buildPlots();
+  dirty = true;
+}
+
+function frameIndex(t) {
+  const T = run.rec.t;
+  let lo = 0, hi = T.length - 1;
+  if (t >= T[hi]) return hi;
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (T[mid] <= t) lo = mid; else hi = mid; }
+  return lo;
+}
+
+function drawScene(i) {
+  const c = sctx, m = run.model, Pm = m.P, R = run.rec, H0 = CONST.H0;
+  const R1 = Pm.d1 / 2, R2 = Pm.d2 / 2, Lp = Pm.Lp, dp = Pm.dp;
+  const x = R.x[i], h1 = H0 - x, h2 = H0 + m.r * x;
+  const X = wx => G.ox + G.s * wx, Y = wy => G.oy - G.s * wy;
+  const rect = (x0, y0, x1, y1, fill, stroke) => {
+    c.fillStyle = fill; c.fillRect(X(x0), Y(y1), (x1 - x0) * G.s, (y1 - y0) * G.s);
+    if (stroke) { c.strokeStyle = stroke; c.lineWidth = 1; c.strokeRect(X(x0), Y(y1), (x1 - x0) * G.s, (y1 - y0) * G.s); }
+  };
+  const grad = (x0, y0, x1, y1, pa, pb, horizontal) => {
+    const g = horizontal ? c.createLinearGradient(X(x0), 0, X(x1), 0) : c.createLinearGradient(0, Y(y0), 0, Y(y1));
+    for (let k = 0; k <= 6; k++) g.addColorStop(k / 6, pColor(pa + (pb - pa) * k / 6));
+    rect(x0, y0, x1, y1, g);
+  };
+  c.fillStyle = COL.panel; c.fillRect(0, 0, G.cssW, G.cssH);
+
+  // metal bodies
+  rect(0, -dp - WALL, Lp, WALL, COL.steel);
+  rect(-R1 - WALL, -dp - WALL, R1 + WALL, G.topL, COL.steel);
+  rect(Lp - R2 - WALL, -dp - WALL, Lp + R2 + WALL, G.topR, COL.steel);
+  rect(-R1, 0, R1, G.topL + 0.002, COL.air);
+  rect(Lp - R2, 0, Lp + R2, G.topR + 0.002, COL.air);
+
+  // oil coloured by the pressure field
+  grad(-R1, 0, R1, h1, R.pb1[i], R.p1[i], false);
+  grad(0, -dp, Lp, 0, R.pin[i], R.pout[i], true);
+  grad(Lp - R2, 0, Lp + R2, h2, R.pb2[i], R.ptop[i], false);
+
+  // material points
+  c.fillStyle = COL.tracer; c.strokeStyle = 'rgba(43,26,20,0.7)'; c.lineWidth = 1;
+  for (const tr of tracers) {
+    const [tx, ty] = tracerXY(tr, x, m);
+    c.beginPath(); c.arc(X(tx), Y(ty), 2.3, 0, 2 * Math.PI); c.fill(); c.stroke();
+  }
+
+  // stop tabs: input stroke stop at H0 − stroke, output lower stop at H0
+  const ys = H0 - CONST.stroke;
+  rect(-R1, ys - TAB_H, -R1 + TAB_W, ys, COL.edge);
+  rect(R1 - TAB_W, ys - TAB_H, R1, ys, COL.edge);
+  rect(Lp - R2, H0 - TAB_H, Lp - R2 + TAB_W, H0, COL.edge);
+  rect(Lp + R2 - TAB_W, H0 - TAB_H, Lp + R2, H0, COL.edge);
+
+  // input piston, rod, force arrow
+  rect(-R1, h1, R1, h1 + TP, COL.steelLite, COL.edge);
+  const rodW = Math.max(0.006, 0.3 * Pm.d1), rodTop = h1 + TP + ROD;
+  rect(-rodW / 2, h1 + TP, rodW / 2, rodTop, COL.steelLite, COL.edge);
+  const F = R.F[i];
+  const L = ARROW_MAX * Math.min(F, 400) / 400;
+  c.font = '12px "IBM Plex Mono", ui-monospace, monospace'; c.textBaseline = 'middle';
+  if (F > 0) {
+    const ax = X(0), y0 = Y(rodTop + L), y1 = Y(rodTop);
+    const head = Math.min(10, (y1 - y0) * 0.6 + 3);
+    c.strokeStyle = COL.wine; c.fillStyle = COL.wine; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(ax, y0); c.lineTo(ax, y1 - head); c.stroke();
+    c.beginPath(); c.moveTo(ax, y1); c.lineTo(ax - 6, y1 - head); c.lineTo(ax + 6, y1 - head); c.closePath(); c.fill();
+  }
+  c.fillStyle = COL.wine; c.textAlign = 'left';
+  c.fillText(`F₁ = ${fmt(F, 1)} N`, X(R1 + WALL) + 8, Y(rodTop + L * 0.5 + 0.004));
+
+  // output piston and load
+  rect(Lp - R2, h2, Lp + R2, h2 + TP, COL.steelLite, COL.edge);
+  const lw = G.loadW, ly0 = h2 + TP, ly1 = ly0 + LOAD_H;
+  rect(Lp - lw / 2, ly0, Lp + lw / 2, ly1, '#3d3430', COL.edge);
+  const lbl = `M = ${fmt(Pm.M, 0)} kg`;
+  c.textAlign = 'center';
+  if (c.measureText(lbl).width + 8 < lw * G.s && LOAD_H * G.s > 16) {
+    c.fillStyle = '#f7efe3'; c.fillText(lbl, X(Lp), Y((ly0 + ly1) / 2));
+  } else {
+    c.fillStyle = COL.ink; c.fillText(lbl, X(Lp), Y(ly1) - 9);
+  }
+
+  // 10 cm scale bar
+  const sbx = Lp / 2 - 0.05, sby = G.ymax - 0.025;
+  c.strokeStyle = COL.ink; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(X(sbx), Y(sby) - 4); c.lineTo(X(sbx), Y(sby)); c.lineTo(X(sbx + 0.1), Y(sby)); c.lineTo(X(sbx + 0.1), Y(sby) - 4); c.stroke();
+  c.fillStyle = COL.ink; c.textAlign = 'center';
+  c.fillText('10 cm', X(sbx + 0.05), Y(sby) + 10);
+}
+
+// ---- plots
+function niceStep(range, n) {
+  const raw = range / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+}
+function buildPlots() {
+  const R = run.rec, r = run.model.r;
+  plots[0].series = [
+    { name: 'x₁ [cm]', color: COL.wine, y: R.x.map(v => 100 * v) },
+    { name: 'x₂ [mm]', color: '#3e6887', y: R.x.map(v => 1000 * r * v) }
+  ];
+  plots[1].series = [
+    { name: 'p₁', color: COL.wine, y: R.p1.map(v => v / 1000) },
+    { name: 'p₂', color: '#3e6887', y: R.p2.map(v => v / 1000) }
+  ];
+  plots[2].series = [
+    { name: 'W', color: COL.ink, y: R.W },
+    { name: 'K', color: COL.wine, y: R.K },
+    { name: 'V', color: '#3e6887', y: R.V },
+    { name: 'lost', color: '#b06a1f', y: R.L }
+  ];
+  for (const p of plots) p.cache = renderPlot(p);
+}
+function renderPlot(p) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = p.cv.clientWidth, H = p.cv.clientHeight;
+  const off = document.createElement('canvas');
+  off.width = Math.round(W * dpr); off.height = Math.round(H * dpr);
+  const c = off.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ml = 46, mr = 10, mt = 24, mb = 24, pw = W - ml - mr, ph = H - mt - mb;
+  let lo = 0, hi = 0;
+  for (const s of p.series) for (const v of s.y) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (hi - lo < 1e-9) hi = lo + 1;
+  const pad = 0.06 * (hi - lo); hi += pad; if (lo < 0) lo -= pad;
+  const T = run.rec.t, tEnd = run.tEnd;
+  const px = t => ml + pw * t / tEnd, py = v => mt + ph * (1 - (v - lo) / (hi - lo));
+  c.fillStyle = '#fbf6ec'; c.fillRect(0, 0, W, H);
+  c.font = '11px "IBM Plex Mono", ui-monospace, monospace'; c.textBaseline = 'middle';
+  const ys = niceStep(hi - lo, 4);
+  c.strokeStyle = COL.grid; c.lineWidth = 1; c.fillStyle = COL.muted; c.textAlign = 'right';
+  for (let v = Math.ceil(lo / ys) * ys; v <= hi + 1e-12; v += ys) {
+    c.beginPath(); c.moveTo(ml, py(v)); c.lineTo(ml + pw, py(v)); c.stroke();
+    c.fillText(fmt(v, ys < 1 ? (ys < 0.1 ? 2 : 1) : 0), ml - 5, py(v));
+  }
+  const ts = niceStep(tEnd, 5);
+  c.textAlign = 'center';
+  for (let t = 0; t <= tEnd + 1e-9; t += ts) {
+    c.beginPath(); c.moveTo(px(t), mt); c.lineTo(px(t), mt + ph); c.stroke();
+    c.fillText(fmt(t, ts < 1 ? 1 : 0), px(t), mt + ph + 11);
+  }
+  c.textAlign = 'right'; c.fillText('t [s]', ml + pw, mt + ph + 11 + 0.1);
+  c.strokeStyle = COL.ink; c.strokeRect(ml, mt, pw, ph);
+  const stride = Math.max(1, Math.floor(T.length / (pw * 2)));
+  for (const s of p.series) {
+    c.strokeStyle = s.color; c.lineWidth = 1.6; c.beginPath();
+    for (let k = 0; k < T.length; k += stride) { const X = px(T[k]), Yv = py(s.y[k]); k ? c.lineTo(X, Yv) : c.moveTo(X, Yv); }
+    c.lineTo(px(T[T.length - 1]), py(s.y[T.length - 1]));
+    c.stroke();
+  }
+  c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
+  c.fillStyle = COL.ink; c.fillText(p.title, 6, 11);
+  let lx = 6 + c.measureText(p.title).width + 12;
+  c.font = '11px "IBM Plex Mono", ui-monospace, monospace';
+  for (const s of p.series) {
+    c.fillStyle = s.color; c.fillRect(lx, 8, 12, 3);
+    c.fillStyle = COL.ink; c.fillText(s.name, lx + 15, 10);
+    lx += 15 + c.measureText(s.name).width + 10;
+  }
+  return { off, px };
+}
+function drawPlots() {
+  for (const p of plots) {
+    const c = p.cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.drawImage(p.cache.off, 0, 0);
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const xx = p.cache.px(Math.min(tView, run.tEnd));
+    c.strokeStyle = COL.wine; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(xx, 24); c.lineTo(xx, p.cv.clientHeight - 24); c.stroke();
+  }
+}
+
+// ---- readouts
+function updateReadouts(i) {
+  const R = run.rec, m = run.model, last = i === R.t.length - 1;
+  let phase = PHASE_NAME[R.phase[i]];
+  if (last && run.outcome === 'stalled') phase = 'stalled';
+  else if (last && run.outcome === 'time limit') phase += ' · time limit';
+  else if (R.phase[i] === END) phase = 'end · stroke stop';
+  const set = (id, v) => { $(id).textContent = v; };
+  set('r_phase', phase);
+  set('r_t', fmt(R.t[i], 3));
+  set('r_x1', fmt(100 * R.x[i], 2));
+  set('r_x2', fmt(1000 * m.r * R.x[i], 2));
+  set('r_v', fmt(R.v[i], 3));
+  set('r_p1', fmt(R.p1[i] / 1000, 2));
+  set('r_p2', fmt(R.p2[i] / 1000, 2));
+  set('r_F', fmt(R.F[i], 1));
+  set('r_F2', fmt(R.p2[i] * m.A2, 1));
+  set('r_pascal', fmt(R.F[i] * m.A2 / m.A1, 1));
+  set('r_Fmin', fmt(m.F1min, 2));
+  set('r_mu', fmt(R.mu[i], 3));
+  set('r_W', fmt(R.W[i], 4));
+  set('r_K', fmt(R.K[i], 4));
+  set('r_V', fmt(R.V[i], 4));
+  set('r_L', fmt(R.L[i], 4));
+  $('tLbl').textContent = `${fmt(R.t[i], 3)} s`;
+}
+
+function render() {
+  const i = frameIndex(tView);
+  drawScene(i); drawPlots(); updateReadouts(i);
+}
+
+function loop(ts) {
+  if (playing) {
+    if (lastTs !== null) tView += (ts - lastTs) / 1000 * speed;
+    if (tView >= run.tEnd) { tView = run.tEnd; playing = false; $('play').textContent = 'Play'; }
+    $('scrub').value = tView;
+    dirty = true;
+  }
+  lastTs = ts;
+  if (dirty) { render(); dirty = false; }
+  requestAnimationFrame(loop);
+}
+
+$('play').addEventListener('click', () => {
+  if (playing) { playing = false; $('play').textContent = 'Play'; return; }
+  if (tView >= run.tEnd) tView = 0;
+  playing = true; $('play').textContent = 'Pause';
+});
+$('reset').addEventListener('click', () => {
+  playing = false; $('play').textContent = 'Play'; tView = 0; $('scrub').value = 0; dirty = true;
+});
+$('scrub').addEventListener('input', e => { tView = Number(e.target.value); dirty = true; });
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+  speed = Number(b.dataset.speed);
+  document.querySelectorAll('.seg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+}));
+let resizeTimer = null;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(layout, 120); });
+
+buildControls();
+recompute();
+requestAnimationFrame(loop);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { buildPlots(); dirty = true; });
+</script>
+</body>
+</html>
