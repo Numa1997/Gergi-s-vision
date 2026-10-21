@@ -104,7 +104,7 @@ $$u_{\mathrm{ff}} = K_{\mathrm{ff}}\,v_{\mathrm{ref}}, \qquad K_{\mathrm{ff}} = 
 <p>The spool cannot open more than fully: $u$ is clipped to $[-1, 1]$. While it is clipped, the error persists and a naive integrator keeps growing; when the error finally reverses, the oversized integrator holds the valve open far too long. This is <i>windup</i>. The page uses conditional integration: it accepts the new integral only if the output is unsaturated, or if the error would drive it back out of saturation.</p>
 
 <h3 id="bumpless">17.4 Switching laws without a bump</h3>
-<p>When the supervisor switches from position to force control, the command must not jump. At the switch the new error is zero (the force reference starts at the measured force), so $u = K_{pF}\cdot 0 + I_F$. Setting $I_F = u_{\mathrm{previous}}$ makes the command continuous. Problem 8 removes this and measures a 2.7 kN stumble.</p>
+<p>When the supervisor switches from position to force control, the command must not jump. At the switch the new error is zero (the force reference starts at the measured force), so $u = K_{pF}\cdot 0 + I_F$. $I_F$ is the integral state of the force law. Setting $I_F = u_{\mathrm{previous}}$ makes the command continuous. Problem 8 removes this and measures a 2.7 kN stumble.</p>
 
 <h3 id="supervisor">17.5 The supervisor</h3>
 <p>A small state machine decides which law runs: <i>settle</i> holds position for 0.1 s; <i>approach</i> follows a quintic profile, $s(\tau) = 10\tau^3 - 15\tau^4 + 6\tau^5$, whose speed and acceleration are zero at both ends; <i>creep</i> rises at 10 mm/s until the load cell (the force sensor above the specimen) reads more than 1 kN; <i>press</i> ramps the force to its target and holds it; <i>release</i> ramps it down; <i>retract</i> returns on another quintic; <i>done</i> holds.</p>
@@ -221,4 +221,146 @@ $$R(\lambda h) = 1 + \lambda h + \frac{(\lambda h)^2}{2} + \frac{(\lambda h)^3}{
 <li>G. F. Franklin, J. D. Powell and M. Workman, <i>Digital Control of Dynamic Systems</i>, 3rd ed., Addison-Wesley, 1998: chapters 16 to 18.</li>
 <li>F. M. White, <i>Fluid Mechanics</i>, McGraw-Hill: Bernoulli, pipe friction, orifices.</li>
 </ul>
+</section>
+
+<section id="symbols" class="chapter">
+<h2><span class="chn">B</span> List of symbols</h2>
+<p>Every symbol in order of first appearance, grouped by topic, with its SI unit and the chapter that defines it (the number links there). Matrix symbols of the state-space chapters carry mixed units and show “?”. A few letters serve twice; the meaning column says where.</p>
+<div class="tblw"><table class="mt">
+<tr><th>symbol</th><th>meaning</th><th>SI unit</th><th>chapter</th></tr>
+<tr class="grp"><th colspan="4">Geometry and fluid</th></tr>
+<tr><td>$p$</td><td>gauge pressure, measured above the atmosphere</td><td>Pa</td><td><a href="#conventions">0</a></td></tr>
+<tr><td>$p_{\mathrm{abs}}$</td><td>absolute pressure, p + p<sub>0</sub></td><td>Pa</td><td><a href="#conventions">0</a></td></tr>
+<tr><td>$p_0$</td><td>atmospheric pressure, 101.325 kPa</td><td>Pa</td><td><a href="#conventions">0</a></td></tr>
+<tr><td>$Q$</td><td>volume flow</td><td>m³/s</td><td><a href="#conventions">0</a></td></tr>
+<tr><td>$\rho$</td><td>oil density, 870 kg/m³ (constant, incompressible at first)</td><td>kg/m³</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$g$</td><td>gravitational acceleration, 9.81 m/s²</td><td>m/s²</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$\beta$</td><td>bulk modulus: pressure to squeeze oil volume by a given fraction</td><td>Pa</td><td><a href="#ideal-limits">6</a></td></tr>
+
+<tr class="grp"><th colspan="4">Ideal press</th></tr>
+<tr><td>$A_1$</td><td>area of the input piston</td><td>m²</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$A_2$</td><td>area of the output piston</td><td>m²</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$F_1$</td><td>force on the input piston</td><td>N</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$F_2$</td><td>force on the output piston</td><td>N</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$r$</td><td>area ratio A<sub>1</sub>/A<sub>2</sub>, equal to (d<sub>1</sub>/d<sub>2</sub>)²</td><td>–</td><td><a href="#continuity">2</a></td></tr>
+<tr><td>$A_p$</td><td>pipe cross-section area, 0.785 cm²</td><td>m²</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$L_p$</td><td>pipe length, 0.8 m</td><td>m</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$H_0$</td><td>oil column height at rest, 0.40 m</td><td>m</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$m_1$</td><td>mass of the input piston</td><td>kg</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$m_2$</td><td>mass of the output piston</td><td>kg</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$M$</td><td>load mass</td><td>kg</td><td><a href="#pressure">1</a></td></tr>
+<tr><td>$x$</td><td>downward displacement of the input piston (generalized coordinate); reused as spool travel in ch. 8</td><td>m</td><td><a href="#lagrangian">4</a></td></tr>
+<tr><td>$h_1$</td><td>height of the left oil column, H<sub>0</sub> − x</td><td>m</td><td><a href="#lagrangian">4</a></td></tr>
+<tr><td>$h_2$</td><td>height of the right oil column, H<sub>0</sub> + rx</td><td>m</td><td><a href="#lagrangian">4</a></td></tr>
+<tr><td>$T$</td><td>kinetic energy of the moving press</td><td>J</td><td><a href="#lagrangian">4</a></td></tr>
+<tr><td>$\mu(x)$</td><td>effective mass, the mass felt at the input piston</td><td>kg</td><td><a href="#lagrangian">4</a></td></tr>
+<tr><td>$V(x)$</td><td>potential energy as a function of x</td><td>J</td><td><a href="#lagrangian">4</a></td></tr>
+<tr><td>$k$</td><td>soft oil spring stiffness of the moving press</td><td>N/m</td><td><a href="#lagrangian">4</a></td></tr>
+<tr><td>$L$</td><td>Lagrangian, T − V</td><td>J</td><td><a href="#lagrangian">4</a></td></tr>
+<tr><td>$F_{1,\min}$</td><td>minimum input force that lifts the load off its stop</td><td>N</td><td><a href="#lagrangian">4</a></td></tr>
+
+<tr class="grp"><th colspan="4">Valve and orifice</th></tr>
+<tr><td>$p_u$</td><td>pressure upstream of the orifice</td><td>Pa</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$p_d$</td><td>pressure downstream of the orifice, at the vena contracta</td><td>Pa</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$A_o$</td><td>orifice opening area, w x</td><td>m²</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$C_d$</td><td>discharge coefficient, about 0.6 to 0.7</td><td>–</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$\hat{x}$</td><td>normalized spool travel, x/x<sub>max</sub></td><td>–</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$K_v$</td><td>valve flow coefficient, Q = K<sub>v</sub> x̂ √Δp</td><td>m³/(s·√Pa)</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$p_{\mathrm{tr}}$</td><td>root regularization pressure, 0.1 MPa</td><td>Pa</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$g(\Delta p)$</td><td>regularized flow function, linear near zero and square-root far away</td><td>√Pa</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$K_L$</td><td>laminar leakage coefficient, Q<sub>L</sub> = K<sub>L</sub> Δp</td><td>m³/(s·Pa)</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$Q_L$</td><td>leakage flow through the clearance gap (reused as load flow in ch. 15)</td><td>m³/s</td><td><a href="#orifice">8</a></td></tr>
+<tr><td>$x_v$</td><td>normalized spool position, positive opens P to A</td><td>–</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$p_s$</td><td>supply pressure from the pump, at port P</td><td>Pa</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$Q_S$</td><td>flow drawn from the pump</td><td>m³/s</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$Q_A$</td><td>flow out of valve port A</td><td>m³/s</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$p_a$</td><td>pressure at valve port A, at the valve end of the hose</td><td>Pa</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$p_B$</td><td>pressure at valve port B, equal to the rod-chamber pressure</td><td>Pa</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$Q_B$</td><td>flow out of valve port B</td><td>m³/s</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$p_T$</td><td>tank pressure</td><td>Pa</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$P_{\mathrm{valve}}$</td><td>power dissipated as heat in the valve jets</td><td>W</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$K_q$</td><td>flow gain, partial of Q<sub>A</sub> with respect to x<sub>v</sub></td><td>m³/s</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$K_c$</td><td>flow-pressure coefficient, minus partial of Q<sub>A</sub> with respect to p<sub>a</sub></td><td>m³/(s·Pa)</td><td><a href="#valve4">9</a></td></tr>
+<tr><td>$\omega_v$</td><td>spool natural angular frequency, 2π f<sub>v</sub></td><td>rad/s</td><td><a href="#spool">10</a></td></tr>
+<tr><td>$\zeta_v$</td><td>spool damping ratio</td><td>–</td><td><a href="#spool">10</a></td></tr>
+<tr><td>$f_v$</td><td>spool bandwidth frequency, 60 Hz</td><td>Hz</td><td><a href="#spool">10</a></td></tr>
+<tr><td>$\omega$</td><td>angular frequency of a command sinusoid, u = û e^{jωt}</td><td>rad/s</td><td><a href="#spool">10</a></td></tr>
+<tr><td>$u$</td><td>valve command input, normalized, clipped to [−1, 1]</td><td>–</td><td><a href="#spool">10</a></td></tr>
+
+<tr class="grp"><th colspan="4">Hose and chambers</th></tr>
+<tr><td>$L_h$</td><td>hose length</td><td>m</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$Q_h$</td><td>flow through the hose</td><td>m³/s</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$I$</td><td>inertance of the oil slug in the hose, ρL<sub>h</sub>/A<sub>h</sub></td><td>kg/m⁴</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$\Delta p_f$</td><td>friction pressure drop in the hose</td><td>Pa</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$\eta$</td><td>dynamic viscosity of the oil, η = ρν</td><td>Pa·s</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$\nu$</td><td>kinematic viscosity of the oil</td><td>m²/s</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$R_{\mathrm{lam}}$</td><td>laminar (Hagen–Poiseuille) flow resistance</td><td>Pa·s/m³</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$K_t$</td><td>turbulent friction coefficient, Δp = K<sub>t</sub> Q|Q|</td><td>kg/m⁷</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$f$</td><td>Darcy friction factor</td><td>–</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$K_m$</td><td>fitting (minor) loss coefficient</td><td>–</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$c$</td><td>pressure wave speed, √(β/ρ)</td><td>m/s</td><td><a href="#hose">11</a></td></tr>
+<tr><td>$V_a$</td><td>valve-port volume, including half the hose</td><td>m³</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$V_A$</td><td>cap chamber volume</td><td>m³</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$V_B$</td><td>rod chamber volume</td><td>m³</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$p_A$</td><td>cap chamber pressure, at its far end from the hose</td><td>Pa</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$\beta_{\mathrm{oil}}$</td><td>bulk modulus of the oil alone</td><td>Pa</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$\beta_{\mathrm{eff}}$</td><td>effective bulk modulus of oil with entrained air</td><td>Pa</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$\alpha_0$</td><td>air volume fraction at atmospheric pressure</td><td>–</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$\alpha$</td><td>gas-to-liquid volume ratio V<sub>g</sub>/V<sub>ℓ</sub> at pressure p</td><td>–</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$n$</td><td>polytropic exponent of the air</td><td>–</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$V_\ell$</td><td>liquid volume in the oil–air mixture</td><td>m³</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$V_g$</td><td>gas volume in the oil–air mixture</td><td>m³</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$C$</td><td>hydraulic capacitance, V/β (same symbol as output matrix C in ch. 14)</td><td>m³/Pa</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$Q_{\mathrm{in}}$</td><td>oil inflow into a chamber</td><td>m³/s</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$Q_{\mathrm{out}}$</td><td>oil outflow from a chamber</td><td>m³/s</td><td><a href="#bulk">7</a></td></tr>
+
+<tr><td>$V_h$</td><td>oil volume of the hose, A<sub>h</sub>L<sub>h</sub>; half is counted with each end</td><td>m³</td><td><a href="#ram">12</a></td></tr>
+<tr class="grp"><th colspan="4">Ram and specimen</th></tr>
+<tr><td>$y$</td><td>piston (ram) position, moving out at speed ẏ</td><td>m</td><td><a href="#bulk">7</a></td></tr>
+<tr><td>$m$</td><td>moving mass of the ram</td><td>kg</td><td><a href="#merritt">15</a></td></tr>
+<tr><td>$A_A$</td><td>cap area, the full bore, πD²/4</td><td>m²</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$A_B$</td><td>rod-side annulus area</td><td>m²</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$F_f$</td><td>seal friction force</td><td>N</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$F_c$</td><td>Coulomb friction force</td><td>N</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$k_{\mathrm{st}}$</td><td>break-away factor (Stribeck effect)</td><td>–</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$v_s$</td><td>speed over which the Coulomb jump is smoothed, 1 mm/s</td><td>m/s</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$v_{\mathrm{str}}$</td><td>speed over which the Stribeck bump dies away, 5 mm/s</td><td>m/s</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$b_v$</td><td>viscous friction coefficient of the seals</td><td>N·s/m</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$F_w$</td><td>contact force from the specimen</td><td>N</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$k_w$</td><td>specimen stiffness, 20 MN/m</td><td>N/m</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$c_w$</td><td>specimen damping, 5 % of critical</td><td>N·s/m</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$y_c$</td><td>platen height at which the specimen is first touched</td><td>m</td><td><a href="#ram">12</a></td></tr>
+<tr><td>$F_{\mathrm{stop}}$</td><td>bottom stop contact force (stop law implied, not defined as a symbol)</td><td>N</td><td><a href="#ram">12</a></td></tr>
+
+<tr class="grp"><th colspan="4">Linear model</th></tr>
+<tr><td>$A$</td><td>linearized state matrix, ∂f/∂x (cylinder area A in ch. 15)</td><td>?</td><td><a href="#linearize">14</a></td></tr>
+<tr><td>$B$</td><td>linearized input matrix, ∂f/∂u</td><td>?</td><td><a href="#linearize">14</a></td></tr>
+<tr><td>$C$</td><td>output matrix, picks the measured position</td><td>?</td><td><a href="#linearize">14</a></td></tr>
+<tr><td>$C_{tp}$</td><td>leakage coefficient across the piston</td><td>m³/(s·Pa)</td><td><a href="#merritt">15</a></td></tr>
+<tr><td>$K_{ce}$</td><td>total flow-pressure coefficient, K<sub>c</sub> + C<sub>tp</sub></td><td>m³/(s·Pa)</td><td><a href="#merritt">15</a></td></tr>
+<tr><td>$K_{\mathrm{vel}}$</td><td>velocity gain, ram speed per metre of position error</td><td>1/s</td><td><a href="#merritt">15</a></td></tr>
+<tr><td>$V_t$</td><td>total cylinder volume, two equal chambers of V<sub>t</sub>/2</td><td>m³</td><td><a href="#merritt">15</a></td></tr>
+<tr><td>$p_L$</td><td>load pressure, p<sub>1</sub> − p<sub>2</sub></td><td>Pa</td><td><a href="#merritt">15</a></td></tr>
+<tr><td>$b$</td><td>viscous friction of the ram in the textbook model</td><td>N·s/m</td><td><a href="#merritt">15</a></td></tr>
+<tr><td>$\omega_h$</td><td>hydraulic resonance frequency of the ram on its oil springs</td><td>rad/s</td><td><a href="#merritt">15</a></td></tr>
+<tr><td>$\zeta_h$</td><td>hydraulic damping ratio</td><td>–</td><td><a href="#merritt">15</a></td></tr>
+
+<tr class="grp"><th colspan="4">Sampling and control</th></tr>
+<tr><td>$T_s$</td><td>sample period, t<sub>k</sub> = kT<sub>s</sub></td><td>s</td><td><a href="#sampling">16</a></td></tr>
+<tr><td>$\Phi$</td><td>discrete state matrix, e^{AT<sub>s</sub>}</td><td>–</td><td><a href="#sampling">16</a></td></tr>
+<tr><td>$\Gamma$</td><td>discrete input matrix, ∫ e^{Aσ} dσ B</td><td>?</td><td><a href="#sampling">16</a></td></tr>
+<tr><td>$K_p$</td><td>position proportional gain</td><td>1/m</td><td><a href="#digital">17</a></td></tr>
+<tr><td>$K_i$</td><td>position integral gain</td><td>1/(m·s)</td><td><a href="#digital">17</a></td></tr>
+<tr><td>$K_d$</td><td>position derivative gain</td><td>s/m</td><td><a href="#digital">17</a></td></tr>
+<tr><td>$T_f$</td><td>derivative filter time constant, 2 ms</td><td>s</td><td><a href="#digital">17</a></td></tr>
+<tr><td>$K_{pF}$</td><td>force proportional gain</td><td>1/N</td><td><a href="#digital">17</a></td></tr>
+<tr><td>$K_{iF}$</td><td>force integral gain</td><td>1/(N·s)</td><td><a href="#digital">17</a></td></tr>
+<tr><td>$K_{\mathrm{ff}}$</td><td>feed-forward gain from speed reference to command</td><td>s/m</td><td><a href="#feedforward">17</a></td></tr>
+<tr><td>$e$</td><td>control error, y<sub>ref</sub> − y</td><td>m</td><td><a href="#digital">17</a></td></tr>
+<tr><td>$y_{\mathrm{ref}}$</td><td>reference (set) position</td><td>m</td><td><a href="#digital">17</a></td></tr>
+<tr><td>$L(z)$</td><td>discrete loop gain, K(z) z^{-1} G(z)</td><td>–</td><td><a href="#stability">18</a></td></tr>
+<tr><td>$\mathrm{PM}$</td><td>phase margin at the crossover frequency</td><td>°</td><td><a href="#margins">18</a></td></tr>
+<tr><td>$\mathrm{GM}$</td><td>gain margin at the −180° frequency, in decibels</td><td>dB</td><td><a href="#margins">18</a></td></tr>
+<tr><td>$I_F$</td><td>integral state of the force law, loaded with the last command at the switch</td><td>–</td><td><a href="#digital">17</a></td></tr>
+</table></div>
 </section>

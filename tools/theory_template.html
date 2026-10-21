@@ -137,6 +137,9 @@ table.mt { border-collapse: collapse; font-size: 14px; background: var(--paper);
 .press table.mt { margin: 6px 0 8px; display: block; overflow-x: auto; }
 table.mt th, table.mt td { padding: 5px 9px; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; }
 table.mt th { background: #f3eadb; color: var(--muted); font-weight: 600; }
+/* the list of symbols is read, not compared: its meanings wrap */
+#symbols table.mt td:nth-child(2) { white-space: normal; min-width: 12ch; }
+#symbols tr.grp th { background: #ece0cc; color: var(--wine-deep); }
 footer { color: var(--muted); font-size: 13.5px; margin-top: 30px; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
