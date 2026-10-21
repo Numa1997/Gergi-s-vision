@@ -204,7 +204,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 
 /* settings */
 .controls { display: grid; gap: 9px; }
-.controls h4 { margin: 10px 0 0; font: 600 11px var(--f-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.controls h3.sub { margin: 10px 0 0; font: 600 11px var(--f-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .ctl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 10px; align-items: center; }
 .ctl label { font-size: 13px; }
 .ctl output { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 13.5px; text-align: right; }
@@ -254,7 +254,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 .sol-num { grid-row: span 2; width: 46px; height: 46px; border-radius: 50%; background: var(--wine); color: #fbf3e8; display: grid; place-items: center; font: 400 26px/1 var(--f-display); }
 .sol-q { font-size: 13px; color: var(--muted); }
 .sol-answer { font: 400 25px/1.15 var(--f-display); color: var(--wine-deep); text-wrap: balance; }
-.sol h4 { margin: 4px 0 0; font: 600 11px var(--f-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.sol h3.sub { margin: 4px 0 0; font: 600 11px var(--f-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .sol p { margin: 0; }
 .sol .picture { background: #f6eedf; border-radius: 8px; padding: 10px 12px; font-size: 14.5px; }
 .facts { border-collapse: collapse; width: 100%; font-size: 13px; }
@@ -269,6 +269,13 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 .crosslinks a:hover { background: var(--wine); color: #fbf3e8; }
 .tag { font: 600 10.5px/1 var(--f-text); letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 7px; border-radius: 4px; background: var(--wine-soft); color: var(--wine-deep); }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+/* phone tap targets: at least 36 px tall (WCAG 2.5.8 asks 24, Apple and Material ask 44/48) */
+@media (max-width: 640px) {
+  .stepper button { min-height: 36px; padding-block: 9px; }
+  input[type=range] { height: 36px; }
+  .crosslinks a { padding-block: 9px; }
+}
+
 </style>
 </head>
 <body>
@@ -493,11 +500,11 @@ L(z) = K(z)·z⁻¹·G(z),   z = e^(jωT_s)           closed loop: x⁺ = Φx + 
         <div class="sol-head"><span class="sol-num">1</span><span class="sol-q">Hydraulic natural frequency, both chambers closed</span>
           <span class="sol-answer">Softest at y = 115 mm: 170 Hz</span></div>
         <p class="picture">Clamp the piston between two springs made of oil: a fat one below, pressing on 113 cm², and a thin one above, pressing on 63 cm². Push the piston up by δy. The cap oil relaxes, the rod oil is squeezed, and both push it back down.</p>
-        <h4>Working</h4>
+        <h3 class="sub">Working</h3>
         <div class="eq">δp_A = −β_A·A_A·δy / V_A        δp_B = +β_B·A_B·δy / V_B
 δF  = A_A·δp_A − A_B·δp_B = −(β_A·A_A²/V_A + β_B·A_B²/V_B)·δy = −k_h·δy
 ω_h² = k_h / m</div>
-        <h4>This press</h4>
+        <h3 class="sub">This press</h3>
         <div class="facts-wrap"><table class="facts">
           <tr><td>hover pressures p_A, p_B → β_A, β_B</td><td>4.37, 7.63 MPa → 1.389, 1.454 GPa</td></tr>
           <tr><td>y = 10 mm: V_A, V_B</td><td>526, 1394 cm³ → <b>244.9 Hz</b></td></tr>
@@ -513,10 +520,10 @@ L(z) = K(z)·z⁻¹·G(z),   z = e^(jωT_s)           closed loop: x⁺ = Φx + 
         <div class="sol-head"><span class="sol-num">2</span><span class="sol-q">The hose slosh mode</span>
           <span class="sol-answer">96 Hz on paper, split into 88 Hz and 174 Hz</span></div>
         <p class="picture">A 0.2 kg slug of oil, squeezed through a 12 mm bore, behaves like a heavy piston (inertance 1.5·10⁷ kg/m⁴). It bounces between two oil springs: the small volume at the valve port and the large cap chamber.</p>
-        <h4>Working</h4>
+        <h3 class="sub">Working</h3>
         <div class="eq">I·Q̇ = p_a − p_A,     C_a·ṗ_a = −Q,     C_A·ṗ_A = +Q
 ⇒ I·Q̈ = −(1/C_a + 1/C_A)·Q      ⇒  ω² = (1/C_a + 1/C_A) / I</div>
-        <h4>This press, cruising at 0.1 m/s</h4>
+        <h3 class="sub">This press, cruising at 0.1 m/s</h3>
         <div class="facts-wrap"><table class="facts">
           <tr><td>C_a = V_a/β, C_A = V_A/β</td><td>2.18·10⁻¹³, 9.57·10⁻¹³ m³/Pa</td></tr>
           <tr><td>I = ρL_h/A_h</td><td>1.54·10⁷ kg/m⁴ → <b>96.3 Hz</b></td></tr>
@@ -535,7 +542,7 @@ L(z) = K(z)·z⁻¹·G(z),   z = e^(jωT_s)           closed loop: x⁺ = Φx + 
         <div class="sol-head"><span class="sol-num">3</span><span class="sol-q">Flow gain of a critically lapped valve at null</span>
           <span class="sol-answer">Opening gives 1.32 times the gain of closing</span></div>
         <p class="picture">The spool is a door between rooms. Open it towards the pump and the oil is pushed by p_s − p_a = 7.6 MPa. Open it towards the tank and only p_a = 4.4 MPa pushes. Same door, a different wind.</p>
-        <h4>Working</h4>
+        <h3 class="sub">Working</h3>
         <div class="eq">x_v &gt; 0:  Q_A = K_v·x_v·√(p_s − p_a)   ⇒  K_q⁺ = K_v·√(p_s − p_a)
 x_v &lt; 0:  Q_A = K_v·x_v·√(p_a − p_T)   ⇒  K_q⁻ = K_v·√(p_a)          (p_T = 0)
 K_q⁺ / K_q⁻ = √((p_s − p_a) / p_a)</div>
@@ -550,7 +557,7 @@ K_q⁺ / K_q⁻ = √((p_s − p_a) / p_a)</div>
         <div class="sol-head"><span class="sol-num">4</span><span class="sol-q">Linearizing stick-slip friction at standstill</span>
           <span class="sol-answer">ζ ≈ 3: an overdamped illusion</span></div>
         <p class="picture">Smoothed stiction is a pot of honey. The tanh law turns the jump from −1.3 F_c to +1.3 F_c into a ramp 1 mm/s wide, and to a linear model a ramp in force against speed is a damper.</p>
-        <h4>Working</h4>
+        <h3 class="sub">Working</h3>
         <div class="eq">dF_f/dẏ |₀ = F_c·k_st / v_s + b_v = 800·1.3 / 0.001 + 2000 = 1.04·10⁶ N·s/m
 ζ = c / (2·√(k_h·m)),    k_h = 1.82·10⁸ N/m at y = 123 mm,  m = 160 kg   ⇒  ζ = 3.05</div>
         <p>In the force-loop pole table this appears as a fast real pole near −c/m ≈ −6.3·10³ s⁻¹. Halve v_s and the “damping” doubles, although nothing physical changed: only the smoothing did. Real stiction is a constraint (the ram stays put while |F| &lt; F_s), not a dashpot. Use small-signal analysis only while sliding; for stick-slip, simulate the hybrid system or use describing functions.</p>
@@ -578,7 +585,7 @@ K_q⁺ / K_q⁻ = √((p_s − p_a) / p_a)</div>
         <div class="sol-head"><span class="sol-num">6</span><span class="sol-q">Sampling four times slower</span>
           <span class="sol-answer">−15.8° of phase, all of it from sampling</span></div>
         <p class="picture">A driver who glances at the road every 4 ms instead of every 1 ms, and acts one glance late. The car's response is the same; the driver's view of it is older.</p>
-        <h4>Working</h4>
+        <h3 class="sub">Working</h3>
         <div class="eq">lag of the one-sample delay + zero-order hold at the crossover:  φ = ω·T_s + ω·T_s/2 = 1.5·ω·T_s
 f_c = 9.70 Hz:   T_s = 1 ms → 3.49° + 1.75° = 5.2°        T_s = 4 ms → 13.97° + 6.99° = 21.0°</div>
         <div class="facts-wrap"><table class="facts">
@@ -594,7 +601,7 @@ f_c = 9.70 Hz:   T_s = 1 ms → 3.49° + 1.75° = 5.2°        T_s = 4 ms → 13
         <div class="sol-head"><span class="sol-num">7</span><span class="sol-q">Choosing K_pF for a 10 Hz force loop</span>
           <span class="sol-answer">2.32 %/kN on paper, 1.65 %/kN in truth</span></div>
         <p class="picture">Pump oil into a bottle squeezed between a stiff spring (the specimen) and the oil's own spring. The force climbs at a steady rate for each bit of valve opening: an integrator.</p>
-        <h4>Working</h4>
+        <h3 class="sub">Working</h3>
         <div class="eq">Q = (V_A/β)·ṗ_A + A_A·ẏ,    F ≈ p_A·A_A ≈ k_w·δ      ⇒  Ḟ = (k_eff/A_A)·Q
 1/k_eff = 1/k_w + V_A/(β·A_A²),    Q = K_q·x_v      ⇒  Ḟ = K_I·x_v,  K_I = k_eff·K_q/A_A
 L ≈ K_pF·K_I/(jω)  ⇒  ω_c = K_pF·K_I  ⇒  K_pF = 2π·10 Hz / K_I</div>
@@ -631,7 +638,7 @@ L ≈ K_pF·K_I/(jω)  ⇒  ω_c = K_pF·K_I  ⇒  K_pF = 2π·10 Hz / K_I</div>
       <article class="sol" id="sol-9">
         <div class="sol-head"><span class="sol-num">9</span><span class="sol-q">The largest stable position gain</span>
           <span class="sol-answer">K_p,max = 89.8 %/mm; the textbook says 117</span></div>
-        <h4>Working</h4>
+        <h3 class="sub">Working</h3>
         <div class="eq">bisection on max|z| of the closed loop at the cruise point, K_i fixed at 125 %/(mm·s):
 K_p,max = 897.5 m⁻¹ = 89.8 %/mm,   crossover at the edge 37.8 Hz
 velocity gain K_v = K_p · (ẏ per unit u) = K_p · 0.246 m/s:   61.5 s⁻¹ (default), 220.8 s⁻¹ (edge)
@@ -1265,7 +1272,7 @@ function setFill(input) {
 function buildControls() {
   const box = $('controls');
   for (const s of SLIDERS) {
-    if (s.group) { const h = document.createElement('h4'); h.textContent = s.group; box.appendChild(h); continue; }
+    if (s.group) { const h = document.createElement('h3'); h.className = 'sub'; h.textContent = s.group; box.appendChild(h); continue; }
     const div = document.createElement('div');
     div.className = 'ctl';
     div.innerHTML = `<label for="in_${s.key}">${s.label}</label><output id="out_${s.key}" for="in_${s.key}"></output>` +

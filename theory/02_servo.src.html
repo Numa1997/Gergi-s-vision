@@ -69,7 +69,7 @@ $$Q = K_v\,\hat{x}\,\sqrt{\Delta p}, \qquad K_v = C_d\,w\,x_{\max}\sqrt{2/\rho}.
 
 <h3 id="orifice-root">8.1 Taming the square root</h3>
 <p>The square root has an infinite slope at $\Delta p = 0$, which a linear analysis and a numerical integrator both dislike. Real orifices also become laminar at tiny flows, where $Q \propto \Delta p$. The model uses</p>
-$$g(\Delta p) = \frac{\Delta p}{\left(\Delta p^2 + p_{\mathrm{tr}}^2\right)^{1/4}} \approx \begin{cases} \Delta p/\sqrt{p_{\mathrm{tr}}}, & |\Delta p| \ll p_{\mathrm{tr}}\\[4pt] \operatorname{sign}(\Delta p)\sqrt{|\Delta p|}, & |\Delta p| \gg p_{\mathrm{tr}}\end{cases} \tag{8.3}$$
+$$g(\Delta p) = \frac{\Delta p}{\left(\Delta p^2 + p_{\mathrm{tr}}^2\right)^{1/4}} \quad \approx \begin{cases} \Delta p/\sqrt{p_{\mathrm{tr}}}, & |\Delta p| \ll p_{\mathrm{tr}}\\[4pt] \operatorname{sign}(\Delta p)\sqrt{|\Delta p|}, & |\Delta p| \gg p_{\mathrm{tr}}\end{cases} \tag{8.3}$$
 <p>with $p_{\mathrm{tr}} = 0.1\ \mathrm{MPa}$. It is linear near zero, square-root far away, and smooth everywhere. It also handles flow in the reverse direction through the sign of $\Delta p$.</p>
 
 <h3 id="leakage">8.2 Leakage</h3>
@@ -91,9 +91,12 @@ $$g(\Delta p) = \frac{\Delta p}{\left(\Delta p^2 + p_{\mathrm{tr}}^2\right)^{1/4
 <figcaption>Figure 4. Spool shifted to positive x_v: the pump P feeds port A, port B drains to the tank T. Negative x_v swaps the roles.</figcaption></figure>
 <p>A four-way valve has four metering edges. For $x_v > 0$ the edges P→A and B→T open; for $x_v < 0$ the edges P→B and A→T open. The valve is <i>critically lapped</i>: at $x_v = 0$ all four edges are exactly closed and only leakage flows. Writing $x^+ = \max(\hat{x}, 0)$ and $x^- = \min(\hat{x}, 0)$, the flows out of the ports are</p>
 $$\begin{aligned}
-Q_A &= K_v\left[x^+\,g(p_s - p_a) + x^-\,g(p_a - p_T)\right] + K_L\left(p_s - 2p_a + p_T\right)\\
-Q_B &= -K_v\left[x^+\,g(p_B - p_T) + x^-\,g(p_s - p_B)\right] + K_L\left(p_s - 2p_B + p_T\right)\\
-Q_S &= K_v\left[x^+\,g(p_s - p_a) - x^-\,g(p_s - p_B)\right] + K_L\left(2p_s - p_a - p_B\right).
+Q_A &= K_v\left[x^+\,g(p_s - p_a) + x^-\,g(p_a - p_T)\right]\\
+&\quad + K_L\left(p_s - 2p_a + p_T\right),\\
+Q_B &= -K_v\left[x^+\,g(p_B - p_T) + x^-\,g(p_s - p_B)\right]\\
+&\quad + K_L\left(p_s - 2p_B + p_T\right),\\
+Q_S &= K_v\left[x^+\,g(p_s - p_a) - x^-\,g(p_s - p_B)\right]\\
+&\quad + K_L\left(2p_s - p_a - p_B\right).
 \end{aligned} \tag{9.1}$$
 <p>Each line follows from (8.2) and (8.3) applied to the open edges, plus leakage from the pump into each port and from each port to the tank.</p>
 
@@ -178,7 +181,10 @@ $$\begin{aligned}
 <p>The cap area is the full bore, $A_A = \pi D^2/4$; the rod side has the annulus $A_B = \pi(D^2 - d_r^2)/4$. Each chamber carries its own $\beta(p)$ from (7.3), because each sits at its own pressure.</p>
 
 <h3 id="newton-ram">12.2 Newton for the ram</h3>
-$$m\,\ddot{y} = p_A A_A - p_B A_B - m g - F_f(\dot{y}) - F_w(y,\dot{y}) + F_{\mathrm{stop}}(y,\dot{y}). \tag{12.2}$$
+$$\begin{aligned}
+m\,\ddot{y} &= p_A A_A - p_B A_B - m g\\
+&\quad - F_f(\dot{y}) - F_w(y,\dot{y}) + F_{\mathrm{stop}}(y,\dot{y}).
+\end{aligned} \tag{12.2}$$
 <p>The cap pressure pushes up on the full bore, the rod pressure pushes down on the annulus, gravity pulls down, and three contact forces remain.</p>
 
 <h3 id="friction">12.3 Seal friction</h3>
@@ -198,4 +204,9 @@ $$F_w = \begin{cases}\max\left(0,\ k_w\,\delta + c_w\,\dot{\delta}\right), & \de
 <p>Collect the state: spool position and speed, the three pressures, the hose flow, ram position and speed,</p>
 $$\mathbf{x} = \left(x_v,\ \dot{x}_v,\ p_a,\ Q_h,\ p_A,\ p_B,\ y,\ \dot{y}\right). \tag{13.1}$$
 <p>Equations (10.1), (12.1), (11.1) and (12.2), with the valve flows (9.1), friction (12.3) and contact (12.4), form a system $\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x}, u)$ of eight first-order nonlinear differential equations driven by one input, the command $u$. That is all the servo press is. The page integrates it with fourth-order Runge–Kutta at 100 steps per controller sample, and integrates seven more quantities alongside to keep the energy books (chapter 19).</p>
+<div class="callout"><div class="ctag">After Part II you can</div><ul>
+<li>derive the pressure build-up equation (7.2) for any chamber and the effective bulk modulus of oil with air (7.3);</li>
+<li>derive the orifice law (8.1) from Bernoulli and turn a valve data sheet into a flow coefficient;</li>
+<li>model a hose as an inertance with laminar and turbulent friction (11.1)–(11.3), and say when that lumped model holds;</li>
+<li>assemble a complete nonlinear state model of a valve-controlled actuator (13.1).</li></ul></div>
 </section>

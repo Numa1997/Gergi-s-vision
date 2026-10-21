@@ -79,15 +79,26 @@ T &= \tfrac12 m_1 \dot{x}^2 &&\text{input piston}\\
 &+ \tfrac12 \rho A_2 h_2\,(r\dot{x})^2 &&\text{right column}
 \end{aligned} \tag{4.1}$$
 <p>Every term is proportional to $\dot{x}^2$, so we can factor it out. Use $A_2 r^2 = A_1 r$ in the last term and $A_p (A_1/A_p)^2 = A_1 (A_1/A_p)$ in the pipe term:</p>
-$$T = \tfrac12\,\mu(x)\,\dot{x}^2, \qquad \mu(x) = m_1 + (m_2+M)\,r^2 + \rho A_1\left[(H_0 - x) + r\,(H_0 + r x) + L_p\,\frac{A_1}{A_p}\right]. \tag{4.2}$$
+$$\begin{aligned}
+T &= \tfrac12\,\mu(x)\,\dot{x}^2,\\
+\mu(x) &= m_1 + (m_2+M)\,r^2\\
+&\quad + \rho A_1\left[(H_0 - x) + r\,(H_0 + r x) + L_p\,\frac{A_1}{A_p}\right].
+\end{aligned} \tag{4.2}$$
 <p>$\mu$ is the <i>effective mass</i>: the mass you would feel in your hand if you pushed the input piston.</p>
 <div class="press"><div class="ctag">In our press</div>The pipe holds only $\rho A_p L_p = 55\ \mathrm{g}$ of oil, but it moves 16 times faster than the piston, and kinetic energy goes with the square of speed. It counts $16^2 = 256$ times: 14.0 kg of the total $\mu = 18.5\ \mathrm{kg}$. Narrow pipes make heavy machines.</div>
 
 <h3 id="lag-V">4.3 Potential energy</h3>
 <p>Measure heights from the pipe. The input piston face sits at $h_1$ and the output piston face at $h_2$. An oil column of height $h$ has its centre of mass at $h/2$, so its potential energy is $\rho A h\,g\,h/2$. The oil in the horizontal pipe does not change height. Collect everything and subtract the value at $x = 0$:</p>
-$$V(x) = m_1 g h_1 + (m_2+M) g h_2 + \tfrac12\rho g\left(A_1 h_1^2 + A_2 h_2^2\right) - V_0.$$
+$$\begin{aligned}
+V(x) &= m_1 g h_1 + (m_2+M) g h_2\\
+&\quad + \tfrac12\rho g\left(A_1 h_1^2 + A_2 h_2^2\right) - V_0.
+\end{aligned}$$
 <p>Expand with $h_1 = H_0 - x$ and $h_2 = H_0 + r x$. The pistons give $-m_1 g x + (m_2+M) g r x$. The columns give</p>
-$$\tfrac12\rho g\left[A_1\left(x^2 - 2H_0 x\right) + A_2\left(r^2x^2 + 2H_0 r x\right)\right] = \tfrac12\rho g\left[A_1 x^2 + A_1 r x^2\right] = \tfrac12 \rho g A_1 (1+r)\,x^2,$$
+$$\begin{aligned}
+&\tfrac12\rho g\left[A_1\left(x^2 - 2H_0 x\right) + A_2\left(r^2x^2 + 2H_0 r x\right)\right]\\
+&\qquad = \tfrac12\rho g\left[A_1 x^2 + A_1 r x^2\right]\\
+&\qquad = \tfrac12 \rho g A_1 (1+r)\,x^2,
+\end{aligned}$$
 <p>because $A_2 r = A_1$ makes the linear terms cancel. Therefore</p>
 $$V(x) = -m_1 g\,x + (m_2+M)\,g\,r\,x + \tfrac12\rho g A_1 (1+r)\,x^2. \tag{4.3}$$
 <div class="picture">The last term has a simple picture: a slab of oil of volume $A_1 x$ is taken from the top of the left column, where its centre was at $H_0 - x/2$, and laid on top of the right column, where its centre is at $H_0 + rx/2$. It rises by $(1+r)x/2$. The oil acts as a soft spring of stiffness $k = \rho g A_1(1+r) = 11.9\ \mathrm{N/m}$.</div>
@@ -107,7 +118,10 @@ $$\boxed{\;\mu(x)\,\ddot{x} + \tfrac12\,\mu'\,\dot{x}^2 = F_1(t) - V'(x)\;}\qqua
 <h3 id="lag-threshold">4.6 When does the load start to move?</h3>
 <p>At rest, $x = 0$ and $\dot{x} = 0$, (4.5) gives $\mu\ddot{x} = F_1 - V'(0)$. The load leaves its stop only if this is positive:</p>
 $$F_1 > F_{1,\min} = V'(0) = (m_2+M)\,g\,r - m_1 g. \tag{4.6}$$
-<div class="press"><div class="ctag">In our press</div>$$F_{1,\min} = \frac{160\times 9.81}{9} - 2\times 9.81 = 174.40 - 19.62 = 154.78\ \mathrm{N}.$$</div>
+<div class="press"><div class="ctag">In our press</div>$$\begin{aligned}
+F_{1,\min} &= \frac{160\times 9.81}{9} - 2\times 9.81\\
+&= 174.40 - 19.62 = 154.78\ \mathrm{N}.
+\end{aligned}$$</div>
 
 <h3 id="lag-energy">4.7 An energy function, and why the load never falls back</h3>
 <p>For a Lagrangian with a time-dependent force, define $h = T + V - F_1(t)\,x$. Differentiate along a solution and use (4.5):</p>
@@ -126,7 +140,10 @@ $$\frac{Dv}{Dt} = \frac{\partial v}{\partial t} + v\,\frac{\partial v}{\partial 
 <p>The forces along $s$ are the pressure difference across its two ends, $-\frac{\partial p}{\partial s}\,ds\,dA$, and the component of its weight, $-\rho g\,dA\,ds\,\frac{\partial z}{\partial s}$. Newton's second law, divided by $dA\,ds$:</p>
 $$\rho\left(\frac{\partial v}{\partial t} + v\frac{\partial v}{\partial s}\right) = -\frac{\partial p}{\partial s} - \rho g\frac{\partial z}{\partial s}. \tag{5.1}$$
 <p>This is Euler's equation along a streamline. Note $v\,\partial v/\partial s = \partial(\tfrac12 v^2)/\partial s$. Integrate from point 1 to point 2:</p>
-$$p_2 - p_1 = -\rho\int_1^2 \frac{\partial v}{\partial t}\,ds - \tfrac12\rho\left(v_2^2 - v_1^2\right) - \rho g\,(z_2 - z_1). \tag{5.2}$$
+$$\begin{aligned}
+p_2 - p_1 &= -\rho\int_1^2 \frac{\partial v}{\partial t}\,ds\\
+&\quad - \tfrac12\rho\left(v_2^2 - v_1^2\right) - \rho g\,(z_2 - z_1).
+\end{aligned} \tag{5.2}$$
 <p>This is the unsteady Bernoulli equation. The first term is the push needed to accelerate the fluid between the two points, the second the push needed to speed it up, the third the weight.</p>
 
 <h3 id="field-chain">5.2 Walking through the press</h3>
@@ -148,15 +165,23 @@ $$p_{\mathrm{top}} = p_{b2} - \rho\,(g + r a)\,h_2. \tag{5.7}$$</li>
 <p>The pistons give two more equations. Newton for the input piston, pushed down by $F_1$ and its weight, pushed up by $p_1 A_1$: $m_1 a = F_1 + m_1 g - p_1 A_1$. Newton for the output piston and load, rising with acceleration $ra$: $(m_2+M)\,r a = p_2 A_2 - (m_2+M)g$. So</p>
 $$p_1 = \frac{F_1 + m_1 g - m_1 a}{A_1}, \qquad p_2 = \frac{(m_2+M)(g + r a)}{A_2}. \tag{5.8}$$
 <p>Add (5.3) to (5.7). The Bernoulli terms combine to $\tfrac12\rho(v^2 - r^2v^2)$ and the heights to $-\rho g (h_2 - h_1) = -\rho g(1+r)x$:</p>
-$$p_1 - p_{\mathrm{top}} = \rho a\left(h_1 + r h_2 + L_p\frac{A_1}{A_p}\right) + \tfrac12\rho\left(r^2 - 1\right)v^2 + \rho g\,(1+r)\,x. \tag{5.9}$$
+$$\begin{aligned}
+p_1 - p_{\mathrm{top}} &= \rho a\left(h_1 + r h_2 + L_p\frac{A_1}{A_p}\right)\\
+&\quad + \tfrac12\rho\left(r^2 - 1\right)v^2 + \rho g\,(1+r)\,x.
+\end{aligned} \tag{5.9}$$
 <p>Is this the same as what the pistons demand? Subtract the two equations (5.8), using $p_2 A_1 = p_2 A_2 r$:</p>
-$$\left(p_1 - p_2\right)A_1 = F_1 + m_1 g - m_1 a - (m_2+M)\,(g + r a)\,r.$$
+$$\begin{aligned}
+\left(p_1 - p_2\right)A_1 &= F_1 + m_1 g - m_1 a\\
+&\quad - (m_2+M)\,(g + r a)\,r.
+\end{aligned}$$
 <p>Replace $F_1$ with the equation of motion (4.5), $F_1 = \mu a + \tfrac12\mu' v^2 + V'$, where</p>
 $$V' = -m_1 g + (m_2+M)\,g\,r + \rho g A_1(1+r)\,x.$$
 <p>The piston weights cancel, and so do the piston masses inside $\mu$:</p>
 $$\begin{aligned}
-\left(p_1 - p_2\right)A_1 &= \left[\mu - m_1 - (m_2+M)r^2\right]a + \tfrac12\mu' v^2 + \rho g A_1 (1+r)\,x\\
-&= \rho A_1\left(h_1 + r h_2 + L_p\frac{A_1}{A_p}\right)a + \tfrac12\rho A_1\left(r^2-1\right)v^2 + \rho g A_1(1+r)\,x.
+\left(p_1 - p_2\right)A_1 &= \left[\mu - m_1 - (m_2+M)r^2\right]a\\
+&\quad + \tfrac12\mu' v^2 + \rho g A_1 (1+r)\,x\\
+&= \rho A_1\left(h_1 + r h_2 + L_p\frac{A_1}{A_p}\right)a\\
+&\quad + \tfrac12\rho A_1\left(r^2-1\right)v^2 + \rho g A_1(1+r)\,x.
 \end{aligned}$$
 <p>Divide by $A_1$: this is exactly (5.9) with $p_{\mathrm{top}} = p_2$. The pressure walk and the Lagrangian agree, term by term. The page uses $p_{\mathrm{top}} = p_2$ as a live self-test; the error stays below $10^{-10}$ Pa.</p>
 <div class="press"><div class="ctag">In our press</div>With a 5 mm pipe, $A_1/A_p = 64$ and the oil in the pipe reaches 23.5 m/s just before the stop. The Bernoulli drop $\tfrac12\rho v_p^2 \approx 240\ \mathrm{kPa}$ is larger than the 150 kPa in the oil, and the gauge pressure at the pipe outlet falls to −96 kPa: the oil there is under suction, which is why the page warns about cavitation.</div>
@@ -167,4 +192,9 @@ $$\begin{aligned}
 <p>The stops in the first animation are perfectly rigid and perfectly inelastic: the speed drops to zero in zero time and the kinetic energy $\tfrac12\mu v^2$ disappears. That needs an infinite force. With real oil of bulk modulus $\beta$ the stop is a stiff spring; Part II builds exactly that. A rough estimate of the pressure spike: the moving mass $\mu$ hitting an oil spring of stiffness $k_o = \beta A_1^2/V$ carries $\tfrac12\mu v^2 = \tfrac12 k_o \delta^2$ into it, so the peak force is $v\sqrt{k_o\mu}$ and</p>
 $$\Delta p_{\mathrm{peak}} \approx \frac{v\sqrt{k_o\,\mu}}{A_1}. \tag{6.1}$$
 <p>Take all 5.1 L of oil as the spring volume $V$, $\beta = 1.5\ \mathrm{GPa}$ and the impact speed $v = 0.67\ \mathrm{m/s}$: this is about 1.5 MPa, ten times the working pressure, ringing at $\sqrt{k_o/\mu}/2\pi \approx 25\ \mathrm{Hz}$. Two more losses are missing. Where the jet leaves the pipe into the wide column it does not slow down gently: it mixes, and the Borda–Carnot loss $\tfrac12\rho(v_p - rv)^2$ is burnt as heat. And viscosity resists every flow; chapter 11 derives how much.</p>
+<div class="callout"><div class="ctag">After Part I you can</div><ul>
+<li>derive Pascal's force multiplier from the hydrostatic balance (1.3) and continuity (2.1);</li>
+<li>write the kinetic and potential energy of a constrained fluid system and get its equation of motion from Lagrange (4.5);</li>
+<li>walk the pressure field through a moving fluid with the unsteady Bernoulli equation (5.2) and check it against Newton for each piston;</li>
+<li>say what an ideal model leaves out, and estimate the size of what it leaves out.</li></ul></div>
 </section>

@@ -43,6 +43,47 @@ def aligned(tex):
     return f'<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mtable class="aligned">{"".join(trs)}</mtable></math>'
 
 
+# Top-level break points of a display equation: "⇒" (kept, it starts the next piece) and
+# \quad / \qquad (dropped; the flex gap replaces them). Pieces sit on one line when the
+# column is wide and wrap onto new lines on a phone. "Top level" means outside braces,
+# \left...\right pairs and \begin...\end environments.
+BREAKS = [
+    (re.compile(r'\\q?quad\s*\\Rightarrow\s*\\q?quad'), True),
+    (re.compile(r'\\;\s*\\Rightarrow\s*\\;'), True),
+    (re.compile(r'\\Rightarrow(?![A-Za-z])'), True),
+    (re.compile(r'\\qquad(?![A-Za-z])'), False),
+    (re.compile(r'\\quad(?![A-Za-z])'), False),
+]
+
+
+def split_top(tex):
+    pieces, start, i, depth = [], 0, 0, 0
+    while i < len(tex):
+        c = tex[i]
+        if c == '\\' and re.match(r'\\(left|begin)(?![A-Za-z])', tex[i:]):
+            depth += 1
+        elif c == '\\' and re.match(r'\\(right|end)(?![A-Za-z])', tex[i:]):
+            depth -= 1
+        elif c == '{':
+            depth += 1
+        elif c == '}':
+            depth -= 1
+        if depth == 0 and c == '\\':
+            for pat, keep in BREAKS:
+                m = pat.match(tex, i)
+                if m:
+                    pieces.append(tex[start:i])
+                    start = i + m.group(0).index('\\Rightarrow') if keep else m.end()
+                    i = m.end()
+                    break
+            else:
+                i += 1
+            continue
+        i += 1
+    pieces.append(tex[start:])
+    return [p.strip() for p in pieces if p.strip()]
+
+
 def display(m):
     tex = html.unescape(m.group(1).strip())
     tag = re.search(r'\\tag\{([^}]*)\}', tex)
@@ -53,7 +94,10 @@ def display(m):
     boxed = tex.startswith(r'\boxed{') and tex.endswith('}')
     if boxed:
         tex = re.sub(r'^(\\;|\s)+|(\\;|\s)+$', '', tex[len(r'\boxed{'):-1])
-    mml = aligned(tex) if r'\begin{aligned}' in tex else convert(tex, display='block')
+    if r'\begin{aligned}' in tex:
+        mml = '<div class="eqs">' + aligned(tex) + '</div>'
+    else:
+        mml = '<div class="eqs">' + ''.join(convert(seg, display='block') for seg in split_top(tex)) + '</div>'
     attrs = ''
     if num:
         eq_ids.add(num)
@@ -73,6 +117,11 @@ body = re.sub(r'\$\$(.+?)\$\$', display, body, flags=re.S)
 body = re.sub(r'\$([^$\n]+?)\$([.,:;)]?)', inline, body)
 if '$' in body:
     raise SystemExit('unmatched $ left in the source')
+
+# Time-derivative dots: latex2mathml writes \dot and \ddot as plain over-scripts, which
+# MathML sets small and high, drifting toward the exponent. As accents they sit on the letter.
+body = re.sub(r'<mover>(<mrow>(?:(?!</?mover).)*?</mrow>)<mo>(&#x002D9;|&#x000A8;)</mo></mover>',
+              r'<mover accent="true">\1<mo>\2</mo></mover>', body)
 
 # Link equation references, outside <math> only.
 parts = re.split(r'(<math[\s\S]*?</math>)', body)

@@ -83,7 +83,8 @@ details.toc-m { display: none; }
   details.toc-m { display: block; background: var(--panel); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; }
   details.toc-m summary { cursor: pointer; font-weight: 600; }
   details.toc-m ol { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 2px; font-size: 14px; }
-  details.toc-m a { color: var(--ink); }
+  details.toc-m a { color: var(--ink); display: block; padding-block: 8px; }
+  details.toc-m summary { min-height: 36px; display: flex; align-items: center; }
 }
 main { min-width: 0; }
 .chapter { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: clamp(16px, 3vw, 34px); margin-bottom: 20px; box-shadow: 0 12px 28px -22px rgba(63,44,35,0.55); }
@@ -105,9 +106,14 @@ math mtext { font-family: var(--f-text); font-size: 0.92em; }
 .nobr { white-space: nowrap; }
 .eqn { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; margin: 14px 0 16px; padding: 12px 14px; background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; overflow-x: auto; }
 .eqn math { display: block; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+.eqs { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; column-gap: 1.5em; row-gap: 4px; min-width: 0; }
+.eqs > math { min-width: 0; max-width: 100%; }
 .eqn.boxed { border: 2px solid var(--wine); background: #fffaf3; }
 mtable.aligned mtd { padding: 3px 0; }
-mtable.aligned mtd.ar { text-align: right; }
+/* MathML Core lays out a cell's content like an mrow and ignores text-align; right-to-left
+   direction puts the left column's content against the relation sign, its child resets it. */
+mtable.aligned mtd.ar { text-align: right; direction: rtl; }
+mtable.aligned mtd.ar > * { direction: ltr; }
 mtable.aligned mtd.al { text-align: left; padding-right: 1.6em; }
 mtable.aligned mtd.al:last-child { padding-right: 0; }
 .eqno { font: 500 13px var(--f-mono); color: var(--muted); white-space: nowrap; }
@@ -181,6 +187,19 @@ function onScroll() {
 }
 document.addEventListener('scroll', onScroll, { passive: true });
 onScroll();
+
+// An equation piece still wider than its box (phones): shrink it to no less than 76 %,
+// then let it scroll sideways inside its box.
+function fitMath() {
+  document.querySelectorAll('.eqn math').forEach(m => {
+    m.style.fontSize = '';
+    const over = m.scrollWidth / Math.max(1, m.clientWidth);
+    if (over > 1.01) m.style.fontSize = `${Math.max(0.76, 1 / over).toFixed(3)}em`;
+  });
+}
+let fitTimer = 0;
+window.addEventListener('resize', () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitMath, 120); });
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(fitMath);
 </script>
 </body>
 </html>

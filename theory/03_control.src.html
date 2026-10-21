@@ -25,7 +25,16 @@ $$Q_L = K_q\,x_v - K_c\,p_L. \tag{15.1}$$
 $$Q_L = A\,\dot{y} + C_{tp}\,p_L + \frac{V_t}{4\beta}\,\dot{p}_L. \tag{15.2}$$
 <p>Newton for the ram of mass $m$ with viscous friction $b$ and no external load: $m\ddot{y} = A\,p_L - b\,\dot{y}$. Take Laplace transforms with zero initial conditions and eliminate $Q_L$ and $p_L$. From (15.1) and (15.2), with $K_{ce} = K_c + C_{tp}$:</p>
 $$P_L(s) = \frac{K_q X_v(s) - A s Y(s)}{K_{ce} + \dfrac{V_t}{4\beta}s}.$$
-<p>Insert into $(ms^2 + bs)Y = A P_L$, multiply out, and collect:</p>
+<p>Insert into $(ms^2 + bs)Y = A P_L$ and clear the fraction by multiplying both sides by $K_{ce} + V_t s/(4\beta)$:</p>
+$$\left(ms^2 + bs\right)\left(K_{ce} + \frac{V_t}{4\beta}s\right)Y = A K_q X_v - A^2 s\,Y.$$
+<p>Bring the $Y$ terms together and divide by $A^2 s$:</p>
+$$Y\left[\frac{\left(ms + b\right)\left(K_{ce} + \frac{V_t}{4\beta}s\right)}{A^2} + 1\right] = \frac{K_q}{A\,s}\,X_v.$$
+<p>Multiply out the product in the bracket:</p>
+$$\begin{aligned}
+(ms + b)\left(K_{ce} + \frac{V_t s}{4\beta}\right) &= \frac{V_t m}{4\beta}s^2\\
+&\quad + \left(K_{ce}m + \frac{bV_t}{4\beta}\right)s + bK_{ce}
+\end{aligned}$$
+<p>and collect:</p>
 $$\frac{Y(s)}{X_v(s)} = \frac{K_q/A}{s\left[\dfrac{V_t m}{4\beta A^2}s^2 + \left(\dfrac{K_{ce}m}{A^2} + \dfrac{bV_t}{4\beta A^2}\right)s + 1 + \dfrac{bK_{ce}}{A^2}\right]}. \tag{15.3}$$
 <p>The last term $bK_{ce}/A^2$ is tiny in practice. Dropping it leaves the classic form</p>
 $$\boxed{\;\frac{Y(s)}{X_v(s)} = \frac{K_q/A}{s\left(\dfrac{s^2}{\omega_h^2} + \dfrac{2\zeta_h}{\omega_h}s + 1\right)},\qquad \omega_h^2 = \frac{4\beta A^2}{V_t\,m},\qquad \zeta_h = \frac{K_{ce}}{A}\sqrt{\frac{\beta m}{V_t}} + \frac{b}{4A}\sqrt{\frac{V_t}{\beta m}}\;} \tag{15.4}$$
@@ -46,7 +55,12 @@ $$\mathbf{x}_{k+1} = e^{AT_s}\mathbf{x}_k + \int_{t_k}^{t_{k+1}} e^{A(t_{k+1}-\t
 <h3 id="augmented">16.2 One exponential gives both</h3>
 <p>Treat the held input as an extra state that does not change: $\dot{u} = 0$. The augmented system is</p>
 $$\frac{d}{dt}\begin{bmatrix}\mathbf{x}\\ u\end{bmatrix} = \underbrace{\begin{bmatrix}A & B\\ 0 & 0\end{bmatrix}}_{M}\begin{bmatrix}\mathbf{x}\\ u\end{bmatrix} \qquad\Rightarrow\qquad e^{MT_s} = \begin{bmatrix}\Phi & \Gamma\\ 0 & 1\end{bmatrix}. \tag{16.2}$$
-<p>Comparing with (16.1) shows the top-right block is exactly $\Gamma$. The page computes $e^{MT_s}$ by scaling and squaring: it divides $MT_s$ by $2^s$ until its norm is below one half, sums the Taylor series, and squares the result $s$ times. SciPy's <span class="mono">expm</span> agrees to $10^{-14}$.</p>
+<p>Why does the corner hold $\Gamma$? Powers of the block-triangular $M$ keep its shape: $M^n = \begin{bmatrix}A^n & A^{n-1}B\\ 0 & 0\end{bmatrix}$ for $n \ge 1$. Summing the exponential series term by term, the top-right block is</p>
+$$\begin{aligned}
+\sum_{n\ge1}\frac{T_s^n}{n!}A^{n-1}B &= \int_0^{T_s}\sum_{n\ge0}\frac{(A\sigma)^n}{n!}\,d\sigma\;B\\
+&= \int_0^{T_s}e^{A\sigma}\,d\sigma\;B = \Gamma,
+\end{aligned}$$
+<p>exactly the integral in (16.1). The page computes $e^{MT_s}$ by scaling and squaring: it divides $MT_s$ by $2^s$ until its norm is below one half, sums the Taylor series, and squares the result $s$ times. SciPy's <span class="mono">expm</span> agrees to $10^{-14}$.</p>
 
 <h3 id="ztransform">16.3 The z-transform</h3>
 <p>Let $z$ stand for “one sample later”, so that $\mathbf{x}_{k+1}$ becomes $z\,\mathbf{x}$. Then (16.1) gives $\mathbf{x} = (zI - \Phi)^{-1}\Gamma u$ and the discrete transfer function from command to output is</p>
@@ -60,7 +74,10 @@ $$G(z) = C\left(zI - \Phi\right)^{-1}\Gamma. \tag{16.3}$$
 <text x="250" y="140" class="svgt" fill="var(--wine)">held command (staircase)</text><text x="20" y="20" class="svgt" fill="var(--blue)">what the controller would like</text></svg>
 <figcaption>Figure 7. A zero-order hold turns a smooth command into a staircase that trails it by half a sample on average.</figcaption></figure>
 <p>A hold that keeps each value for one period has the impulse response of a rectangle of width $T_s$. Its transfer function, normalized to unit gain at zero frequency, is $(1 - e^{-sT_s})/(sT_s)$. On the imaginary axis, factor out half a period:</p>
-$$\frac{1 - e^{-j\omega T_s}}{j\omega T_s} = e^{-j\omega T_s/2}\,\frac{e^{j\omega T_s/2} - e^{-j\omega T_s/2}}{j\omega T_s} = e^{-j\omega T_s/2}\;\frac{\sin(\omega T_s/2)}{\omega T_s/2}. \tag{16.4}$$
+$$\begin{aligned}
+\frac{1 - e^{-j\omega T_s}}{j\omega T_s} &= e^{-j\omega T_s/2}\,\frac{e^{j\omega T_s/2} - e^{-j\omega T_s/2}}{j\omega T_s}\\
+&= e^{-j\omega T_s/2}\;\frac{\sin(\omega T_s/2)}{\omega T_s/2}.
+\end{aligned} \tag{16.4}$$
 <p>The hold delays the signal by half a sample: a phase lag of $\omega T_s/2$. The press's controller also needs one sample to compute, a further lag of $\omega T_s$. Together:</p>
 $$\varphi_{\mathrm{sampling}} = 1.5\,\omega T_s. \tag{16.5}$$
 <div class="press"><div class="ctag">In our press</div>At the 9.7 Hz crossover this is 5.2° with $T_s = 1$ ms and 21.0° with $T_s = 4$ ms. The measured phase margin falls by 15.8°, almost exactly the difference.</div>
@@ -130,7 +147,11 @@ $$L(z) = K(z)\,z^{-1}\,G(z), \qquad z = e^{j\omega T_s}. \tag{18.2}$$
 <section id="energy" class="chapter">
 <h2><span class="chn">19</span> Where the energy goes</h2>
 <p>Multiply each equation of the model by its “flow” partner and add them. The pump power $p_sQ_S$ splits as follows. The valve keeps (9.2). Each chamber turns $p\,(Q_{\mathrm{in}} - Q_{\mathrm{out}} - \dot{V})$ into compression energy; by (7.2) that is $p\,(V/\beta)\,\dot{p}$. The hose slug gains $\tfrac{d}{dt}(\tfrac12 IQ_h^2)$ and loses $\Delta p_f Q_h$ to friction. The ram gains kinetic energy $\tfrac{d}{dt}(\tfrac12 m\dot{y}^2)$ and height $mg\dot{y}$, and loses $F_f\dot{y}$ to the seals and $F_w\dot{y}$ to the specimen. Summing every term, all the internal pressures cancel in pairs:</p>
-$$p_sQ_S = P_{\mathrm{valve}} + \sum_{\mathrm{chambers}} p\,\frac{V}{\beta}\dot{p} + \frac{d}{dt}\left(\tfrac12 IQ_h^2 + \tfrac12 m\dot{y}^2 + mgy\right) + \Delta p_fQ_h + F_f\dot{y} + F_w\dot{y} - F_{\mathrm{stop}}\dot{y}. \tag{19.1}$$
+$$\begin{aligned}
+p_sQ_S &= P_{\mathrm{valve}} + \sum_{\mathrm{chambers}} p\,\frac{V}{\beta}\dot{p}\\
+&\quad + \frac{d}{dt}\left(\tfrac12 IQ_h^2 + \tfrac12 m\dot{y}^2 + mgy\right)\\
+&\quad + \Delta p_fQ_h + F_f\dot{y} + F_w\dot{y} - F_{\mathrm{stop}}\dot{y}.
+\end{aligned} \tag{19.1}$$
 <p>The page integrates every term separately and checks the sum against the pump work at each sample. The residual stays at $10^{-14}$ of the pump work: a test that every force in the mechanics matches its flow partner in the hydraulics.</p>
 </section>
 
@@ -138,8 +159,10 @@ $$p_sQ_S = P_{\mathrm{valve}} + \sum_{\mathrm{chambers}} p\,\frac{V}{\beta}\dot{
 <h2><span class="chn">20</span> How the computer solves it</h2>
 <p>Both pages use the classical fourth-order Runge–Kutta method. From $\mathbf{x}_n$ it samples the slope four times across a step $h$ and averages them with weights 1, 2, 2, 1:</p>
 $$\begin{aligned}
-\mathbf{k}_1 &= \mathbf{f}(\mathbf{x}_n), & \mathbf{k}_2 &= \mathbf{f}\!\left(\mathbf{x}_n + \tfrac{h}{2}\mathbf{k}_1\right),\\
-\mathbf{k}_3 &= \mathbf{f}\!\left(\mathbf{x}_n + \tfrac{h}{2}\mathbf{k}_2\right), & \mathbf{k}_4 &= \mathbf{f}\!\left(\mathbf{x}_n + h\,\mathbf{k}_3\right),\\
+\mathbf{k}_1 &= \mathbf{f}(\mathbf{x}_n),\\
+\mathbf{k}_2 &= \mathbf{f}\!\left(\mathbf{x}_n + \tfrac{h}{2}\mathbf{k}_1\right),\\
+\mathbf{k}_3 &= \mathbf{f}\!\left(\mathbf{x}_n + \tfrac{h}{2}\mathbf{k}_2\right),\\
+\mathbf{k}_4 &= \mathbf{f}\!\left(\mathbf{x}_n + h\,\mathbf{k}_3\right),\\
 \mathbf{x}_{n+1} &= \mathbf{x}_n + \tfrac{h}{6}\left(\mathbf{k}_1 + 2\mathbf{k}_2 + 2\mathbf{k}_3 + \mathbf{k}_4\right).
 \end{aligned} \tag{20.1}$$
 <p>The local error is of order $h^5$ and the global error of order $h^4$: halving the step cuts the error sixteen-fold. Applied to the test equation $\dot{x} = \lambda x$, one step multiplies $x$ by</p>
@@ -147,6 +170,11 @@ $$R(\lambda h) = 1 + \lambda h + \frac{(\lambda h)^2}{2} + \frac{(\lambda h)^3}{
 <p>The method is stable while $|R| \le 1$, which on the negative real axis means $\lambda h \ge -2.79$.</p>
 <div class="press"><div class="ctag">In our press</div>The fastest mode of the servo model is the small valve-port volume charged through a wide-open valve while the pressure drop across it is small, where the rounded orifice law (8.3) is steepest: $\lambda \approx \beta K_v/(V_a\sqrt{p_{\mathrm{tr}}}) \approx 1.6\times10^4\ \mathrm{s^{-1}}$. With $h = 10^{-5}$ s, $\lambda h \approx 0.16$, far inside the stable region. Stops are located inside a step by bisection on the step length, to $10^{-12}$ s.</div>
 <p>Trust, but verify. Each page has an independent Python script that re-derives the equations with SymPy, recomputes the matrices with SciPy and NumPy, re-integrates the full nonlinear motion with SciPy's adaptive DOP853 integrator, and compares everything with the page, sample by sample.</p>
+<div class="callout"><div class="ctag">After Part III you can</div><ul>
+<li>linearize a nonlinear model about an operating point and recognize where linearization fails (14.1);</li>
+<li>derive the valve-controlled cylinder transfer function (15.4) and the rule of thumb it implies;</li>
+<li>discretize a plant exactly with a zero-order hold (16.1) and count the phase cost of sampling (16.5);</li>
+<li>write a discrete PID with filter, anti-windup and bumpless transfer (17.1)–(17.4), close the loop (18.1) and read its margins.</li></ul></div>
 </section>
 
 <section id="appendix" class="chapter">
