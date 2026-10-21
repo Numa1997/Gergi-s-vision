@@ -31,6 +31,7 @@
   --green: #3c6a46;
   --green-soft: #e3ece2;
   --oil: #ecc596;
+  --oil-soft: #f6e4c9;
   --oil-hi: #c9783f;
   --steel: #6f665e;
   --steel-l: #b6aca1;
@@ -132,6 +133,36 @@ table.mt { border-collapse: collapse; font-size: 14px; background: var(--paper);
 .press table.mt { margin: 6px 0 8px; display: block; overflow-x: auto; }
 table.mt th, table.mt td { padding: 5px 9px; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; }
 table.mt th { background: #f3eadb; color: var(--muted); font-weight: 600; }
+/* chapter 0: a quotation, a wide figure that scrolls on phones, the block table, the cycle */
+blockquote.quote { margin: 16px 0; padding: 14px 18px; background: var(--paper); border-left: 4px solid var(--wine); border-radius: 0 10px 10px 0; }
+blockquote.quote p { margin: 0 0 8px; font-family: var(--f-display); font-size: 19px; line-height: 1.4; color: var(--wine-deep); }
+blockquote.quote p.tr { font-family: var(--f-text); font-size: 15px; color: var(--ink); font-style: italic; }
+blockquote.quote footer { font-size: 13px; color: var(--muted); }
+figure.fig.wide svg { max-width: 800px; }
+.figscroll { overflow-x: auto; }
+@media (max-width: 640px) { figure.fig.wide svg { min-width: 640px; } }
+.svgb { font: 600 12.5px var(--f-text); fill: var(--ink); }
+.svgs { font: 12px var(--f-mono); fill: var(--ink); }
+.svgc { font: 11px var(--f-mono); fill: var(--muted); }
+.svgd { font: 11.5px var(--f-text); fill: var(--ink); }
+table.mt.blocks td { white-space: normal; vertical-align: top; min-width: 9ch; }
+table.mt.blocks td:first-child { white-space: nowrap; }
+ol.cycle { padding-left: 1.3em; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+/* a block card: what a part is given, the part and its law, what it answers with */
+.blockcard { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; margin: 14px 0; padding: 12px 14px; background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; }
+.blockcard .io { font-size: 14.5px; line-height: 1.5; }
+.blockcard .io .lbl { display: block; font: 600 10.5px var(--f-text); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.blockcard .in { text-align: right; }
+.blockcard .bx { position: relative; border: 2px solid var(--wine); background: var(--wine-soft); border-radius: 8px; padding: 8px 16px; text-align: center; font-weight: 600; color: var(--wine-deep); }
+.blockcard .bx small { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; }
+.blockcard .bx::before, .blockcard .bx::after { content: "→"; position: absolute; top: 50%; transform: translateY(-50%); color: var(--wine); font-weight: 400; }
+.blockcard .bx::before { left: -14px; } .blockcard .bx::after { right: -14px; }
+@media (max-width: 640px) {
+  .blockcard { grid-template-columns: minmax(0, 1fr); text-align: center; }
+  .blockcard .in, .blockcard .out { text-align: center; }
+  .blockcard .bx::before, .blockcard .bx::after { content: none; }
+}
+
 /* the list of symbols is read, not compared: its meanings wrap */
 #symbols table.mt td:nth-child(2) { white-space: normal; min-width: 12ch; }
 #symbols tr.grp th { background: #ece0cc; color: var(--wine-deep); }
