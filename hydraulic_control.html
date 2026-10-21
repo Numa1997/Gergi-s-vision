@@ -409,6 +409,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
       <canvas id="nyq" aria-label="Nyquist plot"></canvas>
       <canvas id="zpl" aria-label="Closed-loop poles in the z-plane"></canvas>
     </div>
+    <p class="note">Hover the plots: the Bode plot reads gain and phase at any frequency (at the 0 dB crossing, “to −180°” is the phase margin); the Nyquist plot gives the distance from the curve to −1; each pole in the z-plane gives its frequency and damping ratio.</p>
     <div class="tables">
       <div class="tbl"><table id="tMargins"></table></div>
       <div class="tbl"><table id="tOL"></table></div>
@@ -2310,6 +2311,7 @@ function drawBode() {
   if (Number.isFinite(m.fg)) { c.strokeStyle = COL.ochre; c.setLineDash([2, 3]); c.beginPath(); c.moveTo(px(m.fg), mt); c.lineTo(px(m.fg), mt + 2 * phh + gap); c.stroke(); c.setLineDash([]); }
   c.textAlign = 'left'; c.fillStyle = COL.ink; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
   fillRich(c, `Bode of L(e^{jωT_s}) up to the Nyquist frequency ${fmt(1 / (2 * P.Ts), 0)} Hz`, 8, 12);
+  snapshot($('bode'), { ml, pw, mt, phh, gap, px, pyM, pyP, d0, d1, p0, p1, lf0, lf1, dB });
 }
 function drawNyquist() {
   const { c, W, H } = prepCanvas($('nyq'));
@@ -2331,6 +2333,7 @@ function drawNyquist() {
   for (let v = -lim; v <= lim; v++) fillRich(c, String(v).replace('-', '−'), X(v), Y(-lim) + 12);
   c.fillStyle = COL.ink; c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
   fillRich(c, 'Nyquist, clipped to |Re|, |Im| ≤ 3 (unit circle grey)', 8, 12);
+  snapshot($('nyq'), { X, Y, lim, W, H });
 }
 function drawZplane() {
   const { c, W, H } = prepCanvas($('zpl'));
@@ -2358,6 +2361,7 @@ function drawZplane() {
   }
   c.fillStyle = COL.ink; c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
   fillRich(c, 'Closed-loop poles in the z-plane (ζ = 0.1, 0.3, 0.7 curves)', 8, 12);
+  snapshot($('zpl'), { X, Y, lim, W, H, Ts: P.Ts });
 }
 function poleRowsS(poles) {
   return poles.map(([re, im]) => {
@@ -2591,6 +2595,114 @@ typesetSubs(document.body);
 new MutationObserver(list => {
   for (const rec of list) for (const n of rec.addedNodes) typesetSubs(n.nodeType === 3 ? n.parentElement : n);
 }).observe(document.body, { childList: true, subtree: true });
+
+// ---- reading the analysis plots by hover: each plot keeps a snapshot of itself and its
+// axis mapping; the pointer redraws the snapshot and a readout card on top
+const SNAP = {};
+function snapshot(cv, geo) {
+  const off = document.createElement('canvas');
+  off.width = cv.width; off.height = cv.height; off.getContext('2d').drawImage(cv, 0, 0);
+  SNAP[cv.id] = { off, geo };
+}
+function fromSnapshot(cv) {
+  const c = cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(SNAP[cv.id].off, 0, 0); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return c;
+}
+/** A readout card near (x, y), kept inside the canvas. rows: [label, value, colour?]. */
+function drawCard(c, x, y, head, rows, W, H) {
+  c.save();
+  c.font = '11px "IBM Plex Mono", ui-monospace, monospace'; c.textBaseline = 'middle'; c.textAlign = 'left';
+  const labW = Math.max(0, ...rows.map(r => richWidth(c, r[0]))), valW = Math.max(0, ...rows.map(r => c.measureText(r[1]).width));
+  const lh = 16, w = Math.max(c.measureText(head).width, labW + 12 + valW) + 16 + (rows.some(r => r[2]) ? 14 : 0);
+  const h = lh * (rows.length + 1) + 10;
+  // right of the point, else left of it, else centred above or below it
+  let bx = x + 14, by = y - h / 2;
+  const fitsR = x + 14 + w <= W - 4, fitsL = x - 14 - w >= 4;
+  if (!fitsR && fitsL) bx = x - 14 - w;
+  else if (!fitsR) { bx = Math.max(4, Math.min(W - w - 4, x - w / 2)); by = y - h - 14 >= 22 ? y - h - 14 : y + 14; }
+  by = Math.max(22, Math.min(H - h - 4, by));
+  c.shadowColor = 'rgba(35, 22, 15, 0.18)'; c.shadowBlur = 8; c.shadowOffsetY = 2;
+  c.fillStyle = 'rgba(252, 248, 240, 0.96)'; roundRect(c, bx, by, w, h, 6); c.fill();
+  c.shadowColor = 'transparent'; c.strokeStyle = COL.rule; c.lineWidth = 1; roundRect(c, bx, by, w, h, 6); c.stroke();
+  c.fillStyle = COL.muted; c.fillText(head, bx + 8, by + 5 + lh / 2);
+  rows.forEach(([lab, val, col], j) => {
+    const yy = by + 5 + lh * (j + 1.5);
+    let lx = bx + 8;
+    if (col) { c.fillStyle = col; c.fillRect(lx, yy - 1.5, 10, 3); lx += 14; }
+    c.fillStyle = COL.ink; c.textAlign = 'left'; fillRich(c, lab, lx, yy);
+    c.textAlign = 'right'; c.fillText(val, bx + w - 8, yy);
+  });
+  c.restore();
+}
+function nearestIndex(arr, v) {
+  let a = 0, b = arr.length - 1;
+  while (b - a > 1) { const m = (a + b) >> 1; if (arr[m] <= v) a = m; else b = m; }
+  return v - arr[a] > arr[b] - v ? b : a;
+}
+const ANALYSIS_HOVER = {
+  bode(cv, mx, my) {
+    const g = SNAP.bode.geo, { f, ph } = an.freq;
+    if (mx < g.ml || mx > g.ml + g.pw) return false;
+    const fr = Math.pow(10, g.lf0 + (mx - g.ml) / g.pw * (g.lf1 - g.lf0)), k = nearestIndex(f, fr);
+    const c = fromSnapshot(cv), x = g.px(f[k]);
+    c.save(); c.strokeStyle = COL.ink; c.globalAlpha = 0.5; c.setLineDash([3, 3]);
+    c.beginPath(); c.moveTo(x, g.mt); c.lineTo(x, g.mt + 2 * g.phh + g.gap); c.stroke(); c.restore();
+    const ym = g.pyM(Math.max(g.d0, Math.min(g.d1, g.dB[k]))), yp = g.pyP(Math.max(g.p0, Math.min(g.p1, ph[k])));
+    for (const [yy, col] of [[ym, COL.wine], [yp, COL.blue]]) {
+      c.fillStyle = COL.paper; c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); c.arc(x, yy, 3.5, 0, 2 * Math.PI); c.fill(); c.stroke();
+    }
+    drawCard(c, x, my, `f = ${fmt(f[k], f[k] < 10 ? 2 : 1)} Hz`,
+      [['|L|', `${fmt(g.dB[k], 1)} dB`, COL.wine], ['|L| ratio', fmt(Math.pow(10, g.dB[k] / 20), 3)], ['∠L', `${fmt(ph[k], 1)}°`, COL.blue],
+       ['to −180°', `${fmt(ph[k] + 180, 1)}°`]], cv.clientWidth, cv.clientHeight);
+    return true;
+  },
+  nyq(cv, mx, my) {
+    const g = SNAP.nyq.geo, { Lre, Lim, f } = an.freq;
+    let best = -1, bd = 22 * 22, sg = 1;
+    for (const sgn of [1, -1]) for (let k = 0; k < Lre.length; k++) {
+      const dx = g.X(Lre[k]) - mx, dy = g.Y(sgn * Lim[k]) - my, d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = k; sg = sgn; }
+    }
+    if (best < 0) return false;
+    const c = fromSnapshot(cv), re = Lre[best], im = sg * Lim[best], x = g.X(re), y = g.Y(im);
+    c.save(); c.strokeStyle = COL.ink; c.globalAlpha = 0.5; c.setLineDash([3, 3]);
+    c.beginPath(); c.moveTo(g.X(-1), g.Y(0)); c.lineTo(x, y); c.stroke(); c.restore();
+    c.fillStyle = COL.paper; c.strokeStyle = COL.wine; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 4, 0, 2 * Math.PI); c.fill(); c.stroke();
+    drawCard(c, x, y, `f = ${sg > 0 ? '' : '−'}${fmt(f[best], f[best] < 10 ? 2 : 1)} Hz`,
+      [['L', `${fmt(re, 3)} ${im < 0 ? '−' : '+'} j${fmt(Math.abs(im), 3)}`], ['|L|', fmt(Math.hypot(re, im), 3)],
+       ['distance to −1', fmt(Math.hypot(re + 1, im), 3)]], cv.clientWidth, cv.clientHeight);
+    return true;
+  },
+  zpl(cv, mx, my) {
+    const g = SNAP.zpl.geo;
+    let best = null, bd = 16 * 16;
+    for (const [re, im] of an.clPoles) {
+      const dx = g.X(Math.max(-g.lim, Math.min(g.lim, re))) - mx, dy = g.Y(Math.max(-g.lim, Math.min(g.lim, im))) - my, d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = [re, im]; }
+    }
+    if (!best) return false;
+    const [re, im] = best, r = Math.hypot(re, im);
+    // the continuous pole that maps to z = e^{s T_s}
+    const sr = Math.log(r) / g.Ts, si = Math.atan2(im, re) / g.Ts, wn = Math.hypot(sr, si);
+    const c = fromSnapshot(cv), x = g.X(Math.max(-g.lim, Math.min(g.lim, re))), y = g.Y(Math.max(-g.lim, Math.min(g.lim, im)));
+    c.strokeStyle = COL.ink; c.lineWidth = 1; c.beginPath(); c.arc(x, y, 8, 0, 2 * Math.PI); c.stroke();
+    drawCard(c, x, y, r >= 1 ? 'unstable pole' : 'closed-loop pole',
+      [['z', `${fmt(re, 4)} ${im < 0 ? '−' : '+'} j${fmt(Math.abs(im), 4)}`], ['|z|', fmt(r, 4)],
+       ['f_n', `${fmt(wn / (2 * Math.PI), wn < 60 ? 2 : 1)} Hz`], ['ζ', wn > 1e-9 ? fmt(-sr / wn, 3) : '–']], cv.clientWidth, cv.clientHeight);
+    return true;
+  }
+};
+for (const id of ['bode', 'nyq', 'zpl']) {
+  const cv = $(id);
+  cv.style.touchAction = 'pan-y';
+  cv.addEventListener('pointermove', e => {
+    if (!SNAP[id] || !an) return;
+    const r = cv.getBoundingClientRect();
+    if (!ANALYSIS_HOVER[id](cv, e.clientX - r.left, e.clientY - r.top)) fromSnapshot(cv);
+  });
+  cv.addEventListener('pointerleave', () => { if (SNAP[id]) fromSnapshot(cv); });
+}
 
 PLOTS.forEach(wirePlot);
 buildControls();
