@@ -2,3 +2,6 @@
 runs.json
 control_runs.json
 tools/node_modules/
+
+# Python bytecode caches
+__pycache__/
