@@ -359,7 +359,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
     <ul class="keylist">
       <li><svg viewBox="0 0 48 32" aria-hidden="true"><circle cx="24" cy="16" r="11" fill="#e9dfcd" stroke="#2b1a14" stroke-width="1.5"/><path d="M24 7 L17 18 L31 18 Z" fill="#2b1a14"/></svg><span><b>Pump with relief valve.</b> Holds the supply line at the constant pressure p<sub>s</sub>.</span></li>
       <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="4" y="8" width="40" height="18" fill="#e9dfcd" stroke="#2b1a14" stroke-width="1.5"/></svg><span><b>Tank.</b> Oil returns here at atmospheric pressure, p<sub>T</sub> = 0.</span></li>
-      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="2" y="8" width="44" height="16" fill="#e9dfcd" stroke="#2b1a14" stroke-width="1.5"/><rect x="8" y="11" width="5" height="10" fill="#8d8279"/><rect x="21.5" y="11" width="5" height="10" fill="#8d8279"/><rect x="35" y="11" width="5" height="10" fill="#8d8279"/><rect x="6" y="15" width="36" height="2" fill="#5d534c"/></svg><span><b>Servo valve.</b> The three grey lands are the spool; sliding it by x<sub>v</sub> connects the pump P and tank T to the ports A and B. Travel is exaggerated.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="2" y="7" width="44" height="18" rx="3" fill="#e9dfcd" stroke="#2b1a14" stroke-width="1.5"/><rect x="4" y="12" width="40" height="8" fill="rgb(246,232,196)"/><rect x="15" y="12" width="18" height="8" fill="rgb(92,14,34)"/><rect x="10" y="9" width="5" height="14" fill="rgb(222,146,70)"/><rect x="33" y="9" width="5" height="14" fill="rgb(222,146,70)"/><rect x="4" y="15" width="40" height="2" fill="#5d534c"/><rect x="4" y="12" width="3" height="8" fill="#8d8279"/><rect x="10" y="12" width="5" height="8" fill="#8d8279"/><rect x="33" y="12" width="5" height="8" fill="#8d8279"/><rect x="41" y="12" width="3" height="8" fill="#8d8279"/><rect x="23" y="20" width="2" height="5" fill="rgb(92,14,34)"/></svg><span><b>Servo valve, in section.</b> The four grey lands are the spool. Each metering land is exactly as wide as the groove under its port, so at x<sub>v</sub> = 0 every edge is just closed. Moving the spool opens P→A and B→T (x<sub>v</sub> &gt; 0) or P→B and A→T (x<sub>v</sub> &lt; 0). Chambers are coloured by pressure; the white streaks are the jets through the open edges and move with the flow. Travel is exaggerated.</span></li>
       <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="14" y="4" width="20" height="10" fill="#d6c9b2" stroke="#2b1a14"/><rect x="4" y="18" width="40" height="10" fill="#e9dfcd" stroke="#2b1a14"/></svg><span><b>Torque motor.</b> Turns the electrical command u into spool motion; its armature (wine bar) tilts with u, and the spool follows with bandwidth f<sub>v</sub>.</span></li>
       <li><svg viewBox="0 0 48 32" aria-hidden="true"><defs><linearGradient id="kgr" x1="0" x2="1"><stop offset="0" stop-color="rgb(246,232,196)"/><stop offset="0.45" stop-color="rgb(222,146,70)"/><stop offset="1" stop-color="rgb(92,14,34)"/></linearGradient></defs><rect x="2" y="10" width="44" height="12" fill="url(#kgr)" stroke="#2b1a14"/></svg><span><b>Oil colour.</b> Pale amber at 0, deep wine at p<sub>s</sub>; chambers, hose and lines are all coloured by their pressure.</span></li>
       <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="2" y="10" width="44" height="12" fill="rgb(62,104,135)" stroke="#2b1a14"/></svg><span><b>Blue oil.</b> Gauge pressure below 0: suction, risk of air release and cavitation.</span></li>
@@ -1446,11 +1446,11 @@ function updateStepper(i) {
 function sceneLayout(portrait) {
   return portrait
     ? { portrait, W: 520, H: 1262, k: 700, axis: 260, base: 757, fs: 1.55,
-        valve: { x: 160, y: 860, w: 200, h: 56 }, ctrl: { x: 10, y: 10, w: 500, h: 160 },
-        tank: { x: 20, y: 1015, w: 200, h: 60 }, pump: [90, 975],
+        valve: { x: 160, y: 860, w: 200, h: 64 }, ctrl: { x: 10, y: 10, w: 500, h: 160 },
+        tank: { x: 20, y: 1030, w: 200, h: 60 }, pump: [90, 1000],
         cluster: { top: 1100, cy: 1150, r: 33, xs: [44, 130, 216, 302, 388, 474] } }
     : { portrait, W: 1000, H: 868, k: 750, axis: 760, base: 660, fs: 1,
-        valve: { x: 260, y: 380, w: 200, h: 56 }, ctrl: { x: 30, y: 30, w: 330, h: 150 },
+        valve: { x: 260, y: 380, w: 200, h: 64 }, ctrl: { x: 30, y: 30, w: 330, h: 150 },
         tank: { x: 40, y: 610, w: 220, h: 60 }, pump: [110, 560],
         cluster: { top: 722, cy: 778, r: 36, xs: [100, 260, 420, 580, 740, 900] } };
 }
@@ -1465,7 +1465,8 @@ function pressGeometry(y) {
 /** Hydraulic and signal routes for the layout (logical px). Signal polylines run from source to destination. */
 function networkRoutes(L, X, Z, g) {
   const v = L.valve, [pumpX, pumpY] = L.pump, tank = L.tank;
-  const portA = [v.x + 50, v.y], portB = [v.x + 150, v.y], portP = [v.x + 50, v.y + v.h], portT = [v.x + 150, v.y + v.h];
+  // where a four-way valve has its ports: A and B over their grooves, P into the centre chamber, T at one end
+  const portA = [v.x + 55, v.y], portB = [v.x + 145, v.y], portP = [v.x + 100, v.y + v.h], portT = [v.x + 166, v.y + v.h];
   const capPort = [X(-g.Rb - g.wall), Z(g.zCapIn + 0.015)];
   const rodPort = [X((L.portrait ? 1 : -1) * (g.Rb + g.wall)), Z(g.zTopIn - 0.015)];
   const lvdtIn = [X(0.17), Z(g.zTop + 0.10)], cellIn = [X(0.04), Z(g.zCell - 0.02)];
@@ -1475,8 +1476,8 @@ function networkRoutes(L, X, Z, g) {
       portA, portB, portP, portT, motor,
       hose: [portA, [portA[0], 815], [24, 815], [24, capPort[1]], capPort],
       lineB: [portB, [portB[0], 835], [505, 835], [505, rodPort[1]], rodPort],
-      lineP: [[pumpX, pumpY - 22], [pumpX, 935], [portP[0], 935], portP],
-      lineT: [portT, [portT[0], 935], [480, 935], [480, 995], [200, 995], [200, tank.y]],
+      lineP: [[pumpX, pumpY - 22], [pumpX, 962], [portP[0], 962], portP],
+      lineT: [portT, [portT[0], 962], [480, 962], [480, 1008], [200, 1008], [200, tank.y]],
       sigU: [[30, L.ctrl.y + L.ctrl.h], [30, L.ctrl.y + L.ctrl.h + 10], [12, L.ctrl.y + L.ctrl.h + 10], [12, motor.y + motor.h / 2], [motor.x, motor.y + motor.h / 2]],
       sigF: [cellIn, [514, cellIn[1]], [514, 50], [L.ctrl.x + L.ctrl.w, 50]],
       sigY: [lvdtIn, [500, lvdtIn[1]], [500, 130], [L.ctrl.x + L.ctrl.w, 130]],
@@ -1732,28 +1733,97 @@ function drawFlowArrow(c, pts, frac, q, scaleQ) {
   c.moveTo(a[0] + dx * len, a[1] + dy * len); c.lineTo(a[0] - dy * 7, a[1] + dx * 7); c.lineTo(a[0] + dy * 7, a[1] - dx * 7);
   c.closePath(); c.fill();
 }
-/** Servo-valve body with its bore, three spool lands (shifted by x_v, exaggerated) and labelled ports. */
-function drawValve(c, v, xv, ports, fs, mono) {
-  const bg = c.createLinearGradient(0, v.y, 0, v.y + v.h);
+/** Servo valve in section: a critically lapped four-way spool valve. The sleeve has a groove under
+ *  each of ports A and B; supply P enters the centre chamber and both end chambers drain to the tank T,
+ *  the left one through a gallery below the bore (it passes behind the P drilling). Each metering land
+ *  is exactly as wide as its groove, so at x_v = 0 all four edges are just closed. Positive x_v moves
+ *  the spool left and opens P→A and B→T; negative x_v opens P→B and A→T. Oil is coloured by its
+ *  pressure, and the streaks through the open edges advance with the volume that has passed.
+ *  The opening is exaggerated: 14 px at full stroke, for a real stroke of a fraction of a millimetre. */
+function drawValve(c, v, st, ports, fs, mono) {
+  const x0 = v.x, y0 = v.y, H = v.h, xL = x0 + 8, xR = x0 + v.w - 8;
+  const bT = y0 + 20, bB = y0 + 44, yc = (bT + bB) / 2;                  // the bore
+  const s = -14 * Math.max(-1.1, Math.min(1.1, st.xv));                  // spool shift, px
+  const GA = [x0 + 46, x0 + 64], GB = [x0 + 136, x0 + 154];              // grooves under A and B
+  const xA = ports.portA[0], xB = ports.portB[0], xP = ports.portP[0], xT = ports.portT[0], xTl = x0 + 30;
+  const lands = [[x0 + 8, x0 + 22], GA, GB, [x0 + 178, x0 + 192]].map(([a, b]) => [a + s, b + s]);
+  const tank = pColor(0), sup = pColor(P.ps), colA = pColor(st.pa), colB = pColor(st.pB);
+  const box = (x, y, w, h, col) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
+
+  // body, with section hatching
+  const bg = c.createLinearGradient(0, y0, 0, y0 + H);
   bg.addColorStop(0, '#f1e8d7'); bg.addColorStop(1, '#d9ccb4');
-  c.fillStyle = bg; roundRect(c, v.x, v.y, v.w, v.h, 8); c.fill();
-  c.strokeStyle = COL.ink; c.lineWidth = 1.5; c.stroke();
-  c.fillStyle = 'rgba(35,22,15,0.12)'; c.fillRect(v.x + 8, v.y + 12, v.w - 16, v.h - 24);
-  const shift = 22 * Math.max(-1.1, Math.min(1.1, xv));
-  c.fillStyle = metalGradient(c, v.y + v.h / 2 - 3, v.y + v.h / 2 + 3, 'chrome', true);
-  c.fillRect(v.x + 10 + shift, v.y + v.h / 2 - 3, 180, 6);
-  for (const lx of [20, 90, 160]) {
-    c.fillStyle = metalGradient(c, v.y + 10, v.y + v.h - 10, 'chrome', true);
-    roundRect(c, v.x + lx + shift, v.y + 10, 22, v.h - 20, 3); c.fill();
-    c.strokeStyle = 'rgba(35,22,15,0.6)'; c.lineWidth = 1; c.stroke();
+  c.fillStyle = bg; roundRect(c, x0, y0, v.w, H, 8); c.fill();
+  c.save(); roundRect(c, x0, y0, v.w, H, 8); c.clip();
+  c.strokeStyle = 'rgba(35, 22, 15, 0.09)'; c.lineWidth = 1;
+  for (let k = -H; k < v.w; k += 7) { c.beginPath(); c.moveTo(x0 + k, y0 + H); c.lineTo(x0 + k + H, y0); c.stroke(); }
+  c.restore();
+
+  // drillings and the tank gallery
+  box(xTl - 3, bB, 6, 13, tank); box(xTl - 3, y0 + 55, xT - xTl + 6, 5, tank); box(xT - 3, bB, 6, y0 + H - bB, tank);
+  box(xP - 3, bB, 6, y0 + H - bB, sup);
+  box(xA - 3, y0, 6, bT - y0, colA); box(xB - 3, y0, 6, bT - y0, colB);
+  // grooves: annular, so in section they are notches above and below the bore
+  box(GA[0], bT - 6, GA[1] - GA[0], bB - bT + 12, colA); box(GB[0], bT - 6, GB[1] - GB[0], bB - bT + 12, colB);
+  // bore chambers between the lands: the ends drain to the tank, the middle holds supply pressure
+  c.save(); c.beginPath(); c.rect(xL, bT, xR - xL, bB - bT); c.clip();
+  box(xL, bT, lands[1][0] - xL, bB - bT, tank);
+  box(lands[2][1], bT, xR - lands[2][1], bB - bT, tank);
+  box(lands[1][1], bT, lands[2][0] - lands[1][1], bB - bT, sup);
+  // the spool: rod and four lands
+  c.fillStyle = metalGradient(c, yc - 3, yc + 3, 'chrome', true);
+  c.fillRect(lands[0][0], yc - 3, lands[3][1] - lands[0][0], 6);
+  for (const [a, b] of lands) {
+    c.fillStyle = metalGradient(c, bT, bB, 'chrome', true);
+    roundRect(c, a, bT + 0.5, b - a, bB - bT - 1, 2); c.fill();
+    c.strokeStyle = 'rgba(35, 22, 15, 0.55)'; c.lineWidth = 1; c.stroke();
   }
+  c.restore();
+  c.strokeStyle = 'rgba(35, 22, 15, 0.45)'; c.lineWidth = 1; c.strokeRect(xL, bT, xR - xL, bB - bT);
+
+  // flow through the open metering edges
+  const open = Math.abs(s);
+  if (open > 0.4) {
+    const jets = s < 0
+      ? [[[[GA[1] + 16, yc], [GA[1] + s / 2, yc], [xA, bT - 3], [xA, y0 + 1]], st.cumA],                       // P → A
+         [[[xB, y0 + 1], [xB, bT - 3], [GB[1] + s / 2, yc], [xT, yc + 2], [xT, y0 + H - 1]], st.cumB]]        // B → T
+      : [[[[GB[0] - 16, yc], [GB[0] + s / 2, yc], [xB, bT - 3], [xB, y0 + 1]], st.cumB],                       // P → B
+         [[[xA, y0 + 1], [xA, bT - 3], [GA[0] + s / 2, yc], [xTl, yc + 2], [xTl, y0 + 57]], st.cumA]];        // A → T
+    const w = Math.max(1.5, Math.min(4, 0.3 * open));
+    c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
+    for (const [path, cum] of jets) {
+      tracePath(c, path);
+      c.strokeStyle = 'rgba(255, 250, 240, 0.28)'; c.lineWidth = w + 3; c.setLineDash([]); c.stroke();
+      c.strokeStyle = 'rgba(255, 250, 240, 0.95)'; c.lineWidth = w; c.setLineDash([6, 6]);
+      c.lineDashOffset = -(cum / C0.QN) * 100; c.stroke();
+      // arrowhead along the last segment
+      const [ax, ay] = path[path.length - 1], [bx, by] = path[path.length - 2], ang = Math.atan2(ay - by, ax - bx);
+      c.setLineDash([]); c.fillStyle = 'rgba(255, 250, 240, 0.95)';
+      c.beginPath(); c.moveTo(ax, ay);
+      c.lineTo(ax - 6 * Math.cos(ang - 0.5), ay - 6 * Math.sin(ang - 0.5)); c.lineTo(ax - 6 * Math.cos(ang + 0.5), ay - 6 * Math.sin(ang + 0.5));
+      c.closePath(); c.fill();
+    }
+    c.restore();
+  }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.5; roundRect(c, x0, y0, v.w, H, 8); c.stroke();
+
   const tag = (txt, x, y) => {
     c.fillStyle = COL.paper; c.strokeStyle = COL.ink; c.lineWidth = 1;
     c.beginPath(); c.arc(x, y, 8 * fs, 0, 2 * Math.PI); c.fill(); c.stroke();
     c.fillStyle = COL.ink; c.font = mono(10); c.textAlign = 'center'; c.textBaseline = 'middle'; fillRich(c, txt, x, y + 0.5);
   };
-  tag('A', ports.portA[0] - 16 * fs, ports.portA[1] - 12 * fs); tag('B', ports.portB[0] + 16 * fs, ports.portB[1] - 12 * fs);
-  tag('P', ports.portP[0] - 16 * fs, ports.portP[1] + 12 * fs); tag('T', ports.portT[0] + 16 * fs, ports.portT[1] + 12 * fs);
+  tag('A', xA - 16 * fs, ports.portA[1] - 12 * fs); tag('B', xB + 16 * fs, ports.portB[1] - 12 * fs);
+  tag('P', xP - 16 * fs, ports.portP[1] + 12 * fs); tag('T', xT + 16 * fs, ports.portT[1] + 12 * fs);
+}
+/** Volume that has passed each valve port since t = 0, ∫|Q| dt, which moves the streaks in the valve. */
+function cumulativeFlows(R) {
+  const n = R.t.length, A = new Float64Array(n), B = new Float64Array(n);
+  for (let k = 1; k < n; k++) {
+    const dt = R.t[k] - R.t[k - 1];
+    A[k] = A[k - 1] + 0.5 * (Math.abs(R.QA[k]) + Math.abs(R.QA[k - 1])) * dt;
+    B[k] = B[k - 1] + 0.5 * (Math.abs(R.QB[k]) + Math.abs(R.QB[k - 1])) * dt;
+  }
+  return { A, B };
 }
 /** Torque motor: its armature tilts with the command u. */
 function drawTorqueMotor(c, m, u) {
@@ -1979,12 +2049,14 @@ function drawScene(i) {
   drawFlowArrow(c, net.hose, L.portrait ? 0.3 : 0.18, R.Qh[i], C0.QN);
   drawFlowArrow(c, net.hose, 0.82, R.Qh[i], C0.QN);
   drawFlowArrow(c, net.lineB, 0.5, R.QB[i], C0.QN);
-  drawValve(c, L.valve, R.xv[i], net, fs, mono);
+  if (!run.cum) run.cum = cumulativeFlows(R);
+  drawValve(c, L.valve, { xv: R.xv[i], pa: R.pa[i], pB: R.pB[i], cumA: run.cum.A[i], cumB: run.cum.B[i] }, net, fs, mono);
   drawTorqueMotor(c, net.motor, R.uApp[i]);
   drawPump(c, L.pump[0], L.pump[1], 22);
   drawTank(c, L.tank, sans);
   if (L.portrait) {
-    pillLabel(c, `servo valve · x_v = ${fmt(100 * R.xv[i], 1)} %`, L.valve.x + L.valve.w / 2, 962, 'center', sans(12), COL.ink);
+    pillLabel(c, 'servo valve', L.valve.x + L.valve.w + 12, L.valve.y + 18, 'left', sans(12), COL.ink);
+    pillLabel(c, `x_v = ${fmt(100 * R.xv[i], 1)} %`, L.valve.x + L.valve.w + 12, L.valve.y + 44, 'left', mono(11.5), COL.ink);
     pillLabel(c, `pump, p_s = ${fmt(P.ps / 1e6, 1)} MPa`, 240, 1048, 'left', sans(12), COL.ink);
     pillLabel(c, `hose ${fmt(P.Lh, 1)} m, bore ${fmt(P.dh * 1000, 1)} mm`, 34, 797, 'left', sans(12), COL.ink);
   } else {
