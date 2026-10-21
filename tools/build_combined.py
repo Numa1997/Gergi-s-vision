@@ -233,7 +233,7 @@ def site_copy(site):
       additions this study needs: 'unsafe-eval' in script-src (the servo page builds its Web Worker with new Function) and
       blob: in worker-src (that worker is started from a blob: URL);
     - the site's self-hosted fonts (../../fonts/instrument-plex.css) instead of Google Fonts;
-    - the title suffix and the back link the other project copies use.
+    - the title suffix, the back link and the tab icon (from portfolios.html) the other pages use.
     The embedded pages are unchanged. Writes public/portfolios/hydraulics/index.html and LICENSE-fonts.txt beside it.
     """
     site = pathlib.Path(site)
@@ -242,8 +242,10 @@ def site_copy(site):
     csp = re.sub(r"script-src ([^;]*)", lambda m: "script-src " + m.group(1).replace("'unsafe-inline'", "'unsafe-inline' 'unsafe-eval'", 1), csp)
     csp = re.sub(r"worker-src ([^;]*)", lambda m: "worker-src " + m.group(1) + " blob:", csp)
     assert "'unsafe-eval'" in csp and 'blob:' in csp.split('worker-src')[1].split(';')[0], csp
+    icon = re.search(r'<link\s+rel="icon"\s+href="([^"]+)"', (site / 'public/portfolios.html').read_text()).group(1)
     head = (f'<meta http-equiv="Content-Security-Policy" content="{csp}">\n'
-            '<meta name="referrer" content="strict-origin-when-cross-origin">\n')
+            '<meta name="referrer" content="strict-origin-when-cross-origin">\n'
+            f'<link rel="icon" href="{icon}">\n')
     assert (site / 'public/fonts/instrument-plex.css').exists(), 'the site has no public/fonts/instrument-plex.css'
     out = build(head=head, title='Hydraulic Press Study · Numa Koudsie',
                 fonts='<link rel="stylesheet" href="../../fonts/instrument-plex.css">',

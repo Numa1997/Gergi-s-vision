@@ -1,5 +1,7 @@
 # Hydraulic Press Study
 
+> **Moved.** Since 21 October 2026 this study lives in the website repository, [`Numa1997/SiteTest`](https://github.com/Numa1997/SiteTest), folder `portfolios-src/hydraulics/`, and is served at <https://phyeinusul.com/portfolios/hydraulics/index.html>. This repository is no longer updated.
+
 From Pascal's principle to a digitally controlled servo-hydraulic press: two simulations you can run and
 play with, and a 23-chapter textbook that derives every equation they integrate.
 
