@@ -400,7 +400,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
       <label for="loopSel">Operating point</label>
       <select id="loopSel">
         <option value="position">Position loop: cruising up at 0.1 m/s, y = 60 mm</option>
-        <option value="force">Force loop: holding F_ref on the specimen</option>
+        <option value="force">Force loop: holding the set force on the specimen</option>
       </select>
       <span id="anVerdict" class="verdict"></span>
     </div>
@@ -461,7 +461,7 @@ F_stop = max(0, −k_s·y − c_s·ẏ),  y &lt; 0                              
            D_k = T_f/(T_f+T_s)·D_(k−1) + K_d/(T_f+T_s)·(e_k − e_(k−1))       filtered derivative, T_f = 2 ms
            I_k = I_(k−1) + K_i·T_s·e_k        (frozen while saturated in the same direction: anti-windup)
            u_k = sat(K_p·e_k + I_k + D_k + K_ff·v_ref),   K_ff = A_A / (K_v·√(p_s/2))
-force:     u_k = sat(K_pF·(F_ref − F_k) + I_F,k),   I_F,k = I_F,(k−1) + K_iF·T_s·(F_ref − F_k)
+force:     u_k = sat(K_pF·(F_ref − F_k) + I_{F,k}),   I_{F,k} = I_{F,k−1} + K_iF·T_s·(F_ref − F_k)
 switching: the integrator of the new law is loaded with the last command, so u does not jump (bumpless transfer)</div>
 
     <h3>6 · Linearize, discretize, close the loop</h3>
@@ -637,10 +637,10 @@ L ≈ K_pF·K_I/(jω)  ⇒  ω_c = K_pF·K_I  ⇒  K_pF = 2π·10 Hz / K_I</div>
 
       <article class="sol" id="sol-9">
         <div class="sol-head"><span class="sol-num">9</span><span class="sol-q">The largest stable position gain</span>
-          <span class="sol-answer">K_p,max = 89.8 %/mm; the textbook says 117</span></div>
+          <span class="sol-answer">K_{p,max} = 89.8 %/mm; the textbook says 117</span></div>
         <h3 class="sub">Working</h3>
         <div class="eq">bisection on max|z| of the closed loop at the cruise point, K_i fixed at 125 %/(mm·s):
-K_p,max = 897.5 m⁻¹ = 89.8 %/mm,   crossover at the edge 37.8 Hz
+K_{p,max} = 897.5 m⁻¹ = 89.8 %/mm,   crossover at the edge 37.8 Hz
 velocity gain K_v = K_p · (ẏ per unit u) = K_p · 0.246 m/s:   61.5 s⁻¹ (default), 220.8 s⁻¹ (edge)
 rule K_v &lt; 2ζ_h·ω_h,  ram mode 87.9 Hz, ζ_h = 0.26:   2·0.26·552 = 286.8 s⁻¹  ⇒  K_p = 116.6 %/mm</div>
         <p>The rule assumes an integrator times one resonance and is 30 % optimistic here. At 37.8 Hz the 60 Hz valve already lags 55.6°, the delay and hold another 20.4°, and the PI zero and hose mode add more. The phase runs out before the resonance peak does.</p>
@@ -1524,13 +1524,69 @@ function metalGradient(c, a0, a1, finish, vertical) {
   for (const [s, col] of stops) g.addColorStop(s, col);
   return g;
 }
+// ---- typeset text: "x_v", "p_{top}", "D_(k−1)", "e^{jωT_s}" are drawn as in print
+/** Splits TeX-like text into runs { t, lvl, dy }: scripts are 70 % of the size per level,
+ *  subscripts lowered by 0.28 em and superscripts raised by 0.42 em of the base size. */
+function richRuns(s, lvl = 0, dy = 0, out = []) {
+  let buf = '';
+  const flush = () => { if (buf) out.push({ t: buf, lvl, dy }); buf = ''; };
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if ((ch === '_' || ch === '^') && i > 0 && i + 1 < s.length) {
+      const open = s[i + 1], close = { '{': '}', '(': ')' }[open];
+      let t, end;
+      if (close) {
+        let depth = 0; end = i + 1;
+        for (; end < s.length; end++) { if (s[end] === open) depth++; else if (s[end] === close && --depth === 0) break; }
+        t = s.slice(i + 2, end);
+      } else {
+        end = i + 1;
+        while (end < s.length && /[\p{L}\p{Nd}]/u.test(s[end])) end++;
+        if (end === i + 1) { buf += ch; continue; }
+        t = s.slice(i + 1, end); end--;
+      }
+      flush();
+      richRuns(t, lvl + 1, dy + (ch === '_' ? 0.28 : -0.42) * Math.pow(0.7, lvl), out);
+      i = end;
+    } else buf += ch;
+  }
+  flush();
+  return out;
+}
+/** Measures each run in the context's current font, scaled for its level. */
+function richLayout(c, s) {
+  const base = c.font, m = /(\d*\.?\d+)px/.exec(base), px = m ? parseFloat(m[1]) : 12;
+  const runs = richRuns(s).map(r => {
+    const f = base.replace(/(\d*\.?\d+)px/, `${(px * Math.pow(0.7, r.lvl)).toFixed(2)}px`);
+    c.font = f;
+    return { ...r, f, w: c.measureText(r.t).width, dyPx: r.dy * px };
+  });
+  c.font = base;
+  return runs;
+}
+function richWidth(c, s) {
+  s = String(s);
+  return /[_^]/.test(s) ? richLayout(c, s).reduce((a, r) => a + r.w, 0) : c.measureText(s).width;
+}
+/** fillText with sub- and superscripts; honours the context's textAlign. */
+function fillRich(c, s, x, y) {
+  s = String(s);
+  if (!/[_^]/.test(s)) { c.fillText(s, x, y); return; }
+  const runs = richLayout(c, s), w = runs.reduce((a, r) => a + r.w, 0);
+  const align = c.textAlign, base = c.font;
+  let x0 = align === 'center' ? x - w / 2 : (align === 'right' || align === 'end') ? x - w : x;
+  c.textAlign = 'left';
+  for (const r of runs) { c.font = r.f; c.fillText(r.t, x0, y + r.dyPx); x0 += r.w; }
+  c.textAlign = align; c.font = base;
+}
+
 /** A text label on a rounded paper pill so it stays readable over lines and parts. */
 function pillLabel(c, text, x, y, align, font, color) {
   c.font = font; c.textBaseline = 'middle';
-  const w = c.measureText(text).width, h = parseFloat(font) * 1.45, pad = h * 0.35;
+  const w = richWidth(c, text), h = parseFloat(font) * 1.45, pad = h * 0.35;
   const x0 = align === 'right' ? x - w - pad : align === 'center' ? x - w / 2 - pad : x - pad;
   c.fillStyle = 'rgba(252, 248, 240, 0.88)'; roundRect(c, x0, y - h / 2, w + 2 * pad, h, h / 2); c.fill();
-  c.fillStyle = color; c.textAlign = align; c.fillText(text, x, y + 0.5);
+  c.fillStyle = color; c.textAlign = align; fillRich(c, text, x, y + 0.5);
 }
 
 // ---- components (each draws one physical part; all take the context and logical coordinates)
@@ -1599,7 +1655,7 @@ function drawPlaten(c, X, Z, k, g, m, mono) {
   c.fillStyle = metalGradient(c, Z(g.zPlatenTop), Z(g.zPlatenTop - 0.04), 'dark', true);
   roundRect(c, X(-0.15), Z(g.zPlatenTop), k * 0.30, k * 0.04, 4); c.fill();
   c.fillStyle = '#f7efe3'; c.font = mono(11); c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.fillText(`m = ${fmt(m, 0)} kg`, X(0), Z(g.zPlatenTop - 0.02));
+  fillRich(c, `m = ${fmt(m, 0)} kg`, X(0), Z(g.zPlatenTop - 0.02));
 }
 /** Specimen between platen and load cell; it reddens as the force rises. True-scale compression. */
 function drawSpecimen(c, X, Z, k, g, F, sans) {
@@ -1693,7 +1749,7 @@ function drawValve(c, v, xv, ports, fs, mono) {
   const tag = (txt, x, y) => {
     c.fillStyle = COL.paper; c.strokeStyle = COL.ink; c.lineWidth = 1;
     c.beginPath(); c.arc(x, y, 8 * fs, 0, 2 * Math.PI); c.fill(); c.stroke();
-    c.fillStyle = COL.ink; c.font = mono(10); c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, x, y + 0.5);
+    c.fillStyle = COL.ink; c.font = mono(10); c.textAlign = 'center'; c.textBaseline = 'middle'; fillRich(c, txt, x, y + 0.5);
   };
   tag('A', ports.portA[0] - 16 * fs, ports.portA[1] - 12 * fs); tag('B', ports.portB[0] + 16 * fs, ports.portB[1] - 12 * fs);
   tag('P', ports.portP[0] - 16 * fs, ports.portP[1] + 12 * fs); tag('T', ports.portT[0] + 16 * fs, ports.portT[1] + 12 * fs);
@@ -1714,7 +1770,7 @@ function drawPump(c, x, y, r) {
   c.strokeStyle = COL.ink; c.lineWidth = 2;
   c.beginPath(); c.moveTo(x - r - 16, y); c.lineTo(x - r, y); c.stroke();
   c.fillStyle = '#e3d6bf'; c.beginPath(); c.arc(x - r - 24, y, 10, 0, 2 * Math.PI); c.fill(); c.lineWidth = 1.2; c.stroke();
-  c.fillStyle = COL.ink; c.font = '600 10px "IBM Plex Sans", Arial, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('M', x - r - 24, y + 0.5);
+  c.fillStyle = COL.ink; c.font = '600 10px "IBM Plex Sans", Arial, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; fillRich(c, 'M', x - r - 24, y + 0.5);
   const rg = c.createRadialGradient(x - r / 3, y - r / 3, r / 5, x, y, r);
   rg.addColorStop(0, '#fbf5ea'); rg.addColorStop(1, '#d4c4a8');
   c.fillStyle = rg; c.beginPath(); c.arc(x, y, r, 0, 2 * Math.PI); c.fill(); c.lineWidth = 1.5; c.stroke();
@@ -1733,7 +1789,7 @@ function drawTank(c, t, sans) {
   c.restore();
   c.strokeStyle = COL.ink; c.lineWidth = 1.5; roundRect(c, t.x, t.y, t.w, t.h, 6); c.stroke();
   c.fillStyle = COL.ink; c.font = sans(12); c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.fillText('tank, 0 MPa', t.x + t.w / 2, t.y + t.h * 0.66);
+  fillRich(c, 'tank, 0 MPa', t.x + t.w / 2, t.y + t.h * 0.66);
 }
 /** Signal wire: dashed line whose dashes travel from source to destination, with an arrowhead at the end. */
 function drawSignal(c, pts, phase) {
@@ -1753,17 +1809,17 @@ function drawControllerPanel(c, cb, st, fs, portrait, mono, sans) {
   const lx = cb.x + 14 * fs, row = f => cb.y + f * cb.h;
   c.textBaseline = 'middle'; c.textAlign = 'left';
   c.fillStyle = COL.wine; c.font = `600 ${10.5 * fs}px "IBM Plex Sans", Arial, sans-serif`;
-  c.fillText(`DIGITAL CONTROLLER · T_s ${fmt(P.Ts * 1000, 2)} ms`, lx, row(0.13));
+  fillRich(c, `DIGITAL CONTROLLER · T_s ${fmt(P.Ts * 1000, 2)} ms`, lx, row(0.13));
   c.font = `${portrait ? 38 : 30}px "Instrument Serif", Georgia, serif`; c.fillStyle = COL.wineDeep;
-  c.fillText(st.mode, lx, row(0.34));
-  const lawW = c.measureText(st.mode).width;
+  fillRich(c, st.mode, lx, row(0.34));
+  const lawW = richWidth(c, st.mode);
   const tagTxt = st.force ? 'FORCE LAW' : 'POSITION LAW';
   c.font = `600 ${9.5 * fs}px "IBM Plex Sans", Arial, sans-serif`;
-  const tw = c.measureText(tagTxt).width + 14 * fs;
+  const tw = richWidth(c, tagTxt) + 14 * fs;
   c.fillStyle = st.force ? COL.wine : COL.blue; roundRect(c, lx + lawW + 12, row(0.34) - 9 * fs, tw, 18 * fs, 9 * fs); c.fill();
-  c.fillStyle = '#fbf3e8'; c.fillText(tagTxt, lx + lawW + 12 + 7 * fs, row(0.34) + 0.5);
+  c.fillStyle = '#fbf3e8'; fillRich(c, tagTxt, lx + lawW + 12 + 7 * fs, row(0.34) + 0.5);
   c.font = mono(12); c.fillStyle = COL.ink;
-  c.fillText(st.force ? `set ${fmt(st.Fr / 1000, 2)} kN   meas ${fmt(st.F / 1000, 2)} kN` : `set ${fmt(st.yr * 1000, 2)} mm   meas ${fmt(st.y * 1000, 2)} mm`, lx, row(0.56));
+  fillRich(c, st.force ? `set ${fmt(st.Fr / 1000, 2)} kN   meas ${fmt(st.F / 1000, 2)} kN` : `set ${fmt(st.yr * 1000, 2)} mm   meas ${fmt(st.y * 1000, 2)} mm`, lx, row(0.56));
   // command bar, −100 … +100 %
   const bx = lx, bw = cb.w - 28 * fs, by = row(0.78), bh = 9 * fs, mid = bx + bw / 2;
   c.fillStyle = '#e8dcc8'; roundRect(c, bx, by - bh / 2, bw, bh, bh / 2); c.fill();
@@ -1772,9 +1828,9 @@ function drawControllerPanel(c, cb, st, fs, portrait, mono, sans) {
   roundRect(c, Math.min(mid, mid + uw), by - bh / 2, Math.abs(uw), bh, bh / 2); c.fill();
   c.strokeStyle = COL.ink; c.lineWidth = 1; c.beginPath(); c.moveTo(mid, by - bh); c.lineTo(mid, by + bh); c.stroke();
   c.font = mono(10.5); c.fillStyle = COL.muted;
-  c.textAlign = 'left'; c.fillText('−100 %', bx, by + bh * 1.6);
-  c.textAlign = 'right'; c.fillText('+100 %', bx + bw, by + bh * 1.6);
-  c.textAlign = 'center'; c.fillStyle = COL.ink; c.fillText(`u = ${fmt(100 * st.u, 1)} %`, mid, by + bh * 1.6);
+  c.textAlign = 'left'; fillRich(c, '−100 %', bx, by + bh * 1.6);
+  c.textAlign = 'right'; fillRich(c, '+100 %', bx + bw, by + bh * 1.6);
+  c.textAlign = 'center'; c.fillStyle = COL.ink; fillRich(c, `u = ${fmt(100 * st.u, 1)} %`, mid, by + bh * 1.6);
 }
 /** Analogue dial: 270° scale, coloured arc up to the value, main needle, optional second needle (e.g. command). */
 function drawDial(c, cx, cy, r, d, fs) {
@@ -1806,12 +1862,12 @@ function drawDial(c, cx, cy, r, d, fs) {
   c.fillStyle = COL.ink; c.beginPath(); c.arc(cx, cy, r * 0.08, 0, 2 * Math.PI); c.fill();
   c.textAlign = 'center'; c.textBaseline = 'middle';
   c.fillStyle = COL.muted; c.font = `500 ${8 * fs}px "IBM Plex Mono", ui-monospace, monospace`;
-  c.fillText(`${d.min}`.replace('-', '−'), cx + r * 0.62 * Math.cos(a0), cy + r * 0.62 * Math.sin(a0) + 7 * fs);
-  c.fillText(`${d.max}`, cx + r * 0.62 * Math.cos(a0 + sweep), cy + r * 0.62 * Math.sin(a0 + sweep) + 7 * fs);
+  fillRich(c, `${d.min}`.replace('-', '−'), cx + r * 0.62 * Math.cos(a0), cy + r * 0.62 * Math.sin(a0) + 7 * fs);
+  fillRich(c, `${d.max}`, cx + r * 0.62 * Math.cos(a0 + sweep), cy + r * 0.62 * Math.sin(a0 + sweep) + 7 * fs);
   c.fillStyle = COL.ink; c.font = `500 ${12 * fs}px "IBM Plex Mono", ui-monospace, monospace`;
-  c.fillText(d.text, cx, cy + r * 1.08 + 13 * fs);
+  fillRich(c, d.text, cx, cy + r * 1.08 + 13 * fs);
   c.fillStyle = COL.muted; c.font = `500 ${10.5 * fs}px "IBM Plex Sans", Arial, sans-serif`;
-  c.fillText(d.label, cx, cy + r * 1.08 + 28 * fs);
+  fillRich(c, d.label, cx, cy + r * 1.08 + 28 * fs);
 }
 /** Gauge panel: a ruled strip holding the five dials. */
 function drawGaugePanel(c, L, R, i) {
@@ -1819,7 +1875,11 @@ function drawGaugePanel(c, L, R, i) {
   c.fillStyle = '#f3ead9'; c.fillRect(0, cl.top, L.W, L.H - cl.top);
   c.strokeStyle = COL.rule; c.lineWidth = 1; c.beginPath(); c.moveTo(0, cl.top); c.lineTo(L.W, cl.top); c.stroke();
   c.fillStyle = COL.muted; c.font = `600 ${9.5 * fs}px "IBM Plex Sans", Arial, sans-serif`; c.textAlign = 'left'; c.textBaseline = 'middle';
-  if (!L.portrait) c.fillText('GAUGE PANEL', 14, cl.top + 14);
+  // caption runs up the left edge, clear of the first dial's bezel
+  if (!L.portrait) {
+    c.save(); c.translate(16, (cl.top + L.H) / 2); c.rotate(-Math.PI / 2); c.textAlign = 'center';
+    fillRich(c, 'GAUGE PANEL', 0, 0); c.restore();
+  }
   const pmax = Math.ceil(P.ps / 2e6) * 2e6, fmax = Math.max(20e3, Math.ceil(1.25 * P.Fref / 1e4) * 1e4);
   const dials = [
     { label: 'p_a port A', value: R.pa[i] / 1e6, min: 0, max: pmax / 1e6, text: `${fmt(R.pa[i] / 1e6, 2)} MPa` },
@@ -1852,15 +1912,15 @@ function drawContactWindow(c, cx, cy, r, y, F, fs) {
   c.restore();
   c.textAlign = 'center'; c.textBaseline = 'middle';
   c.fillStyle = COL.ink; c.font = `500 ${12 * fs}px "IBM Plex Mono", ui-monospace, monospace`;
-  c.fillText(gapMm >= 0 ? `gap ${fmt(gapMm, 2)} mm` : `δ ${fmt(-gapMm, 2)} mm`, cx, cy + r * 1.08 + 13 * fs);
+  fillRich(c, gapMm >= 0 ? `gap ${fmt(gapMm, 2)} mm` : `δ ${fmt(-gapMm, 2)} mm`, cx, cy + r * 1.08 + 13 * fs);
   c.fillStyle = COL.muted; c.font = `500 ${10.5 * fs}px "IBM Plex Sans", Arial, sans-serif`;
-  c.fillText(`contact ×${fmt(zoom, 0)}`, cx, cy + r * 1.08 + 28 * fs);
+  fillRich(c, `contact ×${fmt(zoom, 0)}`, cx, cy + r * 1.08 + 28 * fs);
 }
 /** 10 cm scale bar for the true-scale press. */
 function drawScaleBar(c, X, x0, y, mono) {
   c.strokeStyle = COL.ink; c.lineWidth = 1.5;
   c.beginPath(); c.moveTo(X(x0), y - 4); c.lineTo(X(x0), y); c.lineTo(X(x0 + 0.1), y); c.lineTo(X(x0 + 0.1), y - 4); c.stroke();
-  c.fillStyle = COL.ink; c.font = mono(11); c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText('10 cm', X(x0 + 0.1) + 8, y);
+  c.fillStyle = COL.ink; c.font = mono(11); c.textAlign = 'left'; c.textBaseline = 'middle'; fillRich(c, '10 cm', X(x0 + 0.1) + 8, y);
 }
 
 let G = null;
@@ -2076,15 +2136,15 @@ function renderPlot(p) {
   c.strokeStyle = COL.grid; c.lineWidth = 1; c.fillStyle = COL.muted; c.textAlign = 'right';
   for (let v = Math.ceil(lo / ys) * ys; v <= hi + 1e-12; v += ys) {
     c.beginPath(); c.moveTo(ml, py(v)); c.lineTo(ml + pw, py(v)); c.stroke();
-    c.fillText(fmt(v, yd), ml - 5, py(v));
+    fillRich(c, fmt(v, yd), ml - 5, py(v));
   }
   const ts = niceStep(tEnd, 6), td = decimals(ts);
   c.textAlign = 'center';
   for (let t = 0; t <= tEnd + 1e-9; t += ts) {
     c.beginPath(); c.moveTo(px(t), mt); c.lineTo(px(t), mt + ph); c.stroke();
-    c.fillText(fmt(t, td), px(t), mt + ph + 11);
+    fillRich(c, fmt(t, td), px(t), mt + ph + 11);
   }
-  c.textAlign = 'right'; c.fillText('t [s]', ml - 5, mt + ph + 11);
+  c.textAlign = 'right'; fillRich(c, 't [s]', ml - 5, mt + ph + 11);
   c.strokeStyle = COL.ink; c.strokeRect(ml, mt, pw, ph);
   c.save(); c.beginPath(); c.rect(ml, mt, pw, ph); c.clip();
   const stride = Math.max(1, Math.floor(T.length / (pw * 2)));
@@ -2099,14 +2159,14 @@ function renderPlot(p) {
     c.stroke();
   }
   c.restore(); c.setLineDash([]);
-  c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif'; c.fillStyle = COL.ink; c.fillText(p.title, 6, 12);
-  let lx = 6 + c.measureText(p.title).width + 12;
+  c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif'; c.fillStyle = COL.ink; fillRich(c, p.title, 6, 12);
+  let lx = 6 + richWidth(c, p.title) + 12;
   c.font = '11px "IBM Plex Mono", ui-monospace, monospace';
   for (const s of p.series) {
     if (lx > W - 40) break;
     c.fillStyle = s.color; c.fillRect(lx, 10, 12, 3);
-    c.fillStyle = COL.ink; c.fillText(s.name, lx + 15, 12);
-    lx += 15 + c.measureText(s.name).width + 10;
+    c.fillStyle = COL.ink; fillRich(c, s.name, lx + 15, 12);
+    lx += 15 + richWidth(c, s.name) + 10;
   }
   return { off, px };
 }
@@ -2144,19 +2204,19 @@ function drawBode() {
   const pyP = v => mt + phh + gap + phh * (1 - (v - p0) / (p1 - p0));
   const panel = (top, lo, hi, step, py, unit) => {
     c.strokeStyle = COL.grid; c.fillStyle = COL.muted; c.textAlign = 'right';
-    for (let v = lo; v <= hi + 1e-9; v += step) { c.beginPath(); c.moveTo(ml, py(v)); c.lineTo(ml + pw, py(v)); c.stroke(); c.fillText(fmt(v, 0), ml - 5, py(v)); }
+    for (let v = lo; v <= hi + 1e-9; v += step) { c.beginPath(); c.moveTo(ml, py(v)); c.lineTo(ml + pw, py(v)); c.stroke(); fillRich(c, fmt(v, 0), ml - 5, py(v)); }
     for (let e = Math.ceil(lf0); e <= Math.floor(lf1); e++) for (const m of [1, 2, 5]) {
       const fr = m * Math.pow(10, e); if (fr < f[0] || fr > f[f.length - 1]) continue;
       c.strokeStyle = m === 1 ? '#d2c3aa' : COL.grid; c.beginPath(); c.moveTo(px(fr), top); c.lineTo(px(fr), top + phh); c.stroke();
     }
     c.strokeStyle = COL.ink; c.strokeRect(ml, top, pw, phh);
-    c.save(); c.translate(12, top + phh / 2); c.rotate(-Math.PI / 2); c.textAlign = 'center'; c.fillStyle = COL.ink; c.fillText(unit, 0, 0); c.restore();
+    c.save(); c.translate(12, top + phh / 2); c.rotate(-Math.PI / 2); c.textAlign = 'center'; c.fillStyle = COL.ink; fillRich(c, unit, 0, 0); c.restore();
   };
   panel(mt, d0, d1, d1 - d0 > 120 ? 40 : 20, pyM, '|L| [dB]');
   panel(mt + phh + gap, p0, p1, p1 - p0 > 540 ? 180 : 90, pyP, '∠L [°]');
   c.fillStyle = COL.muted; c.textAlign = 'center';
-  for (let e = Math.ceil(lf0); e <= Math.floor(lf1); e++) c.fillText(`${Math.pow(10, e)}`, px(Math.pow(10, e)), H - 12);
-  c.textAlign = 'right'; c.fillText('f [Hz]', ml + pw, H - 12 + 0.1);
+  for (let e = Math.ceil(lf0); e <= Math.floor(lf1); e++) fillRich(c, `${Math.pow(10, e)}`, px(Math.pow(10, e)), H - 12);
+  c.textAlign = 'right'; fillRich(c, 'f [Hz]', ml + pw, H - 12 + 0.1);
   c.strokeStyle = COL.wine; c.lineWidth = 1; c.setLineDash([4, 4]);
   c.beginPath(); c.moveTo(ml, pyM(0)); c.lineTo(ml + pw, pyM(0)); c.stroke();
   for (let v = Math.ceil((p0 + 180) / 360) * 360 - 180; v <= p1; v += 360) { c.beginPath(); c.moveTo(ml, pyP(v)); c.lineTo(ml + pw, pyP(v)); c.stroke(); }
@@ -2172,7 +2232,7 @@ function drawBode() {
   if (Number.isFinite(m.fc)) { c.strokeStyle = COL.ink; c.setLineDash([2, 3]); c.beginPath(); c.moveTo(px(m.fc), mt); c.lineTo(px(m.fc), mt + 2 * phh + gap); c.stroke(); c.setLineDash([]); }
   if (Number.isFinite(m.fg)) { c.strokeStyle = COL.ochre; c.setLineDash([2, 3]); c.beginPath(); c.moveTo(px(m.fg), mt); c.lineTo(px(m.fg), mt + 2 * phh + gap); c.stroke(); c.setLineDash([]); }
   c.textAlign = 'left'; c.fillStyle = COL.ink; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
-  c.fillText(`Bode of L(e^{jωT_s}) up to the Nyquist frequency ${fmt(1 / (2 * P.Ts), 0)} Hz`, 8, 12);
+  fillRich(c, `Bode of L(e^{jωT_s}) up to the Nyquist frequency ${fmt(1 / (2 * P.Ts), 0)} Hz`, 8, 12);
 }
 function drawNyquist() {
   const { c, W, H } = prepCanvas($('nyq'));
@@ -2189,11 +2249,11 @@ function drawNyquist() {
   }
   c.restore();
   c.fillStyle = COL.wine; c.beginPath(); c.arc(X(-1), Y(0), 4, 0, 2 * Math.PI); c.fill();
-  c.fillStyle = COL.ink; c.textAlign = 'left'; c.fillText('−1', X(-1) + 6, Y(0) - 10);
+  c.fillStyle = COL.ink; c.textAlign = 'left'; fillRich(c, '−1', X(-1) + 6, Y(0) - 10);
   c.fillStyle = COL.muted; c.textAlign = 'center';
-  for (let v = -lim; v <= lim; v++) c.fillText(String(v).replace('-', '−'), X(v), Y(-lim) + 12);
+  for (let v = -lim; v <= lim; v++) fillRich(c, String(v).replace('-', '−'), X(v), Y(-lim) + 12);
   c.fillStyle = COL.ink; c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
-  c.fillText('Nyquist, clipped to |Re|, |Im| ≤ 3 (unit circle grey)', 8, 12);
+  fillRich(c, 'Nyquist, clipped to |Re|, |Im| ≤ 3 (unit circle grey)', 8, 12);
 }
 function drawZplane() {
   const { c, W, H } = prepCanvas($('zpl'));
@@ -2220,7 +2280,7 @@ function drawZplane() {
     c.beginPath(); c.moveTo(xx - 5, yy - 5); c.lineTo(xx + 5, yy + 5); c.moveTo(xx + 5, yy - 5); c.lineTo(xx - 5, yy + 5); c.stroke();
   }
   c.fillStyle = COL.ink; c.textAlign = 'left'; c.font = '12px "IBM Plex Sans", Arial, sans-serif';
-  c.fillText('Closed-loop poles in the z-plane (ζ = 0.1, 0.3, 0.7 curves)', 8, 12);
+  fillRich(c, 'Closed-loop poles in the z-plane (ζ = 0.1, 0.3, 0.7 curves)', 8, 12);
 }
 function poleRowsS(poles) {
   return poles.map(([re, im]) => {
@@ -2272,12 +2332,12 @@ function miniPlot(cv, cfg) {
   c.font = '11px "IBM Plex Mono", ui-monospace, monospace'; c.textBaseline = 'middle';
   c.strokeStyle = COL.grid; c.fillStyle = COL.muted; c.lineWidth = 1; c.textAlign = 'right';
   const yt = cfg.ylog ? [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000].filter(v => v >= cfg.ymin && v <= cfg.ymax) : cfg.yticks;
-  for (const v of yt) { c.beginPath(); c.moveTo(ml, py(v)); c.lineTo(ml + pw, py(v)); c.stroke(); c.fillText(String(v), ml - 6, py(v)); }
+  for (const v of yt) { c.beginPath(); c.moveTo(ml, py(v)); c.lineTo(ml + pw, py(v)); c.stroke(); fillRich(c, String(v), ml - 6, py(v)); }
   c.textAlign = 'center';
-  for (const v of cfg.xticks) { c.beginPath(); c.moveTo(px(v), mt); c.lineTo(px(v), mt + ph); c.stroke(); c.fillText(String(v), px(v), mt + ph + 12); }
+  for (const v of cfg.xticks) { c.beginPath(); c.moveTo(px(v), mt); c.lineTo(px(v), mt + ph); c.stroke(); fillRich(c, String(v), px(v), mt + ph + 12); }
   c.strokeStyle = COL.ink; c.strokeRect(ml, mt, pw, ph);
-  c.fillStyle = COL.ink; c.textAlign = 'right'; c.fillText(cfg.xlab, ml + pw, H - 8);
-  c.textAlign = 'left'; c.fillText(cfg.ylab, 6, 12);
+  c.fillStyle = COL.ink; c.textAlign = 'right'; fillRich(c, cfg.xlab, ml + pw, H - 8);
+  c.textAlign = 'left'; fillRich(c, cfg.ylab, 6, 12);
   c.save(); c.beginPath(); c.rect(ml, mt, pw, ph); c.clip();
   for (const s of cfg.series) {
     c.strokeStyle = s.color; c.lineWidth = s.width || 2; c.setLineDash(s.dash || []); c.beginPath();
@@ -2294,8 +2354,8 @@ function miniPlot(cv, cfg) {
   for (const s of cfg.series) {
     if (!s.name) continue;
     c.fillStyle = s.color; c.fillRect(lx, 9, 12, 3);
-    c.fillStyle = COL.ink; c.fillText(s.name, lx + 16, 11);
-    lx += 16 + c.measureText(s.name).width + 12;
+    c.fillStyle = COL.ink; fillRich(c, s.name, lx + 16, 11);
+    lx += 16 + richWidth(c, s.name) + 12;
   }
 }
 function drawSolutionFigures() {
@@ -2420,6 +2480,40 @@ function drawPlaceholder() {
   sctx.fillStyle = COL.muted; sctx.font = '15px "IBM Plex Sans", Arial, sans-serif'; sctx.textAlign = 'center'; sctx.textBaseline = 'middle';
   sctx.fillText('Integrating the first cycle…', w / 2, h / 2);
 }
+
+// ---- the same notation in the page text: p_A → p<sub>A</sub>, also in text written later
+// A base letter takes a subscript unless it is a lowercase ASCII letter inside a lowercase word,
+// which keeps file names such as check_control.py as they are.
+const SUB_RE = /((?:(?<![a-z])[a-z]|(?![a-z])\p{L})\p{M}?)_(\{[^}]+\}|\([^()]+\)|[\p{L}\p{Nd}]+)|\^\(([^()]+)\)/gu;
+function typesetSubs(root) {
+  if (!root || root.nodeType !== 1) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => /_|\^\(/.test(n.nodeValue) && !n.parentElement.closest('script, style, option, textarea, canvas, title')
+      ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+  });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const n of nodes) {
+    const s = n.nodeValue, frag = document.createDocumentFragment();
+    let last = 0, hit = false;
+    for (const m of s.matchAll(SUB_RE)) {
+      hit = true;
+      const head = m[1] ? m[1] : '';
+      frag.append(s.slice(last, m.index) + head);
+      const el = document.createElement(m[1] ? 'sub' : 'sup');
+      el.textContent = (m[1] ? m[2] : m[3]).replace(/^[{(]|[})]$/g, '');
+      frag.append(el);
+      last = m.index + m[0].length;
+    }
+    if (!hit) continue;
+    frag.append(s.slice(last));
+    n.replaceWith(frag);
+  }
+}
+typesetSubs(document.body);
+new MutationObserver(list => {
+  for (const rec of list) for (const n of rec.addedNodes) typesetSubs(n.nodeType === 3 ? n.parentElement : n);
+}).observe(document.body, { childList: true, subtree: true });
 
 buildControls();
 drawPlaceholder();

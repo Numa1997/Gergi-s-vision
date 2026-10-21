@@ -88,7 +88,7 @@ $$g(\Delta p) = \frac{\Delta p}{\left(\Delta p^2 + p_{\mathrm{tr}}^2\right)^{1/4
 <path d="M 222 125 C 200 112, 175 105, 155 64" fill="none" stroke="var(--wine)" stroke-width="2.5" marker-end="url(#ah)"/>
 <path d="M 305 64 C 312 95, 318 110, 312 128" fill="none" stroke="var(--blue)" stroke-width="2.5" marker-end="url(#ahb)"/>
 <line x1="395" y1="40" x2="440" y2="40" stroke="var(--ink)" stroke-width="2" marker-end="url(#ahk)"/><text x="380" y="34" class="svgt">x<tspan dy="4" font-size="10">v</tspan><tspan dy="-4"> &gt; 0</tspan></text></svg>
-<figcaption>Figure 4. Spool shifted to positive x_v: the pump P feeds port A, port B drains to the tank T. Negative x_v swaps the roles.</figcaption></figure>
+<figcaption>Figure 4. Spool shifted to positive $x_v$: the pump P feeds port A, port B drains to the tank T. Negative $x_v$ swaps the roles.</figcaption></figure>
 <p>A four-way valve has four metering edges. For $x_v > 0$ the edges P→A and B→T open; for $x_v < 0$ the edges P→B and A→T open. The valve is <i>critically lapped</i>: at $x_v = 0$ all four edges are exactly closed and only leakage flows. Writing $x^+ = \max(\hat{x}, 0)$ and $x^- = \min(\hat{x}, 0)$, the flows out of the ports are</p>
 $$\begin{aligned}
 Q_A &= K_v\left[x^+\,g(p_s - p_a) + x^-\,g(p_a - p_T)\right]\\
@@ -133,13 +133,13 @@ $$I\,\dot{Q} = 1.54\times10^7\times\frac{1.67\times10^{-4}}{0.01} = 0.26\ \mathr
 
 <figure class="fig"><svg viewBox="0 0 520 150" role="img" aria-label="The oil slug in the hose between two oil springs: the small valve-port volume and the large cap chamber">
 <path d="M 30 40 L 60 40 L 70 25 L 85 55 L 100 25 L 115 55 L 130 25 L 140 40 L 160 40" fill="none" stroke="var(--blue)" stroke-width="2.5"/>
-<text x="30" y="80" class="svgt" fill="var(--blue)">C_a = V_a/β</text><text x="30" y="98" class="svgt" fill="var(--muted)">valve port, stiff</text>
+<text x="30" y="80" class="svgt" fill="var(--blue)">C<tspan dy="4" font-size="10">a</tspan><tspan dy="-4"> = V</tspan><tspan dy="4" font-size="10">a</tspan><tspan dy="-4">/β</tspan></text><text x="30" y="98" class="svgt" fill="var(--muted)">valve port, stiff</text>
 <rect x="160" y="22" width="180" height="36" rx="6" fill="var(--oil-hi)" stroke="var(--ink)" stroke-width="1.5"/>
 <text x="178" y="45" class="svgt" fill="#fbf3e8">oil slug, inertance I</text>
 <path d="M 340 40 L 350 40 L 356 25 L 366 55 L 376 25 L 386 55 L 396 25 L 406 55 L 416 25 L 426 55 L 436 25 L 446 55 L 452 40 L 490 40" fill="none" stroke="var(--blue)" stroke-width="2.5"/>
-<text x="350" y="80" class="svgt" fill="var(--blue)">C_A = V_A/β</text><text x="350" y="98" class="svgt" fill="var(--muted)">cap chamber, softer</text>
+<text x="350" y="80" class="svgt" fill="var(--blue)">C<tspan dy="4" font-size="10">A</tspan><tspan dy="-4"> = V</tspan><tspan dy="4" font-size="10">A</tspan><tspan dy="-4">/β</tspan></text><text x="350" y="98" class="svgt" fill="var(--muted)">cap chamber, softer</text>
 <line x1="210" y1="120" x2="300" y2="120" stroke="var(--wine)" stroke-width="2" marker-end="url(#ah)" marker-start="url(#ah)"/>
-<text x="168" y="142" class="svgt" fill="var(--wine)">ω² = (1/C_a + 1/C_A) / I</text></svg>
+<text x="168" y="142" class="svgt" fill="var(--wine)">ω² = (1/C<tspan dy="4" font-size="10">a</tspan><tspan dy="-4"> + 1/C</tspan><tspan dy="4" font-size="10">A</tspan><tspan dy="-4">) / I</tspan></text></svg>
 <figcaption>Figure 5. The hose slug bouncing between two oil springs: the slosh mode of problem 2.</figcaption></figure>
 <h3 id="poiseuille">11.2 Laminar friction: Hagen–Poiseuille</h3>
 <figure class="fig"><svg viewBox="0 0 420 150" role="img" aria-label="Parabolic velocity profile in a pipe, fastest at the centre, zero at the wall">
