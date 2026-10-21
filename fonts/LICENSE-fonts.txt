@@ -3,9 +3,10 @@ FONT LICENCE NOTICE: fonts/ AND fonts/src/
 
 Covered files
 -------------
-This licence covers every .woff2 file in fonts/ and fonts/src/, and the
-base64 copies of those fonts in fonts/fonts-embedded.css,
-fonts/fonts-linked.css and fonts/math-embedded.css.
+The SIL Open Font License below covers every .woff2 file in fonts/ and the
+base64 copies of those fonts in fonts/fonts-embedded.css and
+fonts/fonts-linked.css. The KaTeX math fonts embedded in
+hydraulic_theory.html are under the MIT License; see the end of this file.
 
 1. IBM Plex Sans
    ibm-plex-sans-400-600-normal-latin.woff2
@@ -21,45 +22,21 @@ fonts/fonts-linked.css and fonts/math-embedded.css.
    instrument-serif-400-normal-latin.woff2
    instrument-serif-400-italic-latin.woff2
 
-4. Noto Sans Math, subset used as "Hydraulics Math"
-   math-subset.woff2                 (Modified Version, see below)
-   src/NotoSansMath-Regular.woff2    (full font, unmodified)
-
-5. Noto Sans, one glyph (U+02D9 dotaccent)
-   src/NotoSans-Regular-02D9.woff2
-
-Modified Version (Noto Sans Math subset)
-----------------------------------------
-math-subset.woff2 is a Modified Version of Noto Sans Math Regular, produced
-by tools/build_math_font.py. It is subsetted to 2301 code points, hinting
-tables are removed, and the MATH table is kept. Noto Sans Math has no
-U+02D9, so that code point is copied from Noto Sans
-(src/NotoSans-Regular-02D9.woff2). U+02D9 is the only code point taken
-from Noto Sans; the subset is not a one-glyph font.
-
-The CSS family name in math-embedded.css is "Hydraulics Math". The font's
-internal name table was not changed and still reads "Noto Sans Math".
-
 Reserved Font Name
 ------------------
 Checked: nameID 0 (copyright) and nameID 13 (licence description) in every
 file, and all other name records. No Reserved Font Name is declared.
 nameID 13 is absent from all files. The only "reserved" text found is
-"All rights reserved." in the IBM Plex and Google copyright lines. With no
-Reserved Font Name declared, the name restriction in OFL section 3 does not
-apply to the Modified Version above.
+"All rights reserved." in the IBM Plex and Google copyright lines.
 
 Copyright notices (nameID 0, exactly as read from each family's files)
 -----------------------------------------------------------------------
 IBM Plex Sans:     Copyright 2019 IBM Corp. All rights reserved.
 IBM Plex Mono:     Copyright 2017 IBM Corp. All rights reserved.
 Instrument Serif:  Copyright 2022 The Instrument Serif Project Authors (https://github.com/Instrument/instrument-serif)
-Noto Sans Math:    Copyright 2022 Google LLC. All Rights Reserved.
-Noto Sans:         Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)
 
 Licence URLs in the files (nameID 14): http://scripts.sil.org/OFL for IBM
-Plex, https://scripts.sil.org/OFL for Instrument Serif, and
-https://openfontlicense.org for Noto.
+Plex, https://scripts.sil.org/OFL for Instrument Serif.
 
 Licence text
 ------------
@@ -171,3 +148,35 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
+
+==========================================================================
+KaTeX MATH FONTS (embedded in hydraulic_theory.html as data URIs)
+==========================================================================
+
+hydraulic_theory.html embeds, as base64 data URIs, the KaTeX font files it
+uses (KaTeX_Main, KaTeX_Math, KaTeX_AMS, KaTeX_Size1-4 and
+KaTeX_Caligraphic, woff2), taken unmodified from the katex npm package,
+version 0.16.11, installed by tools/package.json. Their licence, from
+https://github.com/KaTeX/katex-fonts/blob/master/LICENSE:
+
+The MIT License (MIT)
+
+Copyright (c) 2018 Khan Academy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

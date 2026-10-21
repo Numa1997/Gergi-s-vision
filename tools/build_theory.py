@@ -2,54 +2,37 @@
 """Build hydraulic_theory.html from theory/*.src.html.
 
 The sources are HTML with LaTeX math: $...$ inline, $$...$$ display, \\tag{n} for an equation number and
-\\boxed{...} around a whole display for a key result. Math is converted to MathML here, at build time, so the
-page needs no script library at run time. Equation references like (4.5) in the text become links.
+\\boxed{...} around a whole display for a key result. Every formula is typeset here, at build time, with
+KaTeX (tools/katex_render.js), and the KaTeX fonts are embedded, so the page looks the same in every
+browser and runs no script library. Equation references like (4.5) in the text become links.
 
-Usage: python3 tools/build_theory.py        (needs: pip install latex2mathml)
+Usage: (cd tools && npm install) once, then python3 tools/build_theory.py
 """
+import base64
 import html
+import json
 import pathlib
 import re
-
-from latex2mathml.converter import convert
+import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+TOOLS = ROOT / 'tools'
 SRC = sorted((ROOT / 'theory').glob('*.src.html'))
-TEMPLATE = (ROOT / 'tools' / 'theory_template.html').read_text()
+TEMPLATE = (TOOLS / 'theory_template.html').read_text()
 FONTS = (ROOT / 'fonts' / 'fonts-embedded.css').read_text().strip()
-MATH_FONT = ROOT / 'fonts' / 'math-embedded.css'          # Noto Sans Math subset with its MATH table (tools/build_math_font.py)
-if MATH_FONT.exists():
-    FONTS += '\n' + MATH_FONT.read_text().strip()
+KATEX = TOOLS / 'node_modules' / 'katex' / 'dist'
 
 body = '\n'.join(p.read_text() for p in SRC)
 eq_ids = set()
+jobs = []          # formulas to typeset: (tex, display)
 
 
-def inner(tex):
-    """MathML for a fragment, without the outer <math> element."""
-    # display mode, as the cells of aligned are: big operators take their limits underneath
-    mml = convert(tex, display='block') if tex.strip() else '<math><mrow></mrow></math>'
-    return re.sub(r'^<math[^>]*>|</math>$', '', mml)
+def job(tex, display):
+    """Queue a formula and return a placeholder that the typeset HTML replaces later."""
+    jobs.append((tex, display))
+    return f'\x00{len(jobs) - 1}\x00'
 
 
-def aligned(tex):
-    """latex2mathml cannot lay out aligned: build an <mtable> with right/left alternating columns ourselves."""
-    body_ = re.search(r'\\begin\{aligned\}(.*)\\end\{aligned\}', tex, re.S).group(1)
-    rows = [r for r in re.split(r'\\\\', body_) if r.strip()]
-    trs = []
-    for r in rows:
-        cells = r.split('&')
-        # cells of aligned are in display style, as in LaTeX: full-size fractions and limits
-        tds = ''.join(f'<mtd class="{"ar" if j % 2 == 0 else "al"}"><mstyle displaystyle="true" scriptlevel="0">{inner(c)}</mstyle></mtd>'
-                      for j, c in enumerate(cells))
-        trs.append(f'<mtr>{tds}</mtr>')
-    return f'<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mtable class="aligned">{"".join(trs)}</mtable></math>'
-
-
-# Top-level break points of a display equation: "⇒" (kept, it starts the next piece) and
-# \quad / \qquad (dropped; the flex gap replaces them). Pieces sit on one line when the
-# column is wide and wrap onto new lines on a phone. "Top level" means outside braces,
-# \left...\right pairs and \begin...\end environments.
 BREAKS = [
     (re.compile(r'\\q?quad\s*\\Rightarrow\s*\\q?quad'), True),
     (re.compile(r'\\;\s*\\Rightarrow\s*\\;'), True),
@@ -97,23 +80,21 @@ def display(m):
     boxed = tex.startswith(r'\boxed{') and tex.endswith('}')
     if boxed:
         tex = re.sub(r'^(\\;|\s)+|(\\;|\s)+$', '', tex[len(r'\boxed{'):-1])
-    if r'\begin{aligned}' in tex:
-        mml = '<div class="eqs">' + aligned(tex) + '</div>'
-    else:
-        mml = '<div class="eqs">' + ''.join(convert(seg, display='block') for seg in split_top(tex)) + '</div>'
+    pieces = [tex] if r'\begin{aligned}' in tex else split_top(tex)
+    math = '<div class="eqs">' + ''.join(job(p, True) for p in pieces) + '</div>'
     attrs = ''
     if num:
         eq_ids.add(num)
         attrs = f' id="eq-{num}"'
     cls = 'eqn boxed' if boxed else 'eqn'
     no = f'<span class="eqno">({num})</span>' if num else '<span class="eqno"></span>'
-    return f'<div class="{cls}"{attrs}>{mml}{no}</div>'
+    return f'<div class="{cls}"{attrs}>{math}{no}</div>'
 
 
 def inline(m):
-    mml = convert(html.unescape(m.group(1).strip()))
+    ph = job(html.unescape(m.group(1).strip()), False)
     punct = m.group(2) or ''
-    return f'<span class="nobr">{mml}{punct}</span>' if punct else mml
+    return f'<span class="nobr">{ph}{punct}</span>' if punct else ph
 
 
 body = re.sub(r'\$\$(.+?)\$\$', display, body, flags=re.S)
@@ -121,16 +102,47 @@ body = re.sub(r'\$([^$\n]+?)\$([.,:;)]?)', inline, body)
 if '$' in body:
     raise SystemExit('unmatched $ left in the source')
 
-# Time-derivative dots: latex2mathml writes \dot and \ddot as plain over-scripts, which
-# MathML sets small and high, drifting toward the exponent. As accents they sit on the letter.
-body = re.sub(r'<mover>(<mrow>(?:(?!</?mover).)*?</mrow>)<mo>(&#x002D9;|&#x000A8;)</mo></mover>',
-              r'<mover accent="true">\1<mo>\2</mo></mover>', body)
+# Equation references become links. The math is still a placeholder here, so no link can land inside it.
+body = re.sub(r'\((\d+\.\d+)\)', lambda m: f'<a href="#eq-{m.group(1)}">({m.group(1)})</a>' if m.group(1) in eq_ids else m.group(0), body)
 
-# Link equation references, outside <math> only.
-parts = re.split(r'(<math[\s\S]*?</math>)', body)
-for i in range(0, len(parts), 2):
-    parts[i] = re.sub(r'\((\d+\.\d+)\)', lambda m: f'<a href="#eq-{m.group(1)}">({m.group(1)})</a>' if m.group(1) in eq_ids else m.group(0), parts[i])
-body = ''.join(parts)
+# Typeset every formula in one batch.
+res = subprocess.run(['node', str(TOOLS / 'katex_render.js')], input=json.dumps([{'tex': t, 'display': d} for t, d in jobs]),
+                     capture_output=True, text=True, check=True)
+rendered = json.loads(res.stdout)
+errors = [(jobs[k][0], r['error']) for k, r in enumerate(rendered) if 'error' in r]
+if errors:
+    for tex, err in errors:
+        print('KaTeX error:', err, '\n   in:', tex[:160])
+    raise SystemExit(f'{len(errors)} formulas failed')
+
+
+def place(m):
+    k = int(m.group(1))
+    tex, disp = jobs[k]
+    label = html.escape(re.sub(r'\s+', ' ', tex), quote=True)
+    return f'<span class="{"kd" if disp else "ki"}" role="img" aria-label="{label}">{rendered[k]["html"]}</span>'
+
+
+body = re.sub(r'\x00(\d+)\x00', place, body)
+
+# KaTeX's stylesheet with the fonts it actually uses embedded as data URIs.
+css = (KATEX / 'katex.min.css').read_text()
+used = set()
+
+
+def embed(m):
+    rule = m.group(0)
+    fam = re.search(r'font-family:KaTeX_(\w+)', rule).group(1)
+    fn = re.search(r'url\(fonts/(KaTeX_[\w-]+)\.woff2\)', rule).group(1)
+    data = base64.b64encode((KATEX / 'fonts' / f'{fn}.woff2').read_bytes()).decode()
+    used.add(fn)
+    return re.sub(r'src:[^;}]*', f'src:url(data:font/woff2;base64,{data}) format("woff2")', rule)
+
+
+# keep only the families that typeset this text: main, math, AMS, the size variants for big delimiters
+keep = ('Main', 'Math', 'AMS', 'Size1', 'Size2', 'Size3', 'Size4', 'Caligraphic')
+css = re.sub(r'@font-face\{[^}]*\}', lambda m: embed(m) if re.search(r'font-family:KaTeX_(%s);' % '|'.join(keep), m.group(0)) else '', css)
+FONTS += '\n/* KaTeX ' + json.loads((KATEX.parent / 'package.json').read_text())['version'] + ', MIT licence; fonts: ' + ', '.join(sorted(used)) + ' */\n' + css
 
 # Contents from the chapters and part banners.
 toc, toc_m = [], []
@@ -151,4 +163,4 @@ stats = (f'<span class="chip"><b>{n_ch}</b> chapters</span><span class="chip"><b
 out = (TEMPLATE.replace('{{FONTS}}', FONTS).replace('{{TOC}}', '\n'.join(toc)).replace('{{TOC_MOBILE}}', '\n'.join(toc_m))
        .replace('{{STATS}}', stats).replace('{{BODY}}', body))
 (ROOT / 'hydraulic_theory.html').write_text(out)
-print(f'wrote hydraulic_theory.html: {len(out)} bytes, {n_ch} chapters, {n_eq} equations, {n_fig} figures')
+print(f'wrote hydraulic_theory.html: {len(out)} bytes, {n_ch} chapters, {n_eq} equations, {n_fig} figures, {len(jobs)} formulas')

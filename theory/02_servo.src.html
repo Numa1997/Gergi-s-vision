@@ -102,7 +102,10 @@ Q_S &= K_v\left[x^+\,g(p_s - p_a) - x^-\,g(p_s - p_B)\right]\\
 
 <h3 id="valve-power">9.1 Where the power goes</h3>
 <p>The pump delivers hydraulic power $p_s Q_S$. The ports deliver $p_a Q_A + p_B Q_B$ to the actuator, and the tank receives $p_T(Q_S - Q_A - Q_B)$. The difference is lost in the jets as heat:</p>
-$$P_{\mathrm{valve}} = p_s Q_S - p_a Q_A - p_B Q_B - p_T\left(Q_S - Q_A - Q_B\right). \tag{9.2}$$
+$$\begin{aligned}
+P_{\mathrm{valve}} &= p_s Q_S - p_a Q_A - p_B Q_B\\
+&\quad - p_T\left(Q_S - Q_A - Q_B\right).
+\end{aligned} \tag{9.2}$$
 <div class="press"><div class="ctag">In our press</div>Over one cycle the pump does 26.3 kJ of work and the valve burns 24.4 kJ of it: 93 %. A valve throttling a constant-pressure supply is a brake. Industrial presses use variable pumps or accumulators to waste less.</div>
 
 <h3 id="valve-lin">9.2 The two valve coefficients</h3>
@@ -155,7 +158,10 @@ $$\Delta p\,\pi r^2 = -\eta\frac{du}{dr}\,2\pi r L \qquad\Rightarrow\qquad \frac
 <p>Integrate with the no-slip condition $u(R) = 0$ at the wall:</p>
 $$u(r) = \frac{\Delta p}{4\eta L}\left(R^2 - r^2\right).$$
 <p>Add up the flow through thin rings of area $2\pi r\,dr$:</p>
-$$Q = \int_0^R u(r)\,2\pi r\,dr = \frac{\pi\Delta p}{2\eta L}\left[\frac{R^2 r^2}{2} - \frac{r^4}{4}\right]_0^R = \frac{\pi R^4}{8\mu L}\,\Delta p.$$
+$$\begin{aligned}
+Q &= \int_0^R u(r)\,2\pi r\,dr = \frac{\pi\Delta p}{2\eta L}\left[\frac{R^2 r^2}{2} - \frac{r^4}{4}\right]_0^R\\
+&= \frac{\pi R^4}{8\eta L}\,\Delta p.
+\end{aligned}$$
 <p>With $R = d/2$:</p>
 $$\Delta p = R_{\mathrm{lam}}\,Q, \qquad R_{\mathrm{lam}} = \frac{128\,\eta L}{\pi d^4}. \tag{11.2}$$
 <div class="check"><div class="ctag">Check</div>The fourth power is brutal: halve the bore and the resistance rises sixteen times. Units: $\mathrm{Pa\,s\cdot m}/\mathrm{m^4} = \mathrm{Pa\,s/m^3}$, a pressure per flow.</div>
@@ -191,7 +197,10 @@ m\,\ddot{y} &= p_A A_A - p_B A_B - m g\\
 <h3 id="friction">12.3 Seal friction</h3>
 <div class="picture">Push a heavy box across a floor: it refuses to move until you push hard enough, jerks loose, then slides with less effort. Piston seals do the same.</div>
 <p>The model combines three effects. A Coulomb force $F_c$ opposes sliding; at low speeds a higher break-away force $k_{\mathrm{st}}F_c$ (the Stribeck effect) has to be overcome; and a viscous term $b_v\dot{y}$ grows with speed. The jump of the Coulomb force at $\dot{y} = 0$ is smoothed with a hyperbolic tangent over a speed $v_s = 1\ \mathrm{mm/s}$, and the Stribeck bump dies away over $v_{\mathrm{str}} = 5\ \mathrm{mm/s}$:</p>
-$$F_f(\dot{y}) = F_c\tanh\!\left(\frac{\dot{y}}{v_s}\right)\left[1 + (k_{\mathrm{st}} - 1)\,e^{-(\dot{y}/v_{\mathrm{str}})^2}\right] + b_v\,\dot{y}. \tag{12.3}$$
+$$\begin{aligned}
+F_f(\dot{y}) &= F_c\tanh\!\left(\frac{\dot{y}}{v_s}\right)\left[1 + (k_{\mathrm{st}} - 1)\,e^{-(\dot{y}/v_{\mathrm{str}})^2}\right]\\
+&\quad + b_v\,\dot{y}.
+\end{aligned} \tag{12.3}$$
 <p>The smoothing makes the equations integrable with a fixed step. Its price is that at rest the friction behaves like an enormous damper of slope $F_c k_{\mathrm{st}}/v_s \approx 10^6\ \mathrm{N\,s/m}$; problem 4 on the press page shows how that misleads a linear analysis.</p>
 
 <h3 id="contact">12.4 The specimen and the stop</h3>

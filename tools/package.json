@@ -1,0 +1,6 @@
+{
+  "name": "hydraulics-tools",
+  "private": true,
+  "description": "Build-time math rendering for the theory page (KaTeX, rendered once, no script at run time).",
+  "dependencies": { "katex": "0.16.11" }
+}

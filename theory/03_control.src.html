@@ -31,11 +31,15 @@ $$\left(ms^2 + bs\right)\left(K_{ce} + \frac{V_t}{4\beta}s\right)Y = A K_q X_v -
 $$Y\left[\frac{\left(ms + b\right)\left(K_{ce} + \frac{V_t}{4\beta}s\right)}{A^2} + 1\right] = \frac{K_q}{A\,s}\,X_v.$$
 <p>Multiply out the product in the bracket:</p>
 $$\begin{aligned}
-(ms + b)\left(K_{ce} + \frac{V_t s}{4\beta}\right) &= \frac{V_t m}{4\beta}s^2\\
-&\quad + \left(K_{ce}m + \frac{bV_t}{4\beta}\right)s + bK_{ce}
+&(ms + b)\left(K_{ce} + \frac{V_t s}{4\beta}\right)\\
+&\qquad = \frac{V_t m}{4\beta}s^2 + \left(K_{ce}m + \frac{bV_t}{4\beta}\right)s + bK_{ce}
 \end{aligned}$$
 <p>and collect:</p>
-$$\frac{Y(s)}{X_v(s)} = \frac{K_q/A}{s\left[\dfrac{V_t m}{4\beta A^2}s^2 + \left(\dfrac{K_{ce}m}{A^2} + \dfrac{bV_t}{4\beta A^2}\right)s + 1 + \dfrac{bK_{ce}}{A^2}\right]}. \tag{15.3}$$
+$$\begin{aligned}
+\frac{Y(s)}{X_v(s)} &= \frac{K_q/A}{s\,N(s)},\\
+N(s) &= \frac{V_t m}{4\beta A^2}s^2 + \left(\frac{K_{ce}m}{A^2} + \frac{bV_t}{4\beta A^2}\right)s\\
+&\quad + 1 + \frac{bK_{ce}}{A^2}.
+\end{aligned} \tag{15.3}$$
 <p>The last term $bK_{ce}/A^2$ is tiny in practice. Dropping it leaves the classic form</p>
 $$\boxed{\;\frac{Y(s)}{X_v(s)} = \frac{K_q/A}{s\left(\dfrac{s^2}{\omega_h^2} + \dfrac{2\zeta_h}{\omega_h}s + 1\right)},\qquad \omega_h^2 = \frac{4\beta A^2}{V_t\,m},\qquad \zeta_h = \frac{K_{ce}}{A}\sqrt{\frac{\beta m}{V_t}} + \frac{b}{4A}\sqrt{\frac{V_t}{\beta m}}\;} \tag{15.4}$$
 <p>Read it as two pieces. The integrator $1/s$: a valve opening produces a flow, and a flow produces a speed, not a position. And a resonance at $\omega_h$: the ram bouncing on the oil springs of its two chambers. For the differential cylinder of the press, the two springs differ, and the same reasoning gives</p>
@@ -50,7 +54,11 @@ $$\omega_h^2 = \frac{1}{m}\left(\frac{\beta_A A_A^2}{V_A} + \frac{\beta_B A_B^2}
 <p>A digital controller sees the plant only at the sampling instants $t_k = kT_s$ and holds its command constant in between (a <i>zero-order hold</i>). For a linear system we can then step from one sample to the next exactly. Multiply $\dot{\mathbf{x}} = A\mathbf{x} + B u$ by the integrating factor $e^{-At}$:</p>
 $$\frac{d}{dt}\left(e^{-At}\mathbf{x}\right) = e^{-At}\left(\dot{\mathbf{x}} - A\mathbf{x}\right) = e^{-At}B\,u.$$
 <p>Integrate from $t_k$ to $t_{k+1} = t_k + T_s$, with $u = u_k$ constant, and substitute $\sigma = t_{k+1} - \tau$:</p>
-$$\mathbf{x}_{k+1} = e^{AT_s}\mathbf{x}_k + \int_{t_k}^{t_{k+1}} e^{A(t_{k+1}-\tau)}\,d\tau\;B\,u_k = \Phi\,\mathbf{x}_k + \Gamma\,u_k, \qquad \Phi = e^{AT_s},\quad \Gamma = \int_0^{T_s} e^{A\sigma}\,d\sigma\,B. \tag{16.1}$$
+$$\begin{aligned}
+\mathbf{x}_{k+1} &= e^{AT_s}\mathbf{x}_k + \int_{t_k}^{t_{k+1}} e^{A(t_{k+1}-\tau)}\,d\tau\;B\,u_k\\
+&= \Phi\,\mathbf{x}_k + \Gamma\,u_k,\\
+\Phi &= e^{AT_s},\qquad \Gamma = \int_0^{T_s} e^{A\sigma}\,d\sigma\,B.
+\end{aligned} \tag{16.1}$$
 
 <h3 id="augmented">16.2 One exponential gives both</h3>
 <p>Treat the held input as an extra state that does not change: $\dot{u} = 0$. The augmented system is</p>
