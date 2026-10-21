@@ -105,6 +105,13 @@ input[type=range] { accent-color: var(--wine); }
 .eq { font-family: var(--f-mono); font-size: 13.5px; background: var(--paper); border: 1px solid #cdbca3; padding: 8px 10px; margin: 8px 0; overflow-x: auto; white-space: pre; max-width: 100%; }
 .theory ul, .theory ol { padding-left: 22px; }
 .problems li { margin-bottom: 8px; }
+.keylist { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); }
+.keylist li { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; align-items: center; border: 1px solid var(--rule); background: var(--paper); padding: 6px 8px; font-size: 13.5px; line-height: 1.4; }
+.keylist svg { width: 48px; height: 32px; display: block; }
+.symgrid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); }
+.symgrid td:first-child { text-align: left; color: var(--wine-deep); }
+.symgrid td:nth-child(2) { text-align: left; font-family: var(--f-text); white-space: normal; min-width: 16ch; }
+.symgrid th:nth-child(-n+2) { text-align: left; }
 </style>
 </head>
 <body>
@@ -176,6 +183,31 @@ input[type=range] { accent-color: var(--wine); }
       </section>
     </div>
   </div>
+
+  <section class="box" aria-label="Key to the drawing and the symbols">
+    <h2>Key to the drawing</h2>
+    <ul class="keylist">
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><circle cx="24" cy="16" r="11" fill="#e9dfcd" stroke="#2b1a14" stroke-width="1.5"/><path d="M24 7 L17 18 L31 18 Z" fill="#2b1a14"/></svg><span><b>Pump with relief valve.</b> Holds the supply line at the constant pressure p<sub>s</sub>.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="4" y="8" width="40" height="18" fill="#e9dfcd" stroke="#2b1a14" stroke-width="1.5"/></svg><span><b>Tank.</b> Oil returns here at atmospheric pressure, p<sub>T</sub> = 0.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="2" y="8" width="44" height="16" fill="#e9dfcd" stroke="#2b1a14" stroke-width="1.5"/><rect x="8" y="11" width="5" height="10" fill="#8d8279"/><rect x="21.5" y="11" width="5" height="10" fill="#8d8279"/><rect x="35" y="11" width="5" height="10" fill="#8d8279"/><rect x="6" y="15" width="36" height="2" fill="#5d534c"/></svg><span><b>Servo valve.</b> The three grey lands are the spool; sliding it by x<sub>v</sub> connects the pump P and tank T to the ports A and B. Travel is exaggerated.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="14" y="4" width="20" height="10" fill="#d6c9b2" stroke="#2b1a14"/><rect x="4" y="18" width="40" height="10" fill="#e9dfcd" stroke="#2b1a14"/></svg><span><b>Torque motor.</b> Turns the electrical command u into spool motion; it lags with bandwidth f<sub>v</sub>.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><defs><linearGradient id="kgr" x1="0" x2="1"><stop offset="0" stop-color="rgb(246,232,196)"/><stop offset="0.45" stop-color="rgb(222,146,70)"/><stop offset="1" stop-color="rgb(92,14,34)"/></linearGradient></defs><rect x="2" y="10" width="44" height="12" fill="url(#kgr)" stroke="#2b1a14"/></svg><span><b>Oil colour.</b> Pale amber at 0, deep wine at p<sub>s</sub>; chambers, hose and lines are all coloured by their pressure.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="2" y="10" width="44" height="12" fill="rgb(62,104,135)" stroke="#2b1a14"/></svg><span><b>Blue oil.</b> Gauge pressure below 0: suction, risk of air release and cavitation.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="2" y="11" width="44" height="10" fill="rgb(222,146,70)" stroke="#2b1a14" stroke-width="1.5"/><circle cx="11" cy="16" r="2.6" fill="#fffaf0" stroke="#2b1a14"/><circle cx="24" cy="16" r="2.6" fill="#fffaf0" stroke="#2b1a14"/><circle cx="37" cy="16" r="2.6" fill="#fffaf0" stroke="#2b1a14"/></svg><span><b>Hose and its dots.</b> Two metres of hose, drawn shortened; the white dots ride with the oil (they wrap round at the ends).</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M8 16 L34 16" stroke="#2b1a14" stroke-width="2"/><path d="M42 16 L30 9 L30 23 Z" fill="#2b1a14"/></svg><span><b>Flow arrow.</b> Points the way the oil moves; it grows with the flow rate.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="10" y="2" width="28" height="28" fill="#5d534c"/><rect x="14" y="4" width="20" height="9" fill="rgb(240,210,160)"/><rect x="14" y="13" width="20" height="5" fill="#8d8279" stroke="#2b1a14" stroke-width="0.8"/><rect x="14" y="18" width="20" height="10" fill="rgb(200,120,70)"/></svg><span><b>Cylinder.</b> Cap chamber below the piston (p<sub>A</sub>, pushes up), rod chamber above it (p<sub>B</sub>, pushes down). Drawn to scale.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="20" y="12" width="8" height="18" fill="#8d8279" stroke="#2b1a14"/><rect x="6" y="6" width="36" height="7" fill="#3d3430"/></svg><span><b>Rod and platen.</b> Moving mass m; the platen carries the tooling M and presses the specimen.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="16" y="4" width="16" height="24" fill="rgb(200,120,120)" stroke="#2b1a14"/></svg><span><b>Specimen.</b> The part being pressed, contact at y<sub>c</sub> = 120 mm; it reddens as the force rises.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="12" y="10" width="24" height="12" fill="#b06a1f"/></svg><span><b>Load cell.</b> Measures the specimen force F for the controller.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M24 3 L24 29" stroke="#3e6887" stroke-width="4"/></svg><span><b>LVDT.</b> Position sensor; measures the ram position y.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M2 16 L46 16" stroke="#7b1e2f" stroke-width="1.6" stroke-dasharray="6 5"/></svg><span><b>Dashed wine lines.</b> Electrical signals: u to the valve, F and y back to the controller.</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="4" y="4" width="40" height="24" fill="#f3eadb" stroke="#7b1e2f" stroke-width="1.5"/></svg><span><b>Controller panel.</b> Current mode, set-point, measurement and command u (the value applied now lags one sample).</span></li>
+      <li><svg viewBox="0 0 48 32" aria-hidden="true"><rect x="4" y="2" width="5" height="28" fill="#5d534c"/><rect x="39" y="2" width="5" height="28" fill="#5d534c"/><rect x="4" y="2" width="40" height="5" fill="#5d534c"/><rect x="2" y="27" width="44" height="4" fill="#5d534c"/></svg><span><b>Frame.</b> Base plate, two columns and the crosshead that holds the specimen and load cell.</span></li>
+    </ul>
+    <h2>Symbols</h2>
+    <p class="note" style="margin-bottom: 10px">Every symbol on this page, what it means, and its value with the current settings. Values marked “live” change during the cycle; read them in the gauges and time traces.</p>
+    <div class="symgrid" id="symbols"></div>
+  </section>
 
   <section class="box" aria-label="Time traces">
     <h2>Time traces</h2>
@@ -942,10 +974,12 @@ function recompute() {
   updateStatus();
   layout();
   drawAnalysis();
+  updateKey();
 }
 function reanalyse() {
   an = analyse(P, loopSel);
   drawAnalysis();
+  updateKey();
 }
 
 function updateStatus() {
@@ -966,15 +1000,27 @@ function updateStatus() {
 }
 
 // ---------------------------------------------------------------- scene
-// Logical drawing space 1000 × 720; the press itself is drawn at 750 px per metre.
-const SC = { W: 1000, H: 720, k: 750, axis: 760, base: 660 };
+// Two drawings in logical units. Landscape (1000 × 720): network on the left, press on the right.
+// Portrait (520 × 1090) for phones: controller on top, press in the middle, valve, pump and tank below,
+// with text 1.55 times larger. The press itself is drawn to scale (k logical px per metre) in both.
+function sceneLayout(portrait) {
+  return portrait
+    ? { portrait, W: 520, H: 1090, k: 700, axis: 260, base: 757, fs: 1.55,
+        valve: { x: 160, y: 860, w: 200, h: 56 }, ctrl: { x: 10, y: 10, w: 500, h: 160 },
+        tank: { x: 20, y: 1015, w: 200, h: 60 }, pump: [90, 975] }
+    : { portrait, W: 1000, H: 720, k: 750, axis: 760, base: 660, fs: 1,
+        valve: { x: 260, y: 380, w: 200, h: 56 }, ctrl: { x: 30, y: 30, w: 330, h: 150 },
+        tank: { x: 40, y: 610, w: 220, h: 60 }, pump: [110, 560] };
+}
 let G = null;
 function layout() {
   const dpr = window.devicePixelRatio || 1;
-  const cssW = scene.clientWidth || 700, cssH = cssW * SC.H / SC.W;
+  const cssW = scene.clientWidth || 700;
+  const L = sceneLayout(cssW < 640);
+  const cssH = cssW * L.H / L.W;
   scene.style.height = cssH + 'px';
   scene.width = Math.round(cssW * dpr); scene.height = Math.round(cssH * dpr);
-  G = { s: cssW / SC.W, dpr, cssW, cssH };
+  G = { L, s: cssW / L.W, dpr, cssW, cssH };
   for (const p of PLOTS) { p.cv.width = Math.round(p.cv.clientWidth * dpr); p.cv.height = Math.round(p.cv.clientHeight * dpr); }
   buildPlots();
   dirty = true;
@@ -997,14 +1043,15 @@ function pointAt(pts, s) {
 }
 
 function drawScene(i) {
-  const c = sctx, R = run.rec, pl = run.plant, k = SC.k;
+  const c = sctx, R = run.rec, pl = run.plant, L = G.L, k = L.k, fs = L.fs, portrait = L.portrait;
   c.setTransform(G.dpr * G.s, 0, 0, G.dpr * G.s, 0, 0);
-  c.fillStyle = COL.paper; c.fillRect(0, 0, SC.W, SC.H);
-  const Z = z => SC.base - k * z;                      // metres above the base plate → logical y
-  const X = xm => SC.axis + k * xm;                    // metres from the cylinder axis → logical x
+  c.fillStyle = COL.paper; c.fillRect(0, 0, L.W, L.H);
+  const Z = z => L.base - k * z;                       // metres above the base plate → logical y
+  const X = xm => L.axis + k * xm;                     // metres from the cylinder axis → logical x
   const y = R.y[i], pa = R.pa[i], pA = R.pA[i], pB = R.pB[i];
-  const mono = size => `${size}px "IBM Plex Mono", ui-monospace, monospace`;
-  const sans = size => `${size}px "IBM Plex Sans", Arial, sans-serif`;
+  const mono = size => `${size * fs}px "IBM Plex Mono", ui-monospace, monospace`;
+  const sans = size => `${size * fs}px "IBM Plex Sans", Arial, sans-serif`;
+  c.textBaseline = 'middle';
 
   // press geometry [m]
   const Rb = C0.D / 2, Rr = C0.dr / 2, wall = 0.02;
@@ -1028,7 +1075,7 @@ function drawScene(i) {
   c.fillRect(X(-Rb), Z(zPist + tPist), k * 2 * Rb, k * tPist); c.strokeRect(X(-Rb), Z(zPist + tPist), k * 2 * Rb, k * tPist);
   c.fillRect(X(-Rr), Z(zRodTop), k * 2 * Rr, Z(zPist + tPist) - Z(zRodTop)); c.strokeRect(X(-Rr), Z(zRodTop), k * 2 * Rr, Z(zPist + tPist) - Z(zRodTop));
   c.fillStyle = '#3d3430'; c.fillRect(X(-0.15), Z(zPlatenTop), k * 0.30, k * 0.04);
-  c.fillStyle = '#f7efe3'; c.font = mono(11); c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillStyle = '#f7efe3'; c.font = mono(11); c.textAlign = 'center';
   c.fillText(`m = ${fmt(pl.m, 0)} kg`, X(0), Z(zPlatenTop - 0.02));
   // specimen (true scale), load cell
   const Fn = R.F[i];
@@ -1038,23 +1085,42 @@ function drawScene(i) {
   c.fillStyle = COL.ink; c.font = sans(12); c.textAlign = 'left';
   c.fillText('specimen', X(0.06), Z((zSpecTop + zSpecBot) / 2));
   c.fillStyle = COL.ochre; c.fillRect(X(-0.04), Z(zCell), k * 0.08, k * 0.04);
-  c.fillStyle = COL.ink; c.textAlign = 'right'; c.fillText('load cell F', X(-0.06), Z(zCell - 0.02)); c.textAlign = 'left';
+  c.fillStyle = COL.ink; c.textAlign = 'right'; c.fillText('load cell', X(-0.06), Z(zCell - 0.02));
   // LVDT beside the rod
   c.strokeStyle = COL.blue; c.lineWidth = 3;
   c.beginPath(); c.moveTo(X(0.17), Z(zTop)); c.lineTo(X(0.17), Z(zTop + 0.12)); c.stroke();
   c.lineWidth = 1.5; c.beginPath(); c.moveTo(X(0.15), Z(zPlatenTop - 0.02)); c.lineTo(X(0.17), Z(zPlatenTop - 0.02)); c.stroke();
-  c.fillStyle = COL.blue; c.fillText('LVDT y', X(0.18), Z(zTop + 0.06));
+  c.fillStyle = COL.blue;
+  if (portrait) { c.textAlign = 'center'; c.fillText('LVDT', X(0.17), Z(zTop + 0.12) - 14); }
+  else { c.textAlign = 'left'; c.fillText('LVDT', X(0.18), Z(zTop + 0.06)); }
 
   // hydraulic network (schematic)
-  const valve = { x: 260, y: 380, w: 200, h: 56 };
+  const valve = L.valve;
   const portA = [valve.x + 50, valve.y], portB = [valve.x + 150, valve.y];
   const portP = [valve.x + 50, valve.y + valve.h], portT = [valve.x + 150, valve.y + valve.h];
   const capPort = [X(-Rb - wall), Z(zCapIn + 0.015)];
-  const rodPort = [X(-Rb - wall), Z(zTopIn - 0.015)];
-  const hose = [portA, [portA[0], 330], [500, 330], [500, 430], [530, 430], [530, 520], [500, 520], [500, 610], [capPort[0] - 30, 610], [capPort[0] - 30, capPort[1]], capPort];
-  const lineB = [portB, [portB[0], 300], [rodPort[0] - 40, 300], [rodPort[0] - 40, rodPort[1]], rodPort];
-  const lineP = [[110, 538], [110, 520], [portP[0], 520], portP];
-  const lineT = [portT, [portT[0], 560], [230, 560], [230, 610]];
+  const rodPort = [X((portrait ? 1 : -1) * (Rb + wall)), Z(zTopIn - 0.015)];
+  const [pumpX, pumpY] = L.pump, tank = L.tank;
+  let hose, lineB, lineP, lineT, sigU, sigF, sigY, motor;
+  if (portrait) {
+    hose = [portA, [portA[0], 815], [24, 815], [24, capPort[1]], capPort];
+    lineB = [portB, [portB[0], 835], [505, 835], [505, rodPort[1]], rodPort];
+    lineP = [[pumpX, pumpY - 22], [pumpX, 935], [portP[0], 935], portP];
+    lineT = [portT, [portT[0], 935], [480, 935], [480, 995], [200, 995], [200, tank.y]];
+    motor = { x: valve.x - 44, y: valve.y + 15, w: 36, h: 26 };
+    sigU = [[30, L.ctrl.y + L.ctrl.h], [30, L.ctrl.y + L.ctrl.h + 10], [12, L.ctrl.y + L.ctrl.h + 10], [12, motor.y + motor.h / 2], [motor.x, motor.y + motor.h / 2]];
+    sigF = [[L.ctrl.x + L.ctrl.w, 50], [514, 50], [514, Z(zCell - 0.02)], [X(0.04), Z(zCell - 0.02)]];
+    sigY = [[L.ctrl.x + L.ctrl.w, 130], [500, 130], [500, Z(zTop + 0.10)], [X(0.17), Z(zTop + 0.10)]];
+  } else {
+    hose = [portA, [portA[0], 330], [500, 330], [500, 430], [530, 430], [530, 520], [500, 520], [500, 610], [capPort[0] - 30, 610], [capPort[0] - 30, capPort[1]], capPort];
+    lineB = [portB, [portB[0], 300], [rodPort[0] - 40, 300], [rodPort[0] - 40, rodPort[1]], rodPort];
+    lineP = [[pumpX, pumpY - 22], [pumpX, 520], [portP[0], 520], portP];
+    lineT = [portT, [portT[0], 560], [230, 560], [230, tank.y]];
+    motor = { x: valve.x + 70, y: valve.y - 34, w: 60, h: 26 };
+    sigU = [[330, 180], [330, valve.y - 60], [valve.x + 100, valve.y - 60], [valve.x + 100, motor.y]];
+    sigF = [[360, 60], [440, 60], [440, 22], [X(0.31), 22], [X(0.31), Z(zCell - 0.02)], [X(0.04), Z(zCell - 0.02)]];
+    sigY = [[360, 150], [X(0.20), 150], [X(0.20), Z(zTop + 0.10)], [X(0.17), Z(zTop + 0.10)]];
+  }
   const strokeLine = (pts, w, style) => { c.strokeStyle = style; c.lineWidth = w; c.lineJoin = 'round'; c.beginPath(); pts.forEach((p, j) => (j ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.stroke(); };
   // hose: outline, then pressure gradient along its length
   strokeLine(hose, 14, COL.ink);
@@ -1071,9 +1137,9 @@ function drawScene(i) {
   const disp = R.Vh[i] / pl.Ah / P.Lh;          // hose volumes pushed through so far
   c.fillStyle = '#fffaf0'; c.strokeStyle = 'rgba(43,26,20,0.75)'; c.lineWidth = 1;
   for (let j = 0; j < 24; j++) {
-    let s = ((j / 24 + disp) % 1 + 1) % 1;
+    const s = ((j / 24 + disp) % 1 + 1) % 1;
     const p = pointAt(hose, s * Lh);
-    c.beginPath(); c.arc(p[0], p[1], 2.4, 0, 2 * Math.PI); c.fill(); c.stroke();
+    c.beginPath(); c.arc(p[0], p[1], portrait ? 3.2 : 2.4, 0, 2 * Math.PI); c.fill(); c.stroke();
   }
   // valve body and spool
   c.fillStyle = '#e9dfcd'; c.strokeStyle = COL.ink; c.lineWidth = 1.5;
@@ -1083,22 +1149,30 @@ function drawScene(i) {
   for (const lx of [20, 90, 160]) c.fillRect(valve.x + lx + shift, valve.y + 10, 22, valve.h - 20);
   c.fillStyle = COL.steel; c.fillRect(valve.x + 10 + shift, valve.y + valve.h / 2 - 3, 180, 6);
   c.fillStyle = COL.ink; c.font = mono(11); c.textAlign = 'center';
-  c.fillText('A', portA[0] - 14, portA[1] - 10); c.fillText('B', portB[0] + 14, portB[1] - 10);
-  c.fillText('P', portP[0] - 14, portP[1] + 12); c.fillText('T', portT[0] + 14, portT[1] + 12);
-  c.font = sans(12); c.textAlign = 'right'; c.fillText('servo valve', valve.x - 12, valve.y + 18); c.fillText(`x_v = ${fmt(100 * R.xv[i], 1)} %`, valve.x - 12, valve.y + 36);
+  c.fillText('A', portA[0] - 14 * fs, portA[1] - 10 * fs); c.fillText('B', portB[0] + 14 * fs, portB[1] - 10 * fs);
+  c.fillText('P', portP[0] - 14 * fs, portP[1] + 12 * fs); c.fillText('T', portT[0] + 14 * fs, portT[1] + 12 * fs);
+  c.font = sans(12);
+  if (portrait) { c.textAlign = 'center'; c.fillText(`servo valve · x_v = ${fmt(100 * R.xv[i], 1)} %`, valve.x + valve.w / 2, 962); }
+  else { c.textAlign = 'right'; c.fillText('servo valve', valve.x - 12, valve.y + 18); c.fillText(`x_v = ${fmt(100 * R.xv[i], 1)} %`, valve.x - 12, valve.y + 36); }
   // torque motor
-  c.fillStyle = '#d6c9b2'; c.fillRect(valve.x + 70, valve.y - 34, 60, 26); c.strokeRect(valve.x + 70, valve.y - 34, 60, 26);
-  // pump, tank, relief
-  c.fillStyle = '#e9dfcd'; c.fillRect(40, 610, 220, 60); c.strokeRect(40, 610, 220, 60);
-  c.fillStyle = COL.ink; c.font = sans(12); c.textAlign = 'center'; c.fillText('tank, 0 MPa', 150, 650);
-  c.fillStyle = '#e9dfcd'; c.beginPath(); c.arc(110, 560, 22, 0, 2 * Math.PI); c.fill(); c.stroke();
-  c.fillStyle = COL.ink; c.beginPath(); c.moveTo(110, 542); c.lineTo(100, 560); c.lineTo(120, 560); c.closePath(); c.fill();
-  c.textAlign = 'left'; c.fillText(`pump + relief, p_s = ${fmt(P.ps / 1e6, 1)} MPa`, 40, 485);
-  c.fillText(`hose: L_h = ${fmt(P.Lh, 1)} m, d_h = ${fmt(P.dh * 1000, 1)} mm`, 30, 205);
+  c.fillStyle = '#d6c9b2'; c.fillRect(motor.x, motor.y, motor.w, motor.h); c.strokeRect(motor.x, motor.y, motor.w, motor.h);
+  // pump, tank
+  c.fillStyle = '#e9dfcd'; c.fillRect(tank.x, tank.y, tank.w, tank.h); c.strokeRect(tank.x, tank.y, tank.w, tank.h);
+  c.fillStyle = COL.ink; c.font = sans(12); c.textAlign = 'center'; c.fillText('tank, 0 MPa', tank.x + tank.w / 2, tank.y + tank.h / 2);
+  c.fillStyle = '#e9dfcd'; c.beginPath(); c.arc(pumpX, pumpY, 22, 0, 2 * Math.PI); c.fill(); c.stroke();
+  c.fillStyle = COL.ink; c.beginPath(); c.moveTo(pumpX, pumpY - 18); c.lineTo(pumpX - 10, pumpY); c.lineTo(pumpX + 10, pumpY); c.closePath(); c.fill();
+  c.textAlign = 'left';
+  if (portrait) {
+    c.fillText(`pump, p_s = ${fmt(P.ps / 1e6, 1)} MPa`, 240, 1048);
+    c.fillText(`hose ${fmt(P.Lh, 1)} m, bore ${fmt(P.dh * 1000, 1)} mm`, 34, 797);
+  } else {
+    c.fillText(`pump + relief, p_s = ${fmt(P.ps / 1e6, 1)} MPa`, 40, 485);
+    c.fillText(`hose: L_h = ${fmt(P.Lh, 1)} m, d_h = ${fmt(P.dh * 1000, 1)} mm`, 30, 205);
+  }
   // flow arrows on the hose and on line B
   const arrow = (pts, frac, q, scaleQ) => {
     if (Math.abs(q) < 1e-7) return;
-    const L = polyLength(pts), a = pointAt(pts, L * frac), b = pointAt(pts, L * frac + 1);
+    const Lp = polyLength(pts), a = pointAt(pts, Lp * frac), b = pointAt(pts, Lp * frac + 1);
     let dx = b[0] - a[0], dy = b[1] - a[1];
     const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
     if (q < 0) { dx = -dx; dy = -dy; }
@@ -1107,29 +1181,118 @@ function drawScene(i) {
     c.moveTo(a[0] + dx * len, a[1] + dy * len);
     c.lineTo(a[0] - dy * 7, a[1] + dx * 7); c.lineTo(a[0] + dy * 7, a[1] - dx * 7); c.closePath(); c.fill();
   };
-  arrow(hose, 0.18, R.Qh[i], C0.QN); arrow(hose, 0.82, R.Qh[i], C0.QN); arrow(lineB, 0.5, R.QB[i], C0.QN);
-  // controller block and signal lines
+  arrow(hose, portrait ? 0.3 : 0.18, R.Qh[i], C0.QN); arrow(hose, 0.82, R.Qh[i], C0.QN); arrow(lineB, 0.5, R.QB[i], C0.QN);
+  // controller block
+  const cb = L.ctrl, lx = cb.x + 14 * fs;
   c.fillStyle = '#f3eadb'; c.strokeStyle = COL.wine; c.lineWidth = 1.5;
-  c.fillRect(30, 30, 330, 150); c.strokeRect(30, 30, 330, 150);
+  c.fillRect(cb.x, cb.y, cb.w, cb.h); c.strokeRect(cb.x, cb.y, cb.w, cb.h);
   const mode = MODES[R.mode[i]], force = R.force[i] === 1;
+  const row = f => cb.y + f * cb.h;
   c.fillStyle = COL.wine; c.font = sans(13); c.textAlign = 'left';
-  c.fillText(`Digital controller · T_s = ${fmt(P.Ts * 1000, 2)} ms`, 44, 50);
-  c.font = '28px "Instrument Serif", Georgia, serif'; c.fillText(mode, 44, 84);
+  c.fillText(`Digital controller · T_s = ${fmt(P.Ts * 1000, 2)} ms`, lx, row(0.14));
+  c.font = `${portrait ? 36 : 28}px "Instrument Serif", Georgia, serif`; c.fillText(mode, lx, row(0.37));
   c.font = mono(12); c.fillStyle = COL.ink;
-  c.fillText(force ? `force law   F_ref = ${fmt(R.Fr[i] / 1000, 2)} kN` : `position law y_ref = ${fmt(R.yr[i] * 1000, 2)} mm`, 44, 112);
-  c.fillText(force ? `            F     = ${fmt(R.F[i] / 1000, 2)} kN` : `             y    = ${fmt(R.y[i] * 1000, 2)} mm`, 44, 132);
-  c.fillText(`u = ${fmt(100 * R.uCmd[i], 1)} %   (applied ${fmt(100 * R.uApp[i], 1)} %)`, 44, 158);
+  c.fillText(force ? `force law   F_ref = ${fmt(R.Fr[i] / 1000, 2)} kN` : `position law y_ref = ${fmt(R.yr[i] * 1000, 2)} mm`, lx, row(0.57));
+  c.fillText(force ? `            F     = ${fmt(R.F[i] / 1000, 2)} kN` : `             y    = ${fmt(R.y[i] * 1000, 2)} mm`, lx, row(0.72));
+  c.fillText(`u = ${fmt(100 * R.uCmd[i], 1)} %   (applied ${fmt(100 * R.uApp[i], 1)} %)`, lx, row(0.88));
+  // signal lines: command u to the valve, force F and position y back to the controller
   c.setLineDash([6, 5]); c.strokeStyle = COL.wine; c.lineWidth = 1.2;
-  c.beginPath(); c.moveTo(330, 180); c.lineTo(330, valve.y - 60); c.lineTo(valve.x + 100, valve.y - 60); c.lineTo(valve.x + 100, valve.y - 34); c.stroke();
-  c.beginPath(); c.moveTo(360, 60); c.lineTo(440, 60); c.lineTo(440, 22); c.lineTo(X(0.31), 22); c.lineTo(X(0.31), Z(zCell - 0.02)); c.lineTo(X(0.04), Z(zCell - 0.02)); c.stroke();
-  c.beginPath(); c.moveTo(360, 150); c.lineTo(X(0.20), 150); c.lineTo(X(0.20), Z(zTop + 0.10)); c.lineTo(X(0.17), Z(zTop + 0.10)); c.stroke();
+  for (const sig of [sigU, sigF, sigY]) { c.beginPath(); sig.forEach((p, j) => (j ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.stroke(); }
   c.setLineDash([]);
-  c.fillStyle = COL.wine; c.font = sans(11);
-  c.fillText('u', 336, valve.y - 70); c.fillText('F', X(0.31) - 12, 34); c.fillText('y', X(0.21), 165);
+  c.fillStyle = COL.wine; c.font = sans(11); c.textAlign = 'left';
+  if (portrait) {
+    c.fillText('u', 17, 600); c.fillText('F', X(0.04) + 18, Z(zCell - 0.02) - 14); c.fillText('y', X(0.17) + 30, Z(zTop + 0.10) - 13);
+  } else {
+    c.fillText('u', 336, valve.y - 70); c.fillText('F', X(0.31) - 12, 34); c.fillText('y', X(0.21), 165);
+  }
   // 10 cm scale bar
+  const sbx = portrait ? 0.12 : -0.30, sby = portrait ? Z(0) + 40 : Z(-0.05);
   c.strokeStyle = COL.ink; c.lineWidth = 1.5;
-  c.beginPath(); c.moveTo(X(-0.30), Z(-0.05)); c.lineTo(X(-0.20), Z(-0.05)); c.moveTo(X(-0.30), Z(-0.05) - 4); c.lineTo(X(-0.30), Z(-0.05)); c.moveTo(X(-0.20), Z(-0.05) - 4); c.lineTo(X(-0.20), Z(-0.05)); c.stroke();
-  c.fillStyle = COL.ink; c.font = mono(11); c.textAlign = 'left'; c.fillText('10 cm', X(-0.20) + 8, Z(-0.05));
+  c.beginPath(); c.moveTo(X(sbx), sby); c.lineTo(X(sbx + 0.1), sby); c.moveTo(X(sbx), sby - 4); c.lineTo(X(sbx), sby); c.moveTo(X(sbx + 0.1), sby - 4); c.lineTo(X(sbx + 0.1), sby); c.stroke();
+  c.fillStyle = COL.ink; c.font = mono(11); c.textAlign = 'left'; c.fillText('10 cm', X(sbx + 0.1) + 8, sby);
+}
+
+// ---------------------------------------------------------------- key to the symbols
+// Each row: symbol, meaning, value (a function so it follows the settings).
+const MPa = v => `${fmt(v / 1e6, 2)} MPa`;
+const sci = (v, unit) => `${v.toExponential(3).replace('e', '·10^').replace('+', '')} ${unit}`;
+const SYMBOLS = [
+  { group: 'Pressures and flows', rows: [
+    ['p_s', 'supply pressure held by the pump and relief valve', () => MPa(P.ps)],
+    ['p_T', 'tank (return) pressure', () => '0 MPa'],
+    ['p_a', 'pressure at valve port A, where the hose starts', () => 'live: Gauges'],
+    ['p_A', 'cap-chamber pressure, under the piston; pushes the ram up', () => 'live: Gauges'],
+    ['p_B', 'rod-chamber pressure, above the piston; pushes the ram down', () => 'live: Gauges'],
+    ['gauge pressure', 'pressure above the atmosphere; 0 means atmospheric', () => '–'],
+    ['Q_A, Q_B', 'flow leaving valve ports A and B', () => 'live'],
+    ['Q_S', 'flow drawn from the pump', () => 'live'],
+    ['Q_h', 'flow along the hose, positive towards the cylinder', () => 'live: Gauges']
+  ] },
+  { group: 'Servo valve', rows: [
+    ['u', 'command from the controller, −1 … 1, shown in %', () => 'live: Gauges'],
+    ['x_v', 'spool position, −1 … 1; positive opens P→A and B→T (ram up)', () => 'live: Gauges'],
+    ['f_v, ω_v', 'spool bandwidth; ω_v = 2π·f_v', () => `${fmt(P.fv, 0)} Hz, ${fmt(2 * Math.PI * P.fv, 0)} rad/s`],
+    ['ζ_v', 'spool damping ratio', () => fmt(C0.zetaV, 2)],
+    ['Q_N, Δp_N', 'rated flow at the rated pressure drop', () => '100 L/min at 7 MPa'],
+    ['K_v', 'flow coefficient, K_v = Q_N / √(Δp_N/2)', () => sci(run.plant.Kv, 'm³/(s·√Pa)')],
+    ['K_L', 'internal leakage conductance', () => sci(C0.KL, 'm³/(s·Pa)')],
+    ['p_tr', 'pressure that rounds off the √ law near zero drop', () => MPa(C0.ptr)],
+    ['g(Δp)', 'orifice law, ≈ sign(Δp)·√|Δp|', () => '–']
+  ] },
+  { group: 'Oil and hose', rows: [
+    ['ρ', 'oil density', () => `${C0.rho} kg/m³`],
+    ['ν, μ', 'kinematic and dynamic viscosity, μ = ρ·ν', () => `${fmt(C0.nu * 1e6, 0)} mm²/s, ${fmt(C0.rho * C0.nu * 1000, 1)} mPa·s`],
+    ['β_oil', 'bulk modulus of oil without air', () => `${fmt(P.betaOil / 1e9, 2)} GPa`],
+    ['β_eff(p)', 'bulk modulus with the entrained air; depends on pressure', () => `${fmt(run.plant.beta(0) / 1e6, 1)} MPa at 0, ${fmt(run.plant.beta(1e7) / 1e9, 2)} GPa at 10 MPa`],
+    ['α₀', 'air volume fraction at atmospheric pressure', () => `${fmt(100 * P.alpha0, 2)} %`],
+    ['n, p₀', 'polytropic exponent of the air; atmospheric pressure', () => `${C0.npoly}, ${fmt(C0.patm / 1000, 3)} kPa`],
+    ['L_h, d_h', 'hose length and bore', () => `${fmt(P.Lh, 1)} m, ${fmt(P.dh * 1000, 1)} mm`],
+    ['A_h, V_h', 'hose cross-section and volume', () => `${fmt(run.plant.Ah * 1e6, 1)} mm², ${fmt(run.plant.Vh * 1e6, 0)} cm³`],
+    ['I', 'inertance ρ·L_h/A_h: the oil slug resisting acceleration', () => sci(run.plant.I, 'kg/m⁴')],
+    ['R_lam', 'laminar resistance 128·μ·L_h/(π·d_h⁴)', () => sci(run.plant.Rlam, 'Pa·s/m³')],
+    ['K_t', 'turbulent and fitting loss coefficient', () => sci(run.plant.Kt, 'kg/m⁷')],
+    ['V_a', 'oil volume between valve and hose (port + half the hose)', () => `${fmt(run.plant.Va * 1e6, 0)} cm³`],
+    ['V_A, V_B', 'cap and rod chamber volumes; they change with y', () => 'V_A0 + V_h/2 + A_A·y, V_B0 + A_B·(S − y)']
+  ] },
+  { group: 'Cylinder, ram and specimen', rows: [
+    ['D, d_r', 'bore and rod diameter', () => '120 mm, 80 mm'],
+    ['A_A, A_B', 'cap area and annulus area', () => `${fmt(run.plant.AA * 1e4, 1)} cm², ${fmt(run.plant.AB * 1e4, 1)} cm²`],
+    ['S', 'stroke', () => `${fmt(C0.stroke * 1000, 0)} mm`],
+    ['y, ẏ', 'ram position (0 on the bottom stop) and speed', () => 'live: Gauges'],
+    ['m', 'moving mass, 10 kg piston and rod + tooling M', () => `${fmt(run.plant.m, 0)} kg`],
+    ['F_f(ẏ)', 'seal friction: Coulomb + Stribeck + viscous', () => '–'],
+    ['F_c, k_st', 'Coulomb friction; break-away factor', () => `${fmt(P.Fc, 0)} N, ${C0.kst}`],
+    ['v_s, v_str, b_v', 'smoothing speed, Stribeck speed, viscous coefficient', () => '1 mm/s, 5 mm/s, 2000 N·s/m'],
+    ['y_c, δ', 'height where the platen meets the specimen; δ = y − y_c', () => `${fmt(C0.yc * 1000, 0)} mm`],
+    ['k_w, c_w', 'specimen stiffness and damping', () => `${fmt(P.kw / 1e6, 0)} MN/m, ${fmt(run.plant.cw / 1000, 1)} kN·s/m`],
+    ['F', 'specimen force, read by the load cell', () => 'live: Gauges'],
+    ['k_s, c_s', 'bottom-stop stiffness and damping', () => `${sci(C0.kStop, 'N/m')}, ${fmt(run.plant.cs / 1000, 0)} kN·s/m`]
+  ] },
+  { group: 'Controller', rows: [
+    ['T_s', 'sample period; each command reaches the valve one sample later', () => `${fmt(P.Ts * 1000, 2)} ms`],
+    ['modes', 'settle → approach → creep → press → release → retract → done', () => '–'],
+    ['y_ref, F_ref', 'position and force set-points', () => `F_ref = ${fmt(P.Fref / 1000, 0)} kN`],
+    ['e', 'error: set-point minus measurement', () => 'Time traces'],
+    ['K_p, K_i, K_d', 'position PID gains', () => `${fmt(P.Kp / 10, 1)} %/mm, ${fmt(P.Ki / 10, 0)} %/(mm·s), ${fmt(P.Kd / 10, 3)} %/(mm/s)`],
+    ['T_f', 'derivative filter time constant', () => `${fmt(C0.Tf * 1000, 0)} ms`],
+    ['K_ff', 'velocity feed-forward, A_A / (K_v·√(p_s/2))', () => `${fmt(run.plant.AA / (run.plant.Kv * Math.sqrt(P.ps / 2)), 2)} per m/s`],
+    ['K_pF, K_iF', 'force PI gains', () => `${fmt(P.KpF * 1e5, 2)} %/kN, ${fmt(P.KiF * 1e5, 1)} %/(kN·s)`],
+    ['F_switch, v_creep', 'contact threshold for creep → press; creep speed', () => '1 kN, 10 mm/s']
+  ] },
+  { group: 'Loop analysis', rows: [
+    ['A, B, C', 'linearized plant: δẋ = A·δx + B·δu, output C·δx (8 states)', () => '–'],
+    ['Φ, Γ', 'the same plant sampled with a zero-order hold over one T_s', () => '–'],
+    ['z, s', 'discrete and continuous complex frequency, z = e^(s·T_s)', () => '–'],
+    ['G, K, L', 'plant G(z), controller K(z), loop gain L = K·z⁻¹·G', () => '–'],
+    ['PM, GM', 'phase margin and gain margin of the selected loop', () => an ? `${Number.isFinite(an.margins.pm) ? fmt(an.margins.pm, 1) : '–'}°, ${Number.isFinite(an.margins.gm) ? fmt(an.margins.gm, 1) : '–'} dB` : '–'],
+    ['f, ζ', 'frequency and damping ratio of a pole', () => '–'],
+    ['|z| < 1', 'stability: every closed-loop pole inside the unit circle', () => an ? `max |z| = ${fmt(an.maxAbsZ, 4)}` : '–']
+  ] }
+];
+function updateKey() {
+  $('symbols').innerHTML = SYMBOLS.map(g => `<div class="tbl"><table><caption>${g.group}</caption>
+    <tr><th>symbol</th><th>meaning</th><th>value</th></tr>
+    ${g.rows.map(([sym, txt, val]) => `<tr><td>${sym}</td><td>${txt}</td><td>${val()}</td></tr>`).join('')}</table></div>`).join('');
 }
 
 // ---------------------------------------------------------------- time plots
